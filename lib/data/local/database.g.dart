@@ -2642,6 +2642,395 @@ class CobrosTableCompanion extends UpdateCompanion<CobrosTableData> {
   }
 }
 
+class $HorasExtraTableTable extends HorasExtraTable
+    with TableInfo<$HorasExtraTableTable, HorasExtraTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HorasExtraTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _fuenteIdMeta =
+      const VerificationMeta('fuenteId');
+  @override
+  late final GeneratedColumn<String> fuenteId = GeneratedColumn<String>(
+      'fuente_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _fechaMeta = const VerificationMeta('fecha');
+  @override
+  late final GeneratedColumn<String> fecha = GeneratedColumn<String>(
+      'fecha', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _horasMeta = const VerificationMeta('horas');
+  @override
+  late final GeneratedColumn<double> horas = GeneratedColumn<double>(
+      'horas', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _alumnoIdMeta =
+      const VerificationMeta('alumnoId');
+  @override
+  late final GeneratedColumn<String> alumnoId = GeneratedColumn<String>(
+      'alumno_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _notasMeta = const VerificationMeta('notas');
+  @override
+  late final GeneratedColumn<String> notas = GeneratedColumn<String>(
+      'notas', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
+  static const VerificationMeta _syncStatusMeta =
+      const VerificationMeta('syncStatus');
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+      'sync_status', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('pending'));
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, fuenteId, fecha, horas, alumnoId, notas, syncStatus];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'horas_extra_table';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<HorasExtraTableData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('fuente_id')) {
+      context.handle(_fuenteIdMeta,
+          fuenteId.isAcceptableOrUnknown(data['fuente_id']!, _fuenteIdMeta));
+    } else if (isInserting) {
+      context.missing(_fuenteIdMeta);
+    }
+    if (data.containsKey('fecha')) {
+      context.handle(
+          _fechaMeta, fecha.isAcceptableOrUnknown(data['fecha']!, _fechaMeta));
+    } else if (isInserting) {
+      context.missing(_fechaMeta);
+    }
+    if (data.containsKey('horas')) {
+      context.handle(
+          _horasMeta, horas.isAcceptableOrUnknown(data['horas']!, _horasMeta));
+    } else if (isInserting) {
+      context.missing(_horasMeta);
+    }
+    if (data.containsKey('alumno_id')) {
+      context.handle(_alumnoIdMeta,
+          alumnoId.isAcceptableOrUnknown(data['alumno_id']!, _alumnoIdMeta));
+    }
+    if (data.containsKey('notas')) {
+      context.handle(
+          _notasMeta, notas.isAcceptableOrUnknown(data['notas']!, _notasMeta));
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+          _syncStatusMeta,
+          syncStatus.isAcceptableOrUnknown(
+              data['sync_status']!, _syncStatusMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  HorasExtraTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HorasExtraTableData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      fuenteId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}fuente_id'])!,
+      fecha: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}fecha'])!,
+      horas: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}horas'])!,
+      alumnoId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}alumno_id']),
+      notas: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}notas'])!,
+      syncStatus: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}sync_status'])!,
+    );
+  }
+
+  @override
+  $HorasExtraTableTable createAlias(String alias) {
+    return $HorasExtraTableTable(attachedDatabase, alias);
+  }
+}
+
+class HorasExtraTableData extends DataClass
+    implements Insertable<HorasExtraTableData> {
+  final String id;
+  final String fuenteId;
+
+  /// Fecha del registro en formato "yyyy-MM-dd".
+  final String fecha;
+  final double horas;
+
+  /// Alumno asociado a estas horas extra (opcional).
+  final String? alumnoId;
+  final String notas;
+  final String syncStatus;
+  const HorasExtraTableData(
+      {required this.id,
+      required this.fuenteId,
+      required this.fecha,
+      required this.horas,
+      this.alumnoId,
+      required this.notas,
+      required this.syncStatus});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['fuente_id'] = Variable<String>(fuenteId);
+    map['fecha'] = Variable<String>(fecha);
+    map['horas'] = Variable<double>(horas);
+    if (!nullToAbsent || alumnoId != null) {
+      map['alumno_id'] = Variable<String>(alumnoId);
+    }
+    map['notas'] = Variable<String>(notas);
+    map['sync_status'] = Variable<String>(syncStatus);
+    return map;
+  }
+
+  HorasExtraTableCompanion toCompanion(bool nullToAbsent) {
+    return HorasExtraTableCompanion(
+      id: Value(id),
+      fuenteId: Value(fuenteId),
+      fecha: Value(fecha),
+      horas: Value(horas),
+      alumnoId: alumnoId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(alumnoId),
+      notas: Value(notas),
+      syncStatus: Value(syncStatus),
+    );
+  }
+
+  factory HorasExtraTableData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HorasExtraTableData(
+      id: serializer.fromJson<String>(json['id']),
+      fuenteId: serializer.fromJson<String>(json['fuenteId']),
+      fecha: serializer.fromJson<String>(json['fecha']),
+      horas: serializer.fromJson<double>(json['horas']),
+      alumnoId: serializer.fromJson<String?>(json['alumnoId']),
+      notas: serializer.fromJson<String>(json['notas']),
+      syncStatus: serializer.fromJson<String>(json['syncStatus']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'fuenteId': serializer.toJson<String>(fuenteId),
+      'fecha': serializer.toJson<String>(fecha),
+      'horas': serializer.toJson<double>(horas),
+      'alumnoId': serializer.toJson<String?>(alumnoId),
+      'notas': serializer.toJson<String>(notas),
+      'syncStatus': serializer.toJson<String>(syncStatus),
+    };
+  }
+
+  HorasExtraTableData copyWith(
+          {String? id,
+          String? fuenteId,
+          String? fecha,
+          double? horas,
+          Value<String?> alumnoId = const Value.absent(),
+          String? notas,
+          String? syncStatus}) =>
+      HorasExtraTableData(
+        id: id ?? this.id,
+        fuenteId: fuenteId ?? this.fuenteId,
+        fecha: fecha ?? this.fecha,
+        horas: horas ?? this.horas,
+        alumnoId: alumnoId.present ? alumnoId.value : this.alumnoId,
+        notas: notas ?? this.notas,
+        syncStatus: syncStatus ?? this.syncStatus,
+      );
+  HorasExtraTableData copyWithCompanion(HorasExtraTableCompanion data) {
+    return HorasExtraTableData(
+      id: data.id.present ? data.id.value : this.id,
+      fuenteId: data.fuenteId.present ? data.fuenteId.value : this.fuenteId,
+      fecha: data.fecha.present ? data.fecha.value : this.fecha,
+      horas: data.horas.present ? data.horas.value : this.horas,
+      alumnoId: data.alumnoId.present ? data.alumnoId.value : this.alumnoId,
+      notas: data.notas.present ? data.notas.value : this.notas,
+      syncStatus:
+          data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HorasExtraTableData(')
+          ..write('id: $id, ')
+          ..write('fuenteId: $fuenteId, ')
+          ..write('fecha: $fecha, ')
+          ..write('horas: $horas, ')
+          ..write('alumnoId: $alumnoId, ')
+          ..write('notas: $notas, ')
+          ..write('syncStatus: $syncStatus')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, fuenteId, fecha, horas, alumnoId, notas, syncStatus);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HorasExtraTableData &&
+          other.id == this.id &&
+          other.fuenteId == this.fuenteId &&
+          other.fecha == this.fecha &&
+          other.horas == this.horas &&
+          other.alumnoId == this.alumnoId &&
+          other.notas == this.notas &&
+          other.syncStatus == this.syncStatus);
+}
+
+class HorasExtraTableCompanion extends UpdateCompanion<HorasExtraTableData> {
+  final Value<String> id;
+  final Value<String> fuenteId;
+  final Value<String> fecha;
+  final Value<double> horas;
+  final Value<String?> alumnoId;
+  final Value<String> notas;
+  final Value<String> syncStatus;
+  final Value<int> rowid;
+  const HorasExtraTableCompanion({
+    this.id = const Value.absent(),
+    this.fuenteId = const Value.absent(),
+    this.fecha = const Value.absent(),
+    this.horas = const Value.absent(),
+    this.alumnoId = const Value.absent(),
+    this.notas = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  HorasExtraTableCompanion.insert({
+    required String id,
+    required String fuenteId,
+    required String fecha,
+    required double horas,
+    this.alumnoId = const Value.absent(),
+    this.notas = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        fuenteId = Value(fuenteId),
+        fecha = Value(fecha),
+        horas = Value(horas);
+  static Insertable<HorasExtraTableData> custom({
+    Expression<String>? id,
+    Expression<String>? fuenteId,
+    Expression<String>? fecha,
+    Expression<double>? horas,
+    Expression<String>? alumnoId,
+    Expression<String>? notas,
+    Expression<String>? syncStatus,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (fuenteId != null) 'fuente_id': fuenteId,
+      if (fecha != null) 'fecha': fecha,
+      if (horas != null) 'horas': horas,
+      if (alumnoId != null) 'alumno_id': alumnoId,
+      if (notas != null) 'notas': notas,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  HorasExtraTableCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? fuenteId,
+      Value<String>? fecha,
+      Value<double>? horas,
+      Value<String?>? alumnoId,
+      Value<String>? notas,
+      Value<String>? syncStatus,
+      Value<int>? rowid}) {
+    return HorasExtraTableCompanion(
+      id: id ?? this.id,
+      fuenteId: fuenteId ?? this.fuenteId,
+      fecha: fecha ?? this.fecha,
+      horas: horas ?? this.horas,
+      alumnoId: alumnoId ?? this.alumnoId,
+      notas: notas ?? this.notas,
+      syncStatus: syncStatus ?? this.syncStatus,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (fuenteId.present) {
+      map['fuente_id'] = Variable<String>(fuenteId.value);
+    }
+    if (fecha.present) {
+      map['fecha'] = Variable<String>(fecha.value);
+    }
+    if (horas.present) {
+      map['horas'] = Variable<double>(horas.value);
+    }
+    if (alumnoId.present) {
+      map['alumno_id'] = Variable<String>(alumnoId.value);
+    }
+    if (notas.present) {
+      map['notas'] = Variable<String>(notas.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HorasExtraTableCompanion(')
+          ..write('id: $id, ')
+          ..write('fuenteId: $fuenteId, ')
+          ..write('fecha: $fecha, ')
+          ..write('horas: $horas, ')
+          ..write('alumnoId: $alumnoId, ')
+          ..write('notas: $notas, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2654,6 +3043,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $SesionesRealizadasTableTable sesionesRealizadasTable =
       $SesionesRealizadasTableTable(this);
   late final $CobrosTableTable cobrosTable = $CobrosTableTable(this);
+  late final $HorasExtraTableTable horasExtraTable =
+      $HorasExtraTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2664,7 +3055,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         alumnosTable,
         sesionesRecurrentesTable,
         sesionesRealizadasTable,
-        cobrosTable
+        cobrosTable,
+        horasExtraTable
       ];
 }
 
@@ -4002,6 +4394,210 @@ typedef $$CobrosTableTableProcessedTableManager = ProcessedTableManager<
     ),
     CobrosTableData,
     PrefetchHooks Function()>;
+typedef $$HorasExtraTableTableCreateCompanionBuilder = HorasExtraTableCompanion
+    Function({
+  required String id,
+  required String fuenteId,
+  required String fecha,
+  required double horas,
+  Value<String?> alumnoId,
+  Value<String> notas,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
+typedef $$HorasExtraTableTableUpdateCompanionBuilder = HorasExtraTableCompanion
+    Function({
+  Value<String> id,
+  Value<String> fuenteId,
+  Value<String> fecha,
+  Value<double> horas,
+  Value<String?> alumnoId,
+  Value<String> notas,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
+
+class $$HorasExtraTableTableFilterComposer
+    extends Composer<_$AppDatabase, $HorasExtraTableTable> {
+  $$HorasExtraTableTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get fuenteId => $composableBuilder(
+      column: $table.fuenteId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get fecha => $composableBuilder(
+      column: $table.fecha, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get horas => $composableBuilder(
+      column: $table.horas, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get alumnoId => $composableBuilder(
+      column: $table.alumnoId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get notas => $composableBuilder(
+      column: $table.notas, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => ColumnFilters(column));
+}
+
+class $$HorasExtraTableTableOrderingComposer
+    extends Composer<_$AppDatabase, $HorasExtraTableTable> {
+  $$HorasExtraTableTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get fuenteId => $composableBuilder(
+      column: $table.fuenteId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get fecha => $composableBuilder(
+      column: $table.fecha, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get horas => $composableBuilder(
+      column: $table.horas, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get alumnoId => $composableBuilder(
+      column: $table.alumnoId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get notas => $composableBuilder(
+      column: $table.notas, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => ColumnOrderings(column));
+}
+
+class $$HorasExtraTableTableAnnotationComposer
+    extends Composer<_$AppDatabase, $HorasExtraTableTable> {
+  $$HorasExtraTableTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get fuenteId =>
+      $composableBuilder(column: $table.fuenteId, builder: (column) => column);
+
+  GeneratedColumn<String> get fecha =>
+      $composableBuilder(column: $table.fecha, builder: (column) => column);
+
+  GeneratedColumn<double> get horas =>
+      $composableBuilder(column: $table.horas, builder: (column) => column);
+
+  GeneratedColumn<String> get alumnoId =>
+      $composableBuilder(column: $table.alumnoId, builder: (column) => column);
+
+  GeneratedColumn<String> get notas =>
+      $composableBuilder(column: $table.notas, builder: (column) => column);
+
+  GeneratedColumn<String> get syncStatus => $composableBuilder(
+      column: $table.syncStatus, builder: (column) => column);
+}
+
+class $$HorasExtraTableTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $HorasExtraTableTable,
+    HorasExtraTableData,
+    $$HorasExtraTableTableFilterComposer,
+    $$HorasExtraTableTableOrderingComposer,
+    $$HorasExtraTableTableAnnotationComposer,
+    $$HorasExtraTableTableCreateCompanionBuilder,
+    $$HorasExtraTableTableUpdateCompanionBuilder,
+    (
+      HorasExtraTableData,
+      BaseReferences<_$AppDatabase, $HorasExtraTableTable, HorasExtraTableData>
+    ),
+    HorasExtraTableData,
+    PrefetchHooks Function()> {
+  $$HorasExtraTableTableTableManager(
+      _$AppDatabase db, $HorasExtraTableTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$HorasExtraTableTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$HorasExtraTableTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$HorasExtraTableTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> fuenteId = const Value.absent(),
+            Value<String> fecha = const Value.absent(),
+            Value<double> horas = const Value.absent(),
+            Value<String?> alumnoId = const Value.absent(),
+            Value<String> notas = const Value.absent(),
+            Value<String> syncStatus = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              HorasExtraTableCompanion(
+            id: id,
+            fuenteId: fuenteId,
+            fecha: fecha,
+            horas: horas,
+            alumnoId: alumnoId,
+            notas: notas,
+            syncStatus: syncStatus,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String fuenteId,
+            required String fecha,
+            required double horas,
+            Value<String?> alumnoId = const Value.absent(),
+            Value<String> notas = const Value.absent(),
+            Value<String> syncStatus = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              HorasExtraTableCompanion.insert(
+            id: id,
+            fuenteId: fuenteId,
+            fecha: fecha,
+            horas: horas,
+            alumnoId: alumnoId,
+            notas: notas,
+            syncStatus: syncStatus,
+            rowid: rowid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$HorasExtraTableTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $HorasExtraTableTable,
+    HorasExtraTableData,
+    $$HorasExtraTableTableFilterComposer,
+    $$HorasExtraTableTableOrderingComposer,
+    $$HorasExtraTableTableAnnotationComposer,
+    $$HorasExtraTableTableCreateCompanionBuilder,
+    $$HorasExtraTableTableUpdateCompanionBuilder,
+    (
+      HorasExtraTableData,
+      BaseReferences<_$AppDatabase, $HorasExtraTableTable, HorasExtraTableData>
+    ),
+    HorasExtraTableData,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -4020,4 +4616,6 @@ class $AppDatabaseManager {
           _db, _db.sesionesRealizadasTable);
   $$CobrosTableTableTableManager get cobrosTable =>
       $$CobrosTableTableTableManager(_db, _db.cobrosTable);
+  $$HorasExtraTableTableTableManager get horasExtraTable =>
+      $$HorasExtraTableTableTableManager(_db, _db.horasExtraTable);
 }

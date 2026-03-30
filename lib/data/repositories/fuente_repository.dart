@@ -68,6 +68,7 @@ class FuenteRepository {
         await _db.deleteSesionesRecurrentesByFuente(id);
         await _db.deleteAlumnosByFuente(id);
         await _db.deleteEmpleoConfigByFuente(id);
+        await _db.deleteHorasExtraByFuente(id);
         await _db.deleteFuente(id);
       });
 

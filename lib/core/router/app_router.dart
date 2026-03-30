@@ -133,7 +133,10 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: AppRoutes.horasExtra,
-      builder: (_, __) => const HorasExtraScreen(),
+      builder: (context, state) {
+        final fuenteId = state.uri.queryParameters['fuenteId'];
+        return HorasExtraScreen(fuenteId: fuenteId);
+      },
     ),
     GoRoute(
       path: AppRoutes.ajustes,

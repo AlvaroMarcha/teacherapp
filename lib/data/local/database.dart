@@ -9,6 +9,7 @@ import 'tables/alumnos_table.dart';
 import 'tables/sesiones_recurrentes_table.dart';
 import 'tables/sesiones_realizadas_table.dart';
 import 'tables/cobros_table.dart';
+import 'tables/horas_extra_table.dart';
 
 part 'database.g.dart';
 
@@ -27,6 +28,7 @@ part 'database.g.dart';
     SesionesRecurrentesTable,
     SesionesRealizadasTable,
     CobrosTable,
+    HorasExtraTable,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -36,7 +38,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.connection);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -45,7 +47,12 @@ class AppDatabase extends _$AppDatabase {
           await _seedDemoData();
         },
         onUpgrade: (m, from, to) async {
-          // Migraciones futuras aquí
+          if (from < 2) {
+            await m.createTable(horasExtraTable);
+          }
+          if (from < 3) {
+            await m.addColumn(horasExtraTable, horasExtraTable.alumnoId);
+          }
         },
       );
 
@@ -175,6 +182,28 @@ class AppDatabase extends _$AppDatabase {
   Future<void> deleteEmpleoConfigByFuente(String fuenteId) =>
       (delete(empleoConfigTable)..where((t) => t.fuenteId.equals(fuenteId)))
           .go();
+
+  // ── Queries — Horas Extra ────────────────────────────────────────
+
+  Stream<List<HorasExtraTableData>> watchAllHorasExtra() =>
+      select(horasExtraTable).watch();
+
+  Stream<List<HorasExtraTableData>> watchHorasExtraByFuente(
+    String fuenteId,
+  ) =>
+      (select(horasExtraTable)
+            ..where((t) => t.fuenteId.equals(fuenteId))
+            ..orderBy([(t) => OrderingTerm.desc(t.fecha)]))
+          .watch();
+
+  Future<void> upsertHoraExtra(HorasExtraTableCompanion entry) =>
+      into(horasExtraTable).insertOnConflictUpdate(entry);
+
+  Future<int> deleteHoraExtra(String id) =>
+      (delete(horasExtraTable)..where((t) => t.id.equals(id))).go();
+
+  Future<void> deleteHorasExtraByFuente(String fuenteId) =>
+      (delete(horasExtraTable)..where((t) => t.fuenteId.equals(fuenteId))).go();
 
   // ── Aggregates (Dashboard) ───────────────────────────────────────
 

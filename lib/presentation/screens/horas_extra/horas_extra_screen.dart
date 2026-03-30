@@ -1,162 +1,394 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../core/constants/app_colors.dart';
+import 'package:intl/intl.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/currency_utils.dart';
-import '../../providers/fuentes_provider.dart';
-import '../../providers/database_provider.dart';
 import '../../../domain/models/fuente.dart';
+import '../../../domain/models/hora_extra.dart';
+import '../../providers/alumnos_provider.dart';
+import '../../providers/fuentes_provider.dart';
+import '../../providers/horas_extra_provider.dart';
+import '../../providers/database_provider.dart';
 
-/// Pantalla de horas extra (exclusiva para fuente tipo [FuenteTipo.empleo]).
+/// Pantalla de horas extra para una fuente concreta de tipo [FuenteTipo.empleo].
 ///
-/// Permite registrar horas trabajadas más allá de las horas contratadas semanalmente.
-/// Proyecta el ingreso mensual extra basándose en el EmpleoConfig: tarifaHoraExtra.
-class HorasExtraScreen extends ConsumerStatefulWidget {
-  const HorasExtraScreen({super.key});
+/// Recibe [fuenteId] desde el router (query parameter). Muestra el historial
+/// de horas extra registradas y permite añadir nuevas o eliminar existentes.
+class HorasExtraScreen extends ConsumerWidget {
+  const HorasExtraScreen({super.key, this.fuenteId});
+
+  final String? fuenteId;
 
   @override
-  ConsumerState<HorasExtraScreen> createState() => _HorasExtraScreenState();
-}
-
-class _HorasExtraScreenState extends ConsumerState<HorasExtraScreen> {
-  final _horasCtrl = TextEditingController();
-  bool _guardando = false;
-
-  @override
-  void dispose() {
-    _horasCtrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final fuentesAsync = ref.watch(fuentesProvider);
 
+    return fuentesAsync.when(
+      loading: () => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      ),
+      error: (e, _) => Scaffold(
+        body: Center(child: Text('Error: $e')),
+      ),
+      data: (fuentes) {
+        final empleo = fuenteId != null
+            ? fuentes.where((f) => f.id == fuenteId).firstOrNull
+            : fuentes.where((f) => f.tipo == FuenteTipo.empleo).firstOrNull;
+
+        if (empleo == null) {
+          return const Scaffold(
+            appBar: null,
+            body: Center(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Text('No hay fuente de empleo configurada.'),
+              ),
+            ),
+          );
+        }
+        return _HorasExtraBody(fuente: empleo);
+      },
+    );
+  }
+}
+
+class _HorasExtraBody extends ConsumerWidget {
+  const _HorasExtraBody({required this.fuente});
+
+  final Fuente fuente;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final color = fuente.flutterColor;
+    final horasAsync = ref.watch(horasExtraByFuenteProvider(fuente.id));
+    final configAsync = ref.watch(empleoConfigProvider(fuente.id));
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Horas extra (Around)')),
-      body: fuentesAsync.when(
+      appBar: AppBar(title: Text('Horas extra — ${fuente.nombre}')),
+      body: horasAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
-        data: (fuentes) {
-          final empleo =
-              fuentes.where((f) => f.tipo == FuenteTipo.empleo).firstOrNull;
-          if (empleo == null) {
-            return const Center(
-                child: Text('No hay fuente de empleo configurada'));
-          }
-          return _buildContent(context, empleo);
+        data: (entries) {
+          final totalMes = _totalMesActual(entries);
+          return ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              // ── Resumen contrato ──────────────────────────────
+              configAsync.when(
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+                data: (config) {
+                  if (config == null) return const SizedBox.shrink();
+                  return Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Configuración contrato',
+                            style: AppTextStyles.titleSmall,
+                          ),
+                          const SizedBox(height: 12),
+                          _InfoRow(
+                            label: 'Horas semanales contratadas',
+                            value: '${config.horasSemanales}h',
+                          ),
+                          _InfoRow(
+                            label: 'Tarifa hora extra',
+                            value: CurrencyUtils.format(config.tarifaHoraExtra),
+                          ),
+                          _InfoRow(
+                            label: 'Este mes registradas',
+                            value: '${totalMes.toStringAsFixed(1)}h',
+                          ),
+                          if (totalMes > 0)
+                            _InfoRow(
+                              label: 'Importe extra proyectado',
+                              value: CurrencyUtils.format(
+                                totalMes * config.tarifaHoraExtra,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 16),
+
+              // ── Historial ─────────────────────────────────────
+              if (entries.isEmpty)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 32),
+                    child: Text(
+                      'Sin registros aún.\nPulsa + para añadir horas extra.',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                )
+              else ...[
+                Text('Historial', style: AppTextStyles.titleSmall),
+                const SizedBox(height: 8),
+                ...entries.map(
+                  (e) => _HoraExtraItem(
+                    entry: e,
+                    fuenteId: fuente.id,
+                    color: color,
+                    onDelete: () async {
+                      final confirmed = await showDialog<bool>(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          title: const Text('Eliminar registro'),
+                          content: const Text(
+                            '¿Eliminar este registro de horas extra?',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('Cancelar'),
+                            ),
+                            FilledButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text('Eliminar'),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (confirmed == true) {
+                        await ref
+                            .read(horasExtraRepositoryProvider)
+                            .deleteHoraExtra(e.id);
+                      }
+                    },
+                  ),
+                ),
+              ],
+              const SizedBox(height: 80),
+            ],
+          );
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showRegistrarDialog(context, ref),
+        child: const Icon(Icons.add),
       ),
     );
   }
 
-  Widget _buildContent(BuildContext context, Fuente empleo) {
-    return FutureBuilder(
-      future: ref.read(fuenteRepositoryProvider).getEmpleoConfig(empleo.id),
-      builder: (context, snap) {
-        final config = snap.data;
-        final tarifa = config?.tarifaHoraExtra ?? 0;
-        final contratadas = config?.horasSemanales ?? 0;
-
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Configuración contrato',
-                        style: AppTextStyles.titleSmall),
-                    const SizedBox(height: 12),
-                    _InfoRow(
-                      label: 'Horas semanales contratadas',
-                      value: '${contratadas}h',
-                    ),
-                    _InfoRow(
-                      label: 'Tarifa hora extra',
-                      value: CurrencyUtils.format(tarifa),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text('Registrar horas extra', style: AppTextStyles.titleMedium),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _horasCtrl,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(
-                labelText: 'Horas extra esta semana',
-                suffixText: 'h',
-              ),
-            ),
-            const SizedBox(height: 16),
-            if (_horasCtrl.text.isNotEmpty) ...[
-              _ProyeccionCard(
-                horas: double.tryParse(_horasCtrl.text) ?? 0,
-                tarifa: tarifa,
-              ),
-            ],
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed:
-                  _guardando ? null : () => _registrar(empleo.id, tarifa),
-              icon: _guardando
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.add),
-              label: const Text('Registrar horas extra'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.around,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-            ),
-          ],
-        );
-      },
-    );
+  double _totalMesActual(List<HoraExtra> entries) {
+    final periodoMes = DateFormat('yyyy-MM').format(DateTime.now());
+    return entries
+        .where((e) => e.fecha.startsWith(periodoMes))
+        .fold<double>(0, (acc, e) => acc + e.horas);
   }
 
-  Future<void> _registrar(String fuenteId, double tarifa) async {
-    final horas = double.tryParse(_horasCtrl.text);
-    if (horas == null || horas <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Introduce un número de horas válido')),
-      );
-      return;
-    }
-    setState(() => _guardando = true);
-    // TODO: persiste horas extra en una tabla dedicada (Sprint 3)
-    // Por ahora solo muestra confirmación
-    await Future.delayed(const Duration(milliseconds: 300));
-    setState(() {
-      _guardando = false;
-      _horasCtrl.clear();
-    });
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '${horas}h extra registradas → ${CurrencyUtils.format(horas * tarifa)} adicionales',
+  Future<void> _showRegistrarDialog(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final horasCtrl = TextEditingController();
+    final notasCtrl = TextEditingController();
+    DateTime fecha = DateTime.now();
+    String? selectedAlumnoId;
+    final formKey = GlobalKey<FormState>();
+
+    // Pre-load alumnos of this fuente
+    final alumnos = await ref
+        .read(alumnoRepositoryProvider)
+        .watchAlumnosByFuente(fuente.id)
+        .first;
+
+    if (!context.mounted) return;
+
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setStateDialog) => AlertDialog(
+          title: const Text('Registrar horas extra'),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Fecha
+                InkWell(
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: ctx,
+                      initialDate: fecha,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime(2030),
+                    );
+                    if (picked != null) {
+                      setStateDialog(() => fecha = picked);
+                    }
+                  },
+                  child: InputDecorator(
+                    decoration: const InputDecoration(
+                      labelText: 'Fecha',
+                      suffixIcon: Icon(Icons.calendar_today_outlined),
+                    ),
+                    child: Text(DateFormat('dd/MM/yyyy').format(fecha)),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Horas
+                TextFormField(
+                  controller: horasCtrl,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'Horas extra',
+                    suffixText: 'h',
+                  ),
+                  validator: (v) {
+                    final n = double.tryParse(v ?? '');
+                    if (n == null || n <= 0) {
+                      return 'Introduce un número válido';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                // Alumno (opcional)
+                if (alumnos.isNotEmpty)
+                  DropdownButtonFormField<String?>(
+                    value: selectedAlumnoId,
+                    decoration: const InputDecoration(
+                      labelText: 'Alumno (opcional)',
+                    ),
+                    items: [
+                      const DropdownMenuItem(
+                        value: null,
+                        child: Text('Sin alumno'),
+                      ),
+                      ...alumnos.map(
+                        (a) => DropdownMenuItem(
+                          value: a.id,
+                          child: Text(a.nombre),
+                        ),
+                      ),
+                    ],
+                    onChanged: (v) =>
+                        setStateDialog(() => selectedAlumnoId = v),
+                  ),
+                if (alumnos.isNotEmpty) const SizedBox(height: 12),
+                // Notas
+                TextFormField(
+                  controller: notasCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Notas (opcional)',
+                  ),
+                  maxLines: 2,
+                ),
+              ],
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                if (!formKey.currentState!.validate()) return;
+                final entry = HoraExtra(
+                  id: '',
+                  fuenteId: fuente.id,
+                  fecha: DateFormat('yyyy-MM-dd').format(fecha),
+                  horas: double.parse(horasCtrl.text),
+                  alumnoId: selectedAlumnoId,
+                  notas: notasCtrl.text.trim(),
+                );
+                await ref
+                    .read(horasExtraRepositoryProvider)
+                    .saveHoraExtra(entry);
+                if (ctx.mounted) Navigator.pop(ctx);
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
         ),
-      );
+      ),
+    );
+  }
+}
+
+class _HoraExtraItem extends ConsumerWidget {
+  const _HoraExtraItem({
+    required this.entry,
+    required this.fuenteId,
+    required this.color,
+    required this.onDelete,
+  });
+
+  final HoraExtra entry;
+  final String fuenteId;
+  final Color color;
+  final VoidCallback onDelete;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final fecha = DateFormat('dd/MM/yyyy').format(
+      DateTime.parse(entry.fecha),
+    );
+
+    // Resolve alumno name if linked
+    String? alumnoNombre;
+    if (entry.alumnoId != null) {
+      final alumnosAsync = ref.watch(alumnosByFuenteProvider(fuenteId));
+      alumnosAsync.whenData((alumnos) {
+        alumnoNombre = alumnos
+            .where((a) => a.id == entry.alumnoId)
+            .map((a) => a.nombre)
+            .firstOrNull;
+      });
     }
+
+    final subtitleParts = <String>[fecha];
+    if (alumnoNombre != null) subtitleParts.add(alumnoNombre!);
+    if (entry.notas.isNotEmpty) subtitleParts.add(entry.notas);
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: ListTile(
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(Icons.access_time, color: color, size: 20),
+        ),
+        title: Text(
+          '${entry.horas.toStringAsFixed(1)}h',
+          style: AppTextStyles.titleSmall,
+        ),
+        subtitle: Text(
+          subtitleParts.join(' · '),
+          style: AppTextStyles.bodySmall,
+        ),
+        trailing: IconButton(
+          icon: const Icon(Icons.delete_outline),
+          onPressed: onDelete,
+          color: Theme.of(context).colorScheme.error,
+        ),
+      ),
+    );
   }
 }
 
 class _InfoRow extends StatelessWidget {
+  const _InfoRow({required this.label, required this.value});
+
   final String label;
   final String value;
-  const _InfoRow({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -166,48 +398,13 @@ class _InfoRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: AppTextStyles.bodyMedium),
-          Text(value,
-              style: AppTextStyles.bodyMedium
-                  .copyWith(fontWeight: FontWeight.w600)),
+          Text(
+            value,
+            style: AppTextStyles.bodyMedium.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
-      ),
-    );
-  }
-}
-
-class _ProyeccionCard extends StatelessWidget {
-  final double horas;
-  final double tarifa;
-  const _ProyeccionCard({required this.horas, required this.tarifa});
-
-  @override
-  Widget build(BuildContext context) {
-    final total = horas * tarifa;
-    return Card(
-      color: AppColors.around.withValues(alpha: 0.08),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: AppColors.around.withValues(alpha: 0.3)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Text('Ingreso extra proyectado', style: AppTextStyles.labelMedium),
-            const SizedBox(height: 8),
-            Text(
-              CurrencyUtils.format(total),
-              style:
-                  AppTextStyles.amountLarge.copyWith(color: AppColors.around),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${horas}h × ${CurrencyUtils.format(tarifa)}/h',
-              style: AppTextStyles.bodySmall,
-            ),
-          ],
-        ),
       ),
     );
   }

@@ -54,7 +54,15 @@ class DashboardScreen extends ConsumerWidget {
                 pendientes: data.cobrosPendientes,
                 totalPendiente: data.totalPendienteMes,
               ),
-              HorasSemanaCard(totalHoras: data.totalHorasMes),
+              // Una tarjeta de horas extra por cada fuente de tipo empleo
+              ...data.fuentesResumen.values
+                  .where((r) => r.fuente.tipo == FuenteTipo.empleo)
+                  .map(
+                    (r) => HorasSemanaCard(
+                      fuente: r.fuente,
+                      horasExtra: data.horasExtraMes[r.fuente.id] ?? 0,
+                    ),
+                  ),
               if (data.fuentesResumen.isNotEmpty) ...[
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
