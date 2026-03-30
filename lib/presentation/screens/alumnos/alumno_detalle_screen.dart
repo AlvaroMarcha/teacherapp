@@ -12,6 +12,7 @@ import '../../providers/database_provider.dart';
 import '../../../core/extensions/datetime_extension.dart';
 import '../../../domain/models/alumno.dart';
 import '../../../domain/models/sesion_realizada.dart';
+import '../../../core/utils/date_utils.dart';
 
 enum _AlumnoAccion { traspasar, eliminar }
 
@@ -172,7 +173,8 @@ class AlumnoDetalleScreen extends ConsumerWidget {
                             margin: const EdgeInsets.only(bottom: 6),
                             child: ListTile(
                               title: Text(
-                                s.fecha,
+                                AppDateUtils.formatFullDate(
+                                    DateTime.parse(s.fecha)),
                                 style: AppTextStyles.bodyMedium,
                               ),
                               trailing: Text(

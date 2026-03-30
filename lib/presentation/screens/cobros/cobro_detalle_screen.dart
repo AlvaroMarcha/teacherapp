@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/currency_utils.dart';
+import '../../../core/utils/date_utils.dart';
 import '../../providers/cobros_provider.dart';
 import '../../providers/database_provider.dart';
 import '../../../domain/models/cobro.dart';
@@ -44,9 +45,15 @@ class CobroDetalleScreen extends ConsumerWidget {
                       _Row('Estado', cobro.estado.value),
                       _Row('Modo', cobro.modoCobro.value),
                       if (cobro.periodoMes != null)
-                        _Row('Período', cobro.periodoMes!),
+                        _Row(
+                            'Período',
+                            AppDateUtils.formatMonth(
+                                DateTime.parse('${cobro.periodoMes!}-01'))),
                       if (cobro.fechaCobro != null)
-                        _Row('Fecha cobro', cobro.fechaCobro!),
+                        _Row(
+                            'Fecha cobro',
+                            AppDateUtils.formatFullDate(
+                                DateTime.parse(cobro.fechaCobro!))),
                       if (cobro.montoParcial != null)
                         _Row(
                           'Cobrado parcial',

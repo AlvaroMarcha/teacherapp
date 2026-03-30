@@ -42,7 +42,7 @@ class CobrosPendientesCard extends StatelessWidget {
         title: Text('Cobros pendientes', style: AppTextStyles.titleSmall),
         subtitle: Text(
           pendientes == 0
-              ? 'Todo al día 🎉'
+              ? 'Todo al día'
               : '$pendientes cobro${pendientes != 1 ? 's' : ''} · ${CurrencyUtils.formatCompact(totalPendiente)}',
           style: AppTextStyles.bodySmall,
         ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/currency_utils.dart';
+import '../../../core/utils/date_utils.dart';
 import '../../../domain/models/fuente.dart';
 import '../../../domain/models/hora_extra.dart';
 import '../../providers/alumnos_provider.dart';
@@ -335,9 +336,7 @@ class _HoraExtraItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final fecha = DateFormat('dd/MM/yyyy').format(
-      DateTime.parse(entry.fecha),
-    );
+    final fecha = AppDateUtils.formatFullDate(DateTime.parse(entry.fecha));
 
     // Resolve alumno name if linked
     String? alumnoNombre;

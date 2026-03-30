@@ -35,7 +35,7 @@ class CobrosScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    '¡Todo cobrado! 🎉',
+                    '¡Todo cobrado!',
                     style: AppTextStyles.titleMedium.copyWith(
                       color: AppColors.success,
                     ),
