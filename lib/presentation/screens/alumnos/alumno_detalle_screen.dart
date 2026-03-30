@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/currency_utils.dart';
+import '../../../core/router/app_router.dart';
 import '../../providers/alumnos_provider.dart';
 import '../../providers/sesiones_provider.dart';
+import '../../providers/fuentes_provider.dart';
+import '../../providers/database_provider.dart';
 import '../../../core/extensions/datetime_extension.dart';
+import '../../../domain/models/alumno.dart';
 import '../../../domain/models/sesion_realizada.dart';
+
+enum _AlumnoAccion { traspasar, eliminar }
 
 class AlumnoDetalleScreen extends ConsumerWidget {
   const AlumnoDetalleScreen({super.key, required this.alumnoId});
@@ -35,7 +42,50 @@ class AlumnoDetalleScreen extends ConsumerWidget {
             actions: [
               IconButton(
                 icon: const Icon(Icons.edit_outlined),
-                onPressed: () {}, // TODO: navegar a AlumnoFormScreen
+                onPressed: () => context.push('/alumnos/form?id=${alumno.id}'),
+              ),
+              PopupMenuButton<_AlumnoAccion>(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                elevation: 3,
+                onSelected: (accion) {
+                  if (accion == _AlumnoAccion.traspasar) {
+                    _showTraspasoDialog(context, ref, alumno);
+                  } else if (accion == _AlumnoAccion.eliminar) {
+                    _showEliminarDialog(context, ref, alumno);
+                  }
+                },
+                itemBuilder: (ctx) => [
+                  PopupMenuItem(
+                    value: _AlumnoAccion.traspasar,
+                    child: Row(
+                      children: [
+                        Icon(Icons.swap_horiz,
+                            size: 20,
+                            color: Theme.of(ctx).colorScheme.onSurface),
+                        const SizedBox(width: 12),
+                        const Text('Traspasar'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(height: 1),
+                  PopupMenuItem(
+                    value: _AlumnoAccion.eliminar,
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete_outline,
+                            size: 20, color: Theme.of(ctx).colorScheme.error),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Eliminar',
+                          style:
+                              TextStyle(color: Theme.of(ctx).colorScheme.error),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -146,4 +196,117 @@ class AlumnoDetalleScreen extends ConsumerWidget {
       },
     );
   }
+}
+
+// ── Helper dialogs ───────────────────────────────────────────────────────────
+
+void _showTraspasoDialog(
+  BuildContext context,
+  WidgetRef ref,
+  Alumno alumno,
+) {
+  final fuentes = ref.read(fuentesProvider).valueOrNull ?? [];
+  final disponibles = fuentes.where((f) => f.id != alumno.fuenteId).toList();
+
+  if (disponibles.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('No hay otras fuentes disponibles')),
+    );
+    return;
+  }
+
+  String? seleccionada = disponibles.first.id;
+
+  showDialog<void>(
+    context: context,
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setDialogState) => AlertDialog(
+        title: const Text('Traspasar alumno'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DropdownButtonFormField<String>(
+              value: seleccionada,
+              decoration: const InputDecoration(
+                labelText: 'Nueva fuente',
+                prefixIcon: Icon(Icons.account_balance_wallet_outlined),
+              ),
+              items: disponibles
+                  .map((f) =>
+                      DropdownMenuItem(value: f.id, child: Text(f.nombre)))
+                  .toList(),
+              onChanged: (v) => setDialogState(() => seleccionada = v),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Las sesiones anteriores mantendrán su fuente original.',
+              style: AppTextStyles.caption,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              if (seleccionada != null) {
+                await ref.read(alumnoRepositoryProvider).saveAlumno(
+                      alumno.copyWith(fuenteId: seleccionada!),
+                    );
+                if (ctx.mounted) {
+                  final nombre = disponibles
+                      .firstWhere((f) => f.id == seleccionada)
+                      .nombre;
+                  Navigator.pop(ctx);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Alumno traspasado a $nombre')),
+                  );
+                }
+              }
+            },
+            child: const Text('Traspasar'),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void _showEliminarDialog(
+  BuildContext context,
+  WidgetRef ref,
+  Alumno alumno,
+) {
+  showDialog<void>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Eliminar alumno'),
+      content: const Text(
+        '¿Eliminar este alumno? Las sesiones registradas se mantendrán.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.error,
+            foregroundColor: Theme.of(context).colorScheme.onError,
+          ),
+          onPressed: () async {
+            await ref.read(alumnoRepositoryProvider).deleteAlumno(alumno.id);
+            if (ctx.mounted) {
+              Navigator.pop(ctx);
+              context.go(AppRoutes.alumnos);
+            }
+          },
+          child: const Text('Eliminar'),
+        ),
+      ],
+    ),
+  );
 }

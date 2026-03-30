@@ -151,6 +151,7 @@ class AppTheme {
         // ── SnackBar ─────────────────────────────────────────────
         snackBarTheme: SnackBarThemeData(
           behavior: SnackBarBehavior.floating,
+          backgroundColor: const Color(0xFF1C1C1E),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           contentTextStyle:
@@ -345,6 +346,7 @@ class AppTheme {
         // ── SnackBar ─────────────────────────────────────────────
         snackBarTheme: SnackBarThemeData(
           behavior: SnackBarBehavior.floating,
+          backgroundColor: const Color(0xFF2C2C2E),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           contentTextStyle:
@@ -536,6 +538,7 @@ class AppTheme {
         // ── SnackBar ─────────────────────────────────────────────
         snackBarTheme: SnackBarThemeData(
           behavior: SnackBarBehavior.floating,
+          backgroundColor: const Color(0xFF1C1C1E),
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           contentTextStyle:

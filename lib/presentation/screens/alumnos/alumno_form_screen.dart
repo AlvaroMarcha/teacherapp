@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../core/router/app_router.dart';
 import '../../providers/fuentes_provider.dart';
 import '../../providers/database_provider.dart';
 import '../../../domain/models/alumno.dart';
@@ -27,6 +28,27 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
   static const _uuid = Uuid();
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.alumnoId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final alumno = await ref
+            .read(alumnoRepositoryProvider)
+            .getAlumnoById(widget.alumnoId!);
+        if (alumno != null && mounted) {
+          setState(() {
+            _nombreCtrl.text = alumno.nombre;
+            _tarifaCtrl.text = alumno.tarifaSesion.toString();
+            _notasCtrl.text = alumno.notas;
+            _duracionMinutos = alumno.duracionMinutos;
+            _fuenteIdSeleccionada = alumno.fuenteId;
+          });
+        }
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _nombreCtrl.dispose();
     _tarifaCtrl.dispose();
@@ -42,6 +64,14 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(esEdicion ? 'Editar alumno' : AppStrings.alumnoNuevo),
+        actions: [
+          if (esEdicion)
+            IconButton(
+              icon: const Icon(Icons.delete_outline),
+              color: Theme.of(context).colorScheme.error,
+              onPressed: () => _confirmarEliminar(context),
+            ),
+        ],
       ),
       body: fuentesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -120,7 +150,7 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
                 maxLines: 3,
               ),
               const SizedBox(height: 32),
-              ElevatedButton(
+              FilledButton(
                 onPressed: _guardar,
                 child: Text(AppStrings.guardar),
               ),
@@ -145,5 +175,35 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
         .read(alumnoRepositoryProvider)
         .saveAlumno(alumno)
         .then((_) => context.pop());
+  }
+
+  Future<void> _confirmarEliminar(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Eliminar alumno'),
+        content: const Text(
+          '¿Eliminar este alumno? Las sesiones registradas se mantendrán.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await ref.read(alumnoRepositoryProvider).deleteAlumno(widget.alumnoId!);
+      if (mounted) context.go(AppRoutes.alumnos);
+    }
   }
 }
