@@ -29,6 +29,7 @@ class SemanaTimeline extends ConsumerWidget {
   static const int _startHour = 7; // hora mínima visible (07:00)
   static const int _endHour = 22; // hora máxima visible (22:00)
   static const double _timeAxisWidth = 42.0;
+  static const double _topPadding = 8.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -49,29 +50,48 @@ class SemanaTimeline extends ConsumerWidget {
         Expanded(
           child: SingleChildScrollView(
             child: SizedBox(
-              height: totalHeight + 16,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              height: totalHeight + _topPadding + 16,
+              child: Stack(
                 children: [
-                  // Eje de horas
-                  SizedBox(
-                    width: _timeAxisWidth,
-                    child: _TimeAxis(
+                  // ── Grid de fondo (líneas horizontales + verticales) ──
+                  Positioned(
+                    top: _topPadding,
+                    bottom: 0,
+                    left: _timeAxisWidth,
+                    right: 0,
+                    child: _GridBackground(
                       startHour: _startHour,
                       endHour: _endHour,
                       hourHeight: _hourHeight,
+                      dayCount: 7,
                     ),
                   ),
-                  // Columnas de días
-                  ...dias.map((dia) => Expanded(
-                        child: _DayColumn(
-                          dia: dia,
-                          startHour: _startHour,
-                          hourHeight: _hourHeight,
-                          totalHeight: totalHeight,
-                          onEventoTap: onEventoTap,
+                  // ── Eje de horas + columnas de eventos ──
+                  Positioned.fill(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: _timeAxisWidth,
+                          child: _TimeAxis(
+                            startHour: _startHour,
+                            endHour: _endHour,
+                            hourHeight: _hourHeight,
+                            topPadding: _topPadding,
+                          ),
                         ),
-                      )),
+                        ...dias.map((dia) => Expanded(
+                              child: _DayColumn(
+                                dia: dia,
+                                startHour: _startHour,
+                                hourHeight: _hourHeight,
+                                topPadding: _topPadding,
+                                onEventoTap: onEventoTap,
+                              ),
+                            )),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -165,11 +185,13 @@ class _TimeAxis extends StatelessWidget {
     required this.startHour,
     required this.endHour,
     required this.hourHeight,
+    required this.topPadding,
   });
 
   final int startHour;
   final int endHour;
   final double hourHeight;
+  final double topPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -177,7 +199,7 @@ class _TimeAxis extends StatelessWidget {
       children: List.generate(endHour - startHour, (i) {
         final hour = startHour + i;
         return Positioned(
-          top: i * hourHeight - 6,
+          top: topPadding + i * hourHeight - 6,
           left: 0,
           right: 0,
           child: Padding(
@@ -199,14 +221,14 @@ class _DayColumn extends ConsumerWidget {
     required this.dia,
     required this.startHour,
     required this.hourHeight,
-    required this.totalHeight,
+    required this.topPadding,
     required this.onEventoTap,
   });
 
   final DateTime dia;
   final int startHour;
   final double hourHeight;
-  final double totalHeight;
+  final double topPadding;
   final void Function(EventoCalendario) onEventoTap;
 
   @override
@@ -214,81 +236,107 @@ class _DayColumn extends ConsumerWidget {
     final eventosAsync = ref.watch(eventosDelDiaProvider(dia));
     final eventos = eventosAsync.valueOrNull ?? [];
 
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(
-          left: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
-            width: 0.5,
-          ),
-        ),
-      ),
-      child: Stack(
-        clipBehavior: Clip.hardEdge,
-        children: [
-          // Líneas de hora de fondo
-          ...List.generate(
-            (_SemanaTimeline._endHour - startHour).toInt(),
-            (i) => Positioned(
-              top: i * hourHeight,
-              left: 0,
-              right: 0,
-              child: Divider(
-                height: 1,
-                color: Theme.of(context)
-                    .colorScheme
-                    .outlineVariant
-                    .withOpacity(0.4),
-              ),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // Hijo de tamaño para que el Stack no colapse a 0
+        const SizedBox.expand(),
+        // Bloques de eventos
+        ...eventos.map((evento) {
+          final topHours = evento.horaInicioDecimal - startHour;
+          final top = topPadding + topHours * hourHeight;
+          final height =
+              (evento.duracionHoras * hourHeight).clamp(24.0, double.infinity);
+          if (topHours < 0) return const SizedBox.shrink();
+
+          return Positioned(
+            top: top,
+            left: 2,
+            right: 2,
+            height: height,
+            child: EventoBloque(
+              evento: evento,
+              onTap: () => onEventoTap(evento),
+              compact: true,
             ),
-          ),
-          // Bloques de eventos
-          ...eventos.map((evento) {
-            final topHours = evento.horaInicioDecimal - startHour;
-            final top = topHours * hourHeight;
-            final height = (evento.duracionHoras * hourHeight)
-                .clamp(24.0, double.infinity);
-            if (topHours < 0) return const SizedBox.shrink();
+          );
+        }),
 
-            return Positioned(
-              top: top,
-              left: 1,
-              right: 1,
-              height: height,
-              child: EventoBloque(
-                evento: evento,
-                onTap: () => onEventoTap(evento),
-                compact: true, // semana: columnas ~50dp, siempre compacto
-              ),
-            );
-          }),
-
-          // Línea de hora actual
-          _CurrentTimeLine(
-            startHour: startHour,
-            hourHeight: hourHeight,
-            dia: dia,
-          ),
-        ],
-      ),
+        // Línea de hora actual
+        _CurrentTimeLine(
+          startHour: startHour,
+          hourHeight: hourHeight,
+          topPadding: topPadding,
+          dia: dia,
+        ),
+      ],
     );
   }
 }
 
-// Hack to access static consts from _SemanaTimeline inside _DayColumn
-extension _SemanaTimeline on SemanaTimeline {
-  static const int _endHour = 22;
+// ── Grid de fondo con líneas horizontales y verticales ──────────
+class _GridBackground extends StatelessWidget {
+  const _GridBackground({
+    required this.startHour,
+    required this.endHour,
+    required this.hourHeight,
+    required this.dayCount,
+  });
+
+  final int startHour;
+  final int endHour;
+  final double hourHeight;
+  final int dayCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final lineColor =
+        Theme.of(context).colorScheme.outlineVariant.withOpacity(0.35);
+    final hourCount = endHour - startHour;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final colWidth = constraints.maxWidth / dayCount;
+        return Stack(
+          children: [
+            // Líneas horizontales (horas)
+            ...List.generate(
+              hourCount,
+              (i) => Positioned(
+                top: i * hourHeight,
+                left: 0,
+                right: 0,
+                child: Container(height: 0.5, color: lineColor),
+              ),
+            ),
+            // Líneas verticales (columnas)
+            ...List.generate(
+              dayCount,
+              (i) => Positioned(
+                top: 0,
+                bottom: 0,
+                left: i * colWidth,
+                child: Container(width: 0.5, color: lineColor),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 class _CurrentTimeLine extends StatelessWidget {
   const _CurrentTimeLine({
     required this.startHour,
     required this.hourHeight,
+    required this.topPadding,
     required this.dia,
   });
 
   final int startHour;
   final double hourHeight;
+  final double topPadding;
   final DateTime dia;
 
   @override
@@ -302,7 +350,7 @@ class _CurrentTimeLine extends StatelessWidget {
     if (topHours < 0) return const SizedBox.shrink();
 
     return Positioned(
-      top: topHours * hourHeight,
+      top: topPadding + topHours * hourHeight,
       left: 0,
       right: 0,
       child: Row(
