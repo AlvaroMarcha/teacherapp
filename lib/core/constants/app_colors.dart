@@ -86,6 +86,32 @@ class AppColors {
 
   static const Color errorLightDark = Color(0xFF450A0A);
 
+  // ── Pastel theme tokens (lila pastel real) ───────────────────────
+  static const Color backgroundPastel =
+      Color(0xFFEDE9FE); // violet-100 — lila visible
+  static const Color surfacePastel = Color(0xFFF5F3FF); // violet-50
+  static const Color surfaceVariantPastel = Color(0xFFDDD6FE); // violet-200
+
+  static const Color primaryPastel =
+      Color(0xFF8B5CF6); // violet-500 — pastel suave
+  static const Color primaryLightPastel = Color(0xFFEDE9FE); // violet-100
+
+  static const Color textPrimaryPastel =
+      Color(0xFF1E0A4C); // violet oscuro legible
+  static const Color textSecondaryPastel = Color(0xFF5B21B6); // violet-800
+  static const Color textDisabledPastel = Color(0xFFC4B5FD); // violet-300
+
+  static const Color borderPastel = Color(0xFFC4B5FD); // violet-300
+  static const Color dividerPastel = Color(0xFFDDD6FE); // violet-200
+
+  static const Color aroundLightPastel = Color(0xFFDBEAFE);
+  static const Color angelsLightPastel = Color(0xFFEDE9FE);
+  static const Color particularesLightPastel = Color(0xFFDCFCE7);
+
+  static const Color cobroPendienteLightPastel = Color(0xFFFEF9C3);
+  static const Color cobroCobradoLightPastel = Color(0xFFDCFCE7);
+  static const Color cobroParcialLightPastel = Color(0xFFE0F2FE);
+
   /// Devuelve el color principal asociado a un tipo de fuente.
   static Color forFuenteTipo(String tipo) {
     switch (tipo) {

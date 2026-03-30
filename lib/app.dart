@@ -10,12 +10,22 @@ class TeacherApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final themeMode = ref.watch(themeModeProvider);
+    final appThemeMode = ref.watch(themeModeProvider);
+
+    final flutterThemeMode = switch (appThemeMode) {
+      AppThemeMode.system => ThemeMode.system,
+      AppThemeMode.light => ThemeMode.light,
+      AppThemeMode.dark => ThemeMode.dark,
+    };
+
+    // Tema claro = pastel acentuado
+    final lightTheme = AppTheme.pastel;
+
     return MaterialApp.router(
       title: 'Teacher Finance',
-      theme: AppTheme.light,
+      theme: lightTheme,
       darkTheme: AppTheme.dark,
-      themeMode: themeMode,
+      themeMode: flutterThemeMode,
       routerConfig: appRouter,
       debugShowCheckedModeBanner: false,
       locale: const Locale('es', 'ES'),

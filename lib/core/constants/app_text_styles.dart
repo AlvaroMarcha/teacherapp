@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'app_colors.dart';
 
 /// Estilos de texto centralizados para Teacher Finance App.
 /// Los colores NO están hardcodeados aquí — se heredan del DefaultTextStyle

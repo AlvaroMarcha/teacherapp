@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
-import 'package:intl/intl.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../providers/fuentes_provider.dart';
 import '../../providers/alumnos_provider.dart';

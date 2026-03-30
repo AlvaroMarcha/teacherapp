@@ -3,13 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
-import '../../../core/utils/date_utils.dart';
 import '../../providers/sesiones_provider.dart';
 import '../../providers/fuentes_provider.dart';
-import '../../providers/database_provider.dart';
 import '../../../domain/models/sesion_recurrente.dart';
 import '../../../domain/models/fuente.dart';
-import 'dart:convert';
 
 class HorarioScreen extends ConsumerStatefulWidget {
   const HorarioScreen({super.key});

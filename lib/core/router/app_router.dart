@@ -35,15 +35,6 @@ abstract class AppRoutes {
   static const String perfil = '/ajustes/perfil';
 }
 
-/// Índices de tabs en el shell route.
-const _tabs = [
-  AppRoutes.dashboard,
-  AppRoutes.fuentes,
-  AppRoutes.horario,
-  AppRoutes.alumnos,
-  AppRoutes.cobros,
-];
-
 final appRouter = GoRouter(
   initialLocation: AppRoutes.dashboard,
   routes: [

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/currency_utils.dart';
-import '../../providers/cobros_provider.dart';
 import '../../providers/database_provider.dart';
 import '../../../domain/models/cobro.dart';
 

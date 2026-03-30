@@ -37,20 +37,20 @@ class AjustesScreen extends ConsumerWidget {
                 children: [
                   Text('Tema', style: AppTextStyles.bodyMedium),
                   const SizedBox(height: 12),
-                  SegmentedButton<ThemeMode>(
+                  SegmentedButton<AppThemeMode>(
                     segments: const [
                       ButtonSegment(
-                        value: ThemeMode.system,
+                        value: AppThemeMode.system,
                         icon: Icon(Icons.brightness_auto_outlined),
                         label: Text('Sistema'),
                       ),
                       ButtonSegment(
-                        value: ThemeMode.light,
+                        value: AppThemeMode.light,
                         icon: Icon(Icons.light_mode_outlined),
                         label: Text('Claro'),
                       ),
                       ButtonSegment(
-                        value: ThemeMode.dark,
+                        value: AppThemeMode.dark,
                         icon: Icon(Icons.dark_mode_outlined),
                         label: Text('Oscuro'),
                       ),

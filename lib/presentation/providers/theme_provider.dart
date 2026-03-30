@@ -1,11 +1,13 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _kThemeModeKey = 'theme_mode';
 
-class ThemeModeNotifier extends StateNotifier<ThemeMode> {
-  ThemeModeNotifier() : super(ThemeMode.system) {
+/// Modos de tema disponibles en la app.
+enum AppThemeMode { system, light, dark }
+
+class ThemeModeNotifier extends StateNotifier<AppThemeMode> {
+  ThemeModeNotifier() : super(AppThemeMode.system) {
     _load();
   }
 
@@ -13,19 +15,20 @@ class ThemeModeNotifier extends StateNotifier<ThemeMode> {
     final prefs = await SharedPreferences.getInstance();
     final stored = prefs.getString(_kThemeModeKey);
     state = switch (stored) {
-      'light' => ThemeMode.light,
-      'dark' => ThemeMode.dark,
-      _ => ThemeMode.system,
+      'light' || 'pastel' => AppThemeMode.light,
+      'dark' => AppThemeMode.dark,
+      _ => AppThemeMode.system,
     };
   }
 
-  Future<void> setMode(ThemeMode mode) async {
+  Future<void> setMode(AppThemeMode mode) async {
     state = mode;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_kThemeModeKey, mode.name);
   }
 }
 
-final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>(
+final themeModeProvider =
+    StateNotifierProvider<ThemeModeNotifier, AppThemeMode>(
   (ref) => ThemeModeNotifier(),
 );

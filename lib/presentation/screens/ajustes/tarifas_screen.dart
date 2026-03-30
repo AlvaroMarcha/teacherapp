@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/currency_utils.dart';
-import '../../providers/fuentes_provider.dart';
 import '../../providers/alumnos_provider.dart';
 import '../../providers/database_provider.dart';
-import '../../../domain/models/fuente.dart';
 
 /// Pantalla para ver y editar la jerarquía de tarifas.
 ///
@@ -135,11 +133,11 @@ class _TarifasPorAlumno extends ConsumerWidget {
                   contentPadding: EdgeInsets.zero,
                   title: Text(alumno.nombre),
                   trailing: Text(
-                    alumno.tarifaSesion != null
-                        ? CurrencyUtils.format(alumno.tarifaSesion!)
+                    alumno.tarifaSesion > 0
+                        ? CurrencyUtils.format(alumno.tarifaSesion)
                         : 'Tarifa fuente / global',
                     style: AppTextStyles.bodyMedium.copyWith(
-                      color: alumno.tarifaSesion != null ? null : Colors.grey,
+                      color: alumno.tarifaSesion > 0 ? null : Colors.grey,
                     ),
                   ),
                   onTap: () => _editarTarifa(context, ref, alumno.id,

@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 import '../local/database.dart';
@@ -14,13 +13,13 @@ class FuenteRepository {
   // ── Mappers ──────────────────────────────────────────────────────
 
   static Fuente _mapToFuente(FuentesTableData row) => Fuente(
-    id: row.id,
-    nombre: row.nombre,
-    tipo: FuenteTipoExt.fromString(row.tipo),
-    color: row.color,
-    moneda: row.moneda,
-    syncStatus: row.syncStatus,
-  );
+        id: row.id,
+        nombre: row.nombre,
+        tipo: FuenteTipoExt.fromString(row.tipo),
+        color: row.color,
+        moneda: row.moneda,
+        syncStatus: row.syncStatus,
+      );
 
   static FuentesTableCompanion _mapToCompanion(Fuente f) =>
       FuentesTableCompanion(
@@ -71,12 +70,12 @@ class FuenteRepository {
   }
 
   Future<void> saveEmpleoConfig(EmpleoConfig config) => _db.upsertEmpleoConfig(
-    EmpleoConfigTableCompanion(
-      fuenteId: Value(config.fuenteId),
-      salarioBase: Value(config.salarioBase),
-      horasSemanales: Value(config.horasSemanales),
-      tarifaHoraExtra: Value(config.tarifaHoraExtra),
-      diaCobro: Value(config.diaCobro),
-    ),
-  );
+        EmpleoConfigTableCompanion(
+          fuenteId: Value(config.fuenteId),
+          salarioBase: Value(config.salarioBase),
+          horasSemanales: Value(config.horasSemanales),
+          tarifaHoraExtra: Value(config.tarifaHoraExtra),
+          diaCobro: Value(config.diaCobro),
+        ),
+      );
 }
