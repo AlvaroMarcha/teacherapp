@@ -12,6 +12,7 @@ class AjustesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
+    final appLocale = ref.watch(localeProvider);
     return Scaffold(
       appBar: AppBar(title: const Text('Ajustes')),
       body: ListView(
@@ -65,6 +66,51 @@ class AjustesScreen extends ConsumerWidget {
                     style: const ButtonStyle(
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          _Section(
+            title: 'Idioma',
+            items: const [],
+            customContent: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Idioma de la app', style: AppTextStyles.bodyMedium),
+                  const SizedBox(height: 12),
+                  SegmentedButton<AppLocale>(
+                    segments: const [
+                      ButtonSegment(
+                        value: AppLocale.es,
+                        label: Text('ES'),
+                      ),
+                      ButtonSegment(
+                        value: AppLocale.en,
+                        label: Text('EN'),
+                      ),
+                      ButtonSegment(
+                        value: AppLocale.it,
+                        label: Text('IT'),
+                      ),
+                    ],
+                    selected: {appLocale},
+                    onSelectionChanged: (selection) {
+                      ref
+                          .read(localeProvider.notifier)
+                          .setLocale(selection.first);
+                    },
+                    showSelectedIcon: false,
+                    style: const ButtonStyle(
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    appLocale.label,
+                    style: AppTextStyles.bodySmall,
                   ),
                 ],
               ),

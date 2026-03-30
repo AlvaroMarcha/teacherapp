@@ -11,6 +11,7 @@ class TeacherApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final appThemeMode = ref.watch(themeModeProvider);
+    final appLocale = ref.watch(localeProvider);
 
     final flutterThemeMode = switch (appThemeMode) {
       AppThemeMode.system => ThemeMode.system,
@@ -28,8 +29,12 @@ class TeacherApp extends ConsumerWidget {
       themeMode: flutterThemeMode,
       routerConfig: appRouter,
       debugShowCheckedModeBanner: false,
-      locale: const Locale('es', 'ES'),
-      supportedLocales: const [Locale('es', 'ES')],
+      locale: appLocale.locale,
+      supportedLocales: const [
+        Locale('es', 'ES'),
+        Locale('en', 'US'),
+        Locale('it', 'IT'),
+      ],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

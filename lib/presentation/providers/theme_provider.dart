@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -57,4 +58,48 @@ class TarifaGlobalNotifier extends StateNotifier<double> {
 final tarifaGlobalProvider =
     StateNotifierProvider<TarifaGlobalNotifier, double>(
   (ref) => TarifaGlobalNotifier(),
+);
+
+// ── Idioma de la app ─────────────────────────────────────────────────────────
+
+const _kLocaleKey = 'app_locale';
+
+enum AppLocale {
+  es('es', 'ES', 'Español'),
+  en('en', 'US', 'English'),
+  it('it', 'IT', 'Italiano');
+
+  const AppLocale(this.languageCode, this.countryCode, this.label);
+  final String languageCode;
+  final String countryCode;
+  final String label;
+
+  Locale get locale => Locale(languageCode, countryCode);
+}
+
+class LocaleNotifier extends StateNotifier<AppLocale> {
+  LocaleNotifier() : super(AppLocale.es) {
+    _load();
+  }
+
+  Future<void> _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getString(_kLocaleKey);
+    if (stored != null) {
+      state = AppLocale.values.firstWhere(
+        (l) => l.name == stored,
+        orElse: () => AppLocale.es,
+      );
+    }
+  }
+
+  Future<void> setLocale(AppLocale locale) async {
+    state = locale;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_kLocaleKey, locale.name);
+  }
+}
+
+final localeProvider = StateNotifierProvider<LocaleNotifier, AppLocale>(
+  (ref) => LocaleNotifier(),
 );
