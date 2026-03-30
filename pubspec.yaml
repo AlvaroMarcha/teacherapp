@@ -53,6 +53,9 @@ dependencies:
   # Persistencia de preferencias (tema)
   shared_preferences: ^2.3.0
 
+  # Almacenamiento seguro de credenciales
+  flutter_secure_storage: ^9.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

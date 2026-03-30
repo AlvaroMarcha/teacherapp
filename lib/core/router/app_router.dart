@@ -16,9 +16,14 @@ import '../../presentation/screens/ajustes/ajustes_screen.dart';
 import '../../presentation/screens/ajustes/tarifas_screen.dart';
 import '../../presentation/screens/ajustes/perfil_screen.dart';
 import '../../presentation/screens/onboarding/onboarding_screen.dart';
+import '../../presentation/screens/auth/login_screen.dart';
+
+/// Notifier de autenticación — GoRouter escucha cambios para redirigir.
+final authNotifier = ValueNotifier<bool>(false);
 
 /// Rutas nombradas de la aplicación.
 abstract class AppRoutes {
+  static const String login = '/login';
   static const String onboarding = '/onboarding';
   static const String dashboard = '/';
   static const String fuentes = '/fuentes';
@@ -38,8 +43,22 @@ abstract class AppRoutes {
 }
 
 final appRouter = GoRouter(
-  initialLocation: AppRoutes.dashboard,
+  initialLocation: AppRoutes.login,
+  refreshListenable: authNotifier,
+  redirect: (context, state) {
+    final loggedIn = authNotifier.value;
+    final isLoginRoute = state.matchedLocation == AppRoutes.login;
+    if (!loggedIn && !isLoginRoute) return AppRoutes.login;
+    if (loggedIn && isLoginRoute) return AppRoutes.dashboard;
+    return null;
+  },
   routes: [
+    // ── Login (fuera del shell) ────────────────────────────────────
+    GoRoute(
+      path: AppRoutes.login,
+      builder: (_, __) => const LoginScreen(),
+    ),
+
     // ── Onboarding (fuera del shell) ─────────────────────────────
     GoRoute(
       path: AppRoutes.onboarding,
