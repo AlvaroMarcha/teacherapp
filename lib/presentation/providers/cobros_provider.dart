@@ -19,3 +19,11 @@ final cobrosByFuenteProvider = StreamProvider.family<List<Cobro>, String>((
 ) {
   return ref.watch(cobroRepositoryProvider).watchCobrosByFuente(fuenteId);
 });
+
+/// Cobro por ID (para la pantalla de detalle).
+final cobroByIdProvider = FutureProvider.family<Cobro?, String>((
+  ref,
+  id,
+) async {
+  return ref.watch(cobroRepositoryProvider).getCobroById(id);
+});

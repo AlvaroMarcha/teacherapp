@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
@@ -132,7 +133,7 @@ class _CobroTile extends ConsumerWidget {
             style: AppTextStyles.caption.copyWith(color: color),
           ),
           trailing: _EstadoBadge(estado: cobro.estado.value),
-          onTap: () {},
+          onTap: () => context.push('/cobros/${cobro.id}'),
         ),
       ),
     );

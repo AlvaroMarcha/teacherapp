@@ -26,11 +26,42 @@ class RegistroSesionScreen extends ConsumerStatefulWidget {
 
 class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
   static const _uuid = Uuid();
+  final _formKey = GlobalKey<FormState>();
+  final _importeCtrl = TextEditingController();
+
   String? _fuenteId;
   String? _alumnoId;
   DateTime _fecha = DateTime.now();
   double _horas = 1.0;
   bool _cobradoAhora = false;
+
+  @override
+  void dispose() {
+    _importeCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _onAlumnoChanged(String? alumnoId) async {
+    setState(() => _alumnoId = alumnoId);
+    if (alumnoId == null) {
+      _importeCtrl.clear();
+      return;
+    }
+    final alumno =
+        await ref.read(alumnoRepositoryProvider).getAlumnoById(alumnoId);
+    if (alumno != null && mounted) {
+      final tarifa = alumno.tarifaSesion * _horas;
+      _importeCtrl.text = tarifa.toStringAsFixed(2);
+    }
+  }
+
+  void _onHorasChanged(double horas) {
+    setState(() => _horas = horas);
+    // Si ya hay alumno seleccionado, recalcular importe
+    if (_alumnoId != null) {
+      _onAlumnoChanged(_alumnoId);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,114 +76,148 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
         data: (fuentes) => alumnosAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(child: Text('Error: $e')),
-          data: (alumnos) => ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Text('¿Qué sesión fue?', style: AppTextStyles.titleMedium),
-              const SizedBox(height: 16),
-              // Fuente
-              DropdownButtonFormField<String>(
-                value: _fuenteId,
-                decoration: const InputDecoration(labelText: 'Fuente'),
-                items: fuentes
-                    .map(
-                      (f) =>
-                          DropdownMenuItem(value: f.id, child: Text(f.nombre)),
-                    )
-                    .toList(),
-                onChanged: (v) => setState(() {
-                  _fuenteId = v;
-                  _alumnoId = null;
-                }),
-              ),
-              const SizedBox(height: 12),
-              // Alumno (si la fuente tiene alumnos)
-              if (_fuenteId != null)
+          data: (alumnos) => Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                Text('¿Qué sesión fue?', style: AppTextStyles.titleMedium),
+                const SizedBox(height: 16),
+
+                // Fuente
                 DropdownButtonFormField<String>(
-                  value: _alumnoId,
+                  value: _fuenteId,
                   decoration: const InputDecoration(
-                    labelText: 'Alumno (opcional)',
+                    labelText: 'Fuente',
+                    prefixIcon: Icon(Icons.account_balance_wallet_outlined),
                   ),
-                  items: [
-                    const DropdownMenuItem(
-                      value: null,
-                      child: Text('Sin alumno específico'),
+                  items: fuentes
+                      .map((f) => DropdownMenuItem(
+                            value: f.id,
+                            child: Text(f.nombre),
+                          ))
+                      .toList(),
+                  validator: (v) => v == null ? 'Selecciona una fuente' : null,
+                  onChanged: (v) => setState(() {
+                    _fuenteId = v;
+                    _alumnoId = null;
+                    _importeCtrl.clear();
+                  }),
+                ),
+                const SizedBox(height: 12),
+
+                // Alumno (filtrado por fuente)
+                if (_fuenteId != null)
+                  DropdownButtonFormField<String>(
+                    value: _alumnoId,
+                    decoration: const InputDecoration(
+                      labelText: 'Alumno (opcional)',
+                      prefixIcon: Icon(Icons.person_outline),
                     ),
-                    ...alumnos
-                        .where((a) => a.fuenteId == _fuenteId)
-                        .map(
-                          (a) => DropdownMenuItem(
-                            value: a.id,
-                            child: Text(a.nombre),
-                          ),
-                        ),
+                    items: [
+                      const DropdownMenuItem(
+                        value: null,
+                        child: Text('Sin alumno específico'),
+                      ),
+                      ...alumnos
+                          .where((a) => a.fuenteId == _fuenteId)
+                          .map((a) => DropdownMenuItem(
+                                value: a.id,
+                                child: Text(a.nombre),
+                              )),
+                    ],
+                    onChanged: _onAlumnoChanged,
+                  ),
+                const SizedBox(height: 12),
+
+                // Duración
+                DropdownButtonFormField<double>(
+                  value: _horas,
+                  decoration: const InputDecoration(
+                    labelText: 'Duración',
+                    prefixIcon: Icon(Icons.access_time_rounded),
+                  ),
+                  items: [0.5, 0.75, 1.0, 1.5, 2.0]
+                      .map((h) => DropdownMenuItem(
+                            value: h,
+                            child: Text(
+                              h == 0.5
+                                  ? '30 min'
+                                  : h == 0.75
+                                      ? '45 min'
+                                      : h == 1.5
+                                          ? '1h 30min'
+                                          : h == 2.0
+                                              ? '2 horas'
+                                              : '1 hora',
+                            ),
+                          ))
+                      .toList(),
+                  onChanged: (v) {
+                    if (v != null) _onHorasChanged(v);
+                  },
+                ),
+                const SizedBox(height: 12),
+
+                // Importe (siempre visible; auto-calculado si hay alumno)
+                TextFormField(
+                  controller: _importeCtrl,
+                  decoration: InputDecoration(
+                    labelText: 'Importe (€)',
+                    prefixIcon: const Icon(Icons.euro_rounded),
+                    helperText: _alumnoId != null
+                        ? 'Calculado por tarifa del alumno · editable'
+                        : 'Introduce el importe de la sesión',
+                  ),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty) {
+                      return 'Introduce el importe';
+                    }
+                    if (double.tryParse(v) == null) return 'Número inválido';
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 24),
+                const Divider(),
+                const SizedBox(height: 16),
+
+                // Estado de cobro — SegmentedButton
+                Text(
+                  '¿Cuándo cobras?',
+                  style: AppTextStyles.titleSmall,
+                ),
+                const SizedBox(height: 12),
+                SegmentedButton<bool>(
+                  segments: const [
+                    ButtonSegment(
+                      value: false,
+                      label: Text('Pendiente'),
+                      icon: Icon(Icons.schedule_outlined),
+                    ),
+                    ButtonSegment(
+                      value: true,
+                      label: Text('Cobré ahora'),
+                      icon: Icon(Icons.payments_outlined),
+                    ),
                   ],
-                  onChanged: (v) => setState(() => _alumnoId = v),
+                  selected: {_cobradoAhora},
+                  onSelectionChanged: (s) =>
+                      setState(() => _cobradoAhora = s.first),
                 ),
-              const SizedBox(height: 12),
-              // Duración
-              DropdownButtonFormField<double>(
-                value: _horas,
-                decoration: const InputDecoration(labelText: 'Duración'),
-                items: [0.5, 0.75, 1.0, 1.5, 2.0]
-                    .map(
-                      (h) => DropdownMenuItem(
-                        value: h,
-                        child: Text(
-                          h == 0.5
-                              ? '30 min'
-                              : h == 0.75
-                              ? '45 min'
-                              : h == 1.5
-                              ? '1h 30min'
-                              : h == 2.0
-                              ? '2 horas'
-                              : '1 hora',
-                        ),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (v) {
-                  if (v != null) setState(() => _horas = v);
-                },
-              ),
-              const SizedBox(height: 24),
-              const Divider(),
-              const SizedBox(height: 12),
-              Text('¿Cobré ahora?', style: AppTextStyles.titleSmall),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        backgroundColor: _cobradoAhora
-                            ? Colors.transparent
-                            : null,
-                      ),
-                      onPressed: () => setState(() => _cobradoAhora = false),
-                      child: const Text('Dejar pendiente'),
-                    ),
+                const SizedBox(height: 32),
+
+                FilledButton.icon(
+                  onPressed: _fuenteId != null ? _confirmar : null,
+                  icon: const Icon(Icons.check),
+                  label: const Text('Confirmar sesión'),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => setState(() => _cobradoAhora = true),
-                      child: const Text('Cobré ahora'),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton.icon(
-                onPressed: _fuenteId != null ? _confirmar : null,
-                icon: const Icon(Icons.check),
-                label: const Text('Confirmar sesión'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -161,15 +226,9 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
 
   Future<void> _confirmar() async {
     if (_fuenteId == null) return;
+    if (!_formKey.currentState!.validate()) return;
 
-    // Calcular tarifa
-    double tarifa = 0;
-    if (_alumnoId != null) {
-      final alumno = await ref
-          .read(alumnoRepositoryProvider)
-          .getAlumnoById(_alumnoId!);
-      tarifa = (alumno?.tarifaSesion ?? 0) * _horas;
-    }
+    final tarifa = double.parse(_importeCtrl.text);
 
     final sesionId = _uuid.v4();
     final sesion = SesionRealizada(

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/currency_utils.dart';
+import '../../providers/cobros_provider.dart';
 import '../../providers/database_provider.dart';
 import '../../../domain/models/cobro.dart';
 
@@ -12,18 +14,18 @@ class CobroDetalleScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final cobroAsync = ref.watch(cobroByIdProvider(cobroId));
+
     return Scaffold(
       appBar: AppBar(title: const Text('Detalle del cobro')),
-      body: FutureBuilder(
-        future: ref.read(cobroRepositoryProvider).getCobroById(cobroId),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final cobro = snapshot.data;
+      body: cobroAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text('Error: $e')),
+        data: (cobro) {
           if (cobro == null) {
             return const Center(child: Text('Cobro no encontrado'));
           }
+          final pendiente = cobro.estado != EstadoCobro.cobrado;
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -55,17 +57,23 @@ class CobroDetalleScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
-              if (cobro.estado.value != 'cobrado') ...[
-                ElevatedButton.icon(
-                  onPressed: () {
-                    ref
+              if (pendiente) ...[
+                const SizedBox(height: 16),
+                FilledButton.icon(
+                  onPressed: () async {
+                    await ref
                         .read(cobroRepositoryProvider)
-                        .marcarCobrado(cobroId)
-                        .then((_) => Navigator.of(context).pop());
+                        .marcarCobrado(cobroId);
+                    if (context.mounted) context.pop();
                   },
-                  icon: const Icon(Icons.check),
+                  icon: const Icon(Icons.check_circle_outline),
                   label: const Text('Marcar cobrado'),
+                ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: () => _mostrarDialogParcial(context, ref, cobro),
+                  icon: const Icon(Icons.payments_outlined),
+                  label: const Text('Registrar cobro parcial'),
                 ),
               ],
             ],
@@ -73,6 +81,64 @@ class CobroDetalleScreen extends ConsumerWidget {
         },
       ),
     );
+  }
+
+  Future<void> _mostrarDialogParcial(
+    BuildContext context,
+    WidgetRef ref,
+    Cobro cobro,
+  ) async {
+    final formKey = GlobalKey<FormState>();
+    final importeCtrl = TextEditingController();
+
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cobro parcial'),
+        content: Form(
+          key: formKey,
+          child: TextFormField(
+            controller: importeCtrl,
+            autofocus: true,
+            decoration: InputDecoration(
+              labelText: 'Importe cobrado (€)',
+              hintText: 'Máx. ${CurrencyUtils.format(cobro.monto)}',
+            ),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            validator: (v) {
+              if (v == null || v.isEmpty) return 'Introduce un importe';
+              final n = double.tryParse(v);
+              if (n == null || n <= 0) return 'Importe inválido';
+              if (n > cobro.monto) {
+                return 'No puede superar ${CurrencyUtils.format(cobro.monto)}';
+              }
+              return null;
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(ctx, true);
+              }
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar != true || !context.mounted) return;
+
+    final monto = double.parse(importeCtrl.text);
+    await ref.read(cobroRepositoryProvider).marcarParcial(cobroId, monto);
+    // Invalidate para que el watch se actualice
+    ref.invalidate(cobroByIdProvider(cobroId));
   }
 }
 
