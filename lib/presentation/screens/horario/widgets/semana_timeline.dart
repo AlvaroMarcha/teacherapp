@@ -224,6 +224,7 @@ class _DayColumn extends ConsumerWidget {
         ),
       ),
       child: Stack(
+        clipBehavior: Clip.hardEdge,
         children: [
           // Líneas de hora de fondo
           ...List.generate(
@@ -257,7 +258,7 @@ class _DayColumn extends ConsumerWidget {
               child: EventoBloque(
                 evento: evento,
                 onTap: () => onEventoTap(evento),
-                compact: evento.duracionHoras < 0.75,
+                compact: true, // semana: columnas ~50dp, siempre compacto
               ),
             );
           }),

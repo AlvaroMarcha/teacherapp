@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/utils/date_utils.dart';
 import '../../providers/fuentes_provider.dart';
 import '../../providers/alumnos_provider.dart';
 import '../../providers/database_provider.dart';
@@ -124,33 +125,36 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
                   ),
                   const SizedBox(height: 12),
                 ],
-                SwitchListTile(
-                  title: const Text('Clase única'),
-                  subtitle:
-                      const Text('Solo ocurre una vez, en una fecha concreta'),
-                  value: _esPuntual,
-                  contentPadding: EdgeInsets.zero,
-                  onChanged: (v) => setState(() {
-                    _esPuntual = v;
-                    if (v) {
-                      _diasSemana.clear();
-                      _fechaUnica ??= DateTime.now();
-                    } else {
-                      _fechaUnica = null;
-                    }
-                  }),
-                ),
-                const SizedBox(height: 4),
-                if (_esPuntual) ...[
-                  ListTile(
-                    title: Text('Fecha', style: AppTextStyles.labelMedium),
-                    trailing: Text(
-                      _fechaUnica != null
-                          ? '${_fechaUnica!.day.toString().padLeft(2, '0')}/${_fechaUnica!.month.toString().padLeft(2, '0')}/${_fechaUnica!.year}'
-                          : 'Seleccionar',
-                      style: AppTextStyles.bodyLarge,
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Theme.of(context).colorScheme.outline,
                     ),
-                    contentPadding: EdgeInsets.zero,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: SwitchListTile(
+                    title: const Text('Clase única'),
+                    subtitle: const Text(
+                        'Solo ocurre una vez, en una fecha concreta'),
+                    value: _esPuntual,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    onChanged: (v) => setState(() {
+                      _esPuntual = v;
+                      if (v) {
+                        _diasSemana.clear();
+                        _fechaUnica ??= DateTime.now();
+                      } else {
+                        _fechaUnica = null;
+                      }
+                    }),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                if (_esPuntual) ...[
+                  GestureDetector(
                     onTap: () async {
                       final d = await showDatePicker(
                         context: context,
@@ -160,6 +164,18 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
                       );
                       if (d != null) setState(() => _fechaUnica = d);
                     },
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: 'Fecha',
+                        prefixIcon: Icon(Icons.calendar_today_outlined),
+                        suffixIcon: Icon(Icons.chevron_right),
+                      ),
+                      child: Text(
+                        _fechaUnica != null
+                            ? AppDateUtils.formatFullDate(_fechaUnica!)
+                            : 'Seleccionar',
+                      ),
+                    ),
                   ),
                 ] else ...[
                   Text('Días de la semana', style: AppTextStyles.labelMedium),
@@ -185,14 +201,7 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
                   ),
                 ],
                 const SizedBox(height: 12),
-                ListTile(
-                  title:
-                      Text('Hora de inicio', style: AppTextStyles.labelMedium),
-                  trailing: Text(
-                    _horaInicio.format(context),
-                    style: AppTextStyles.bodyLarge,
-                  ),
-                  contentPadding: EdgeInsets.zero,
+                GestureDetector(
                   onTap: () async {
                     final t = await showTimePicker(
                       context: context,
@@ -200,7 +209,15 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
                     );
                     if (t != null) setState(() => _horaInicio = t);
                   },
+                  child: InputDecorator(
+                    decoration: const InputDecoration(
+                      labelText: 'Hora de inicio',
+                      prefixIcon: Icon(Icons.schedule_outlined),
+                    ),
+                    child: Text(_formatTime(_horaInicio)),
+                  ),
                 ),
+                const SizedBox(height: 12),
                 DropdownButtonFormField<double>(
                   value: _duracion,
                   decoration: const InputDecoration(labelText: 'Duración'),
@@ -232,6 +249,9 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
       ),
     );
   }
+
+  String _formatTime(TimeOfDay t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
   Future<void> _guardar() async {
     if (!_formKey.currentState!.validate()) return;

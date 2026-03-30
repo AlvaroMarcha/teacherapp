@@ -167,6 +167,134 @@ Container(
 
 ---
 
+## Formularios — Reglas de estilo obligatorias
+
+### Campos de selección (fecha, hora, pickers)
+
+**SIEMPRE** usar `GestureDetector` + `InputDecorator` para campos tappables (fecha, hora, etc.), **NUNCA** usar `ListTile` dentro de formularios. Esto garantiza que todos los campos tengan el mismo borde, padding y estilo que los `TextFormField` y `DropdownButtonFormField`.
+
+```dart
+// ✅ CORRECTO — InputDecorator con InputDecoration
+GestureDetector(
+  onTap: _pickFecha,
+  child: InputDecorator(
+    decoration: const InputDecoration(
+      labelText: 'Fecha',
+      prefixIcon: Icon(Icons.calendar_today_outlined),
+      suffixIcon: Icon(Icons.chevron_right),
+    ),
+    child: Text(AppDateUtils.formatFullDate(_fecha)),
+  ),
+),
+
+// ❌ INCORRECTO — ListTile rompe la consistencia visual
+ListTile(
+  title: Text('Fecha', style: AppTextStyles.labelMedium),
+  trailing: Text('30/03/2026'),
+  contentPadding: EdgeInsets.zero,
+  onTap: _pickFecha,
+),
+```
+
+### Campos de hora en fila (inicio / fin)
+```dart
+Row(
+  children: [
+    Expanded(
+      child: GestureDetector(
+        onTap: () => _pickHora(isInicio: true),
+        child: InputDecorator(
+          decoration: const InputDecoration(
+            labelText: 'Inicio',
+            prefixIcon: Icon(Icons.schedule_outlined),
+          ),
+          child: Text(_formatTime(_horaInicio)),
+        ),
+      ),
+    ),
+    const SizedBox(width: 12),
+    Expanded(
+      child: GestureDetector(
+        onTap: () => _pickHora(isInicio: false),
+        child: InputDecorator(
+          decoration: const InputDecoration(
+            labelText: 'Fin',
+            prefixIcon: Icon(Icons.schedule_outlined),
+          ),
+          child: Text(_formatTime(_horaFin)),
+        ),
+      ),
+    ),
+  ],
+),
+```
+
+### Helper de formato de hora
+```dart
+String _formatTime(TimeOfDay t) =>
+    '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+```
+
+### Importe auto-calculado (disabled con botón de edición)
+Cuando un campo tiene valor auto-calculado (tarifa del alumno, tarifa global), hacerlo `enabled: false` por defecto y añadir un `IconButton` de edición:
+```dart
+TextFormField(
+  controller: _importeCtrl,
+  enabled: _importeEditable,
+  decoration: InputDecoration(
+    labelText: 'Importe (€)',
+    prefixIcon: const Icon(Icons.euro_rounded),
+    helperText: _importeHelper,
+    suffixIcon: _importeEditable
+        ? null
+        : IconButton(
+            icon: const Icon(Icons.edit_outlined),
+            tooltip: 'Editar importe',
+            onPressed: () => setState(() => _importeEditable = true),
+          ),
+  ),
+),
+```
+
+### Selector de días de la semana (FilterChip)
+```dart
+static const _dias = [
+  (1, 'L'), (2, 'M'), (3, 'X'), (4, 'J'), (5, 'V'), (6, 'S'), (7, 'D'),
+];
+
+Wrap(
+  spacing: 8,
+  children: _dias.map((d) {
+    final (num, label) = d;
+    final selected = _diasSemana.contains(num);
+    return FilterChip(
+      label: Text(label),
+      selected: selected,
+      shape: const StadiumBorder(), // OBLIGATORIO — ignora chipTheme
+      onSelected: (v) => setState(() {
+        if (v) _diasSemana.add(num);
+        else _diasSemana.remove(num);
+      }),
+    );
+  }).toList(),
+),
+```
+
+### Reglas generales de espaciado en formularios
+- **Entre campos**: `const SizedBox(height: 12)`
+- **Antes de secciones (divider, título)**: `const SizedBox(height: 24)`
+- **Después de divider/título**: `const SizedBox(height: 16)`
+- **Antes del botón final**: `const SizedBox(height: 32)`
+- **Padding del ListView**: `const EdgeInsets.all(16)`
+- **FilterChip siempre con**: `shape: const StadiumBorder()`
+
+### Chips y border radius globales
+- **Chips**: `StadiumBorder()` explícito en cada `FilterChip` (M3 ignora `chipTheme.shape`)
+- **Border radius global**: `14` para cards, bottom sheets, dialogs
+- **Input border radius**: `12` (definido en `AppTheme.inputDecorationTheme`)
+
+---
+
 ## Navegación
 
 ```dart

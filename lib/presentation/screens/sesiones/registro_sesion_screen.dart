@@ -8,8 +8,11 @@ import '../../providers/fuentes_provider.dart';
 import '../../providers/alumnos_provider.dart';
 import '../../providers/database_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../../domain/models/sesion_recurrente.dart';
 import '../../../domain/models/sesion_realizada.dart';
 import '../../../domain/models/cobro.dart';
+import '../../../domain/models/fuente.dart';
+import '../../../domain/models/hora_extra.dart';
 
 /// Pantalla de registro rápido de sesión (flujo de 3 toques).
 ///
@@ -33,9 +36,24 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
   String? _fuenteId;
   String? _alumnoId;
   DateTime _fecha = DateTime.now();
+  TimeOfDay _horaInicio = const TimeOfDay(hour: 9, minute: 0);
+  TimeOfDay _horaFin = const TimeOfDay(hour: 10, minute: 0);
   double _horas = 1.0;
   bool _cobradoAhora = false;
+  bool _importeEditable = false;
+  bool _esPuntual = true;
+  final List<int> _diasSemana = [];
   String _importeHelper = 'Introduce el importe de la sesión';
+
+  static const _dias = [
+    (1, 'L'),
+    (2, 'M'),
+    (3, 'X'),
+    (4, 'J'),
+    (5, 'V'),
+    (6, 'S'),
+    (7, 'D'),
+  ];
 
   @override
   void dispose() {
@@ -82,7 +100,13 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
   }
 
   void _onHorasChanged(double horas) {
-    setState(() => _horas = horas);
+    setState(() {
+      _horas = horas;
+      // Auto-ajustar horaFin según nueva duración
+      final totalMin =
+          _horaInicio.hour * 60 + _horaInicio.minute + (horas * 60).round();
+      _horaFin = TimeOfDay(hour: totalMin ~/ 60, minute: totalMin % 60);
+    });
     if (_alumnoId != null) {
       _onAlumnoChanged(_alumnoId);
     } else {
@@ -107,182 +131,385 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
         data: (fuentes) => alumnosAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(child: Text('Error: $e')),
-          data: (alumnos) => Form(
-            key: _formKey,
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Text('¿Qué sesión fue?', style: AppTextStyles.titleMedium),
-                const SizedBox(height: 16),
+          data: (alumnos) {
+            final esEmpleo = _fuenteId != null &&
+                fuentes.any(
+                    (f) => f.id == _fuenteId && f.tipo == FuenteTipo.empleo);
 
-                // Fuente
-                DropdownButtonFormField<String>(
-                  value: _fuenteId,
-                  decoration: const InputDecoration(
-                    labelText: 'Fuente',
-                    prefixIcon: Icon(Icons.account_balance_wallet_outlined),
-                  ),
-                  items: fuentes
-                      .map((f) => DropdownMenuItem(
-                            value: f.id,
-                            child: Text(f.nombre),
-                          ))
-                      .toList(),
-                  validator: (v) => v == null ? 'Selecciona una fuente' : null,
-                  onChanged: (v) => setState(() {
-                    _fuenteId = v;
-                    _alumnoId = null;
-                    _importeCtrl.clear();
-                  }),
-                ),
-                const SizedBox(height: 12),
+            return Form(
+              key: _formKey,
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  Text('¿Qué sesión fue?', style: AppTextStyles.titleMedium),
+                  const SizedBox(height: 16),
 
-                // Alumno (filtrado por fuente)
-                if (_fuenteId != null)
+                  // Fuente
                   DropdownButtonFormField<String>(
-                    value: _alumnoId,
+                    value: _fuenteId,
                     decoration: const InputDecoration(
-                      labelText: 'Alumno (opcional)',
-                      prefixIcon: Icon(Icons.person_outline),
+                      labelText: 'Fuente',
+                      prefixIcon: Icon(Icons.account_balance_wallet_outlined),
                     ),
-                    items: [
-                      const DropdownMenuItem(
-                        value: null,
-                        child: Text('Sin alumno específico'),
+                    items: fuentes
+                        .map((f) => DropdownMenuItem(
+                              value: f.id,
+                              child: Text(f.nombre),
+                            ))
+                        .toList(),
+                    validator: (v) =>
+                        v == null ? 'Selecciona una fuente' : null,
+                    onChanged: (v) => setState(() {
+                      _fuenteId = v;
+                      _alumnoId = null;
+                      _importeCtrl.clear();
+                    }),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Alumno (filtrado por fuente)
+                  if (_fuenteId != null)
+                    DropdownButtonFormField<String>(
+                      value: _alumnoId,
+                      decoration: const InputDecoration(
+                        labelText: 'Alumno (opcional)',
+                        prefixIcon: Icon(Icons.person_outline),
                       ),
-                      ...alumnos
-                          .where((a) => a.fuenteId == _fuenteId)
-                          .map((a) => DropdownMenuItem(
-                                value: a.id,
-                                child: Text(a.nombre),
-                              )),
-                    ],
-                    onChanged: _onAlumnoChanged,
-                  ),
-                const SizedBox(height: 12),
-
-                // Duración
-                DropdownButtonFormField<double>(
-                  value: _horas,
-                  decoration: const InputDecoration(
-                    labelText: 'Duración',
-                    prefixIcon: Icon(Icons.access_time_rounded),
-                  ),
-                  items: [0.5, 0.75, 1.0, 1.5, 2.0]
-                      .map((h) => DropdownMenuItem(
-                            value: h,
-                            child: Text(
-                              h == 0.5
-                                  ? '30 min'
-                                  : h == 0.75
-                                      ? '45 min'
-                                      : h == 1.5
-                                          ? '1h 30min'
-                                          : h == 2.0
-                                              ? '2 horas'
-                                              : '1 hora',
-                            ),
-                          ))
-                      .toList(),
-                  onChanged: (v) {
-                    if (v != null) _onHorasChanged(v);
-                  },
-                ),
-                const SizedBox(height: 12),
-
-                // Importe (siempre visible; auto-calculado si hay alumno)
-                TextFormField(
-                  controller: _importeCtrl,
-                  decoration: InputDecoration(
-                    labelText: 'Importe (€)',
-                    prefixIcon: const Icon(Icons.euro_rounded),
-                    helperText: _importeHelper,
-                  ),
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) {
-                      return 'Introduce el importe';
-                    }
-                    if (double.tryParse(v) == null) return 'Número inválido';
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-                const Divider(),
-                const SizedBox(height: 16),
-
-                // Estado de cobro — SegmentedButton
-                Text(
-                  '¿Cuándo cobras?',
-                  style: AppTextStyles.titleSmall,
-                ),
-                const SizedBox(height: 12),
-                SegmentedButton<bool>(
-                  segments: const [
-                    ButtonSegment(
-                      value: false,
-                      label: Text('Pendiente'),
-                      icon: Icon(Icons.schedule_outlined),
+                      items: [
+                        const DropdownMenuItem(
+                          value: null,
+                          child: Text('Sin alumno específico'),
+                        ),
+                        ...alumnos
+                            .where((a) => a.fuenteId == _fuenteId)
+                            .map((a) => DropdownMenuItem(
+                                  value: a.id,
+                                  child: Text(a.nombre),
+                                )),
+                      ],
+                      onChanged: _onAlumnoChanged,
                     ),
-                    ButtonSegment(
-                      value: true,
-                      label: Text('Cobré ahora'),
-                      icon: Icon(Icons.payments_outlined),
+                  const SizedBox(height: 12),
+
+                  // Tipo: puntual o recurrente
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: SwitchListTile(
+                      title: const Text('Clase única'),
+                      subtitle: const Text(
+                          'Solo ocurre una vez, en una fecha concreta'),
+                      value: _esPuntual,
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      onChanged: (v) => setState(() {
+                        _esPuntual = v;
+                        _diasSemana.clear();
+                      }),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  if (_esPuntual) ...[
+                    // Fecha única
+                    GestureDetector(
+                      onTap: _pickFecha,
+                      child: InputDecorator(
+                        decoration: const InputDecoration(
+                          labelText: 'Fecha',
+                          prefixIcon: Icon(Icons.calendar_today_outlined),
+                          suffixIcon: Icon(Icons.chevron_right),
+                        ),
+                        child: Text(AppDateUtils.formatFullDate(_fecha)),
+                      ),
+                    ),
+                  ] else ...[
+                    // Días de la semana
+                    Text('Días de la semana', style: AppTextStyles.labelMedium),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: _dias.map((d) {
+                        final (num, label) = d;
+                        final selected = _diasSemana.contains(num);
+                        return FilterChip(
+                          label: Text(label),
+                          selected: selected,
+                          shape: const StadiumBorder(),
+                          onSelected: (v) => setState(() {
+                            if (v) {
+                              _diasSemana.add(num);
+                            } else {
+                              _diasSemana.remove(num);
+                            }
+                          }),
+                        );
+                      }).toList(),
                     ),
                   ],
-                  selected: {_cobradoAhora},
-                  onSelectionChanged: (s) =>
-                      setState(() => _cobradoAhora = s.first),
-                ),
-                const SizedBox(height: 32),
+                  const SizedBox(height: 12),
 
-                FilledButton.icon(
-                  onPressed: _fuenteId != null ? _confirmar : null,
-                  icon: const Icon(Icons.check),
-                  label: const Text('Confirmar sesión'),
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  // Hora inicio / fin
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => _pickHora(isInicio: true),
+                          child: InputDecorator(
+                            decoration: const InputDecoration(
+                              labelText: 'Inicio',
+                              prefixIcon: Icon(Icons.schedule_outlined),
+                            ),
+                            child: Text(_formatTime(_horaInicio)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => _pickHora(isInicio: false),
+                          child: InputDecorator(
+                            decoration: const InputDecoration(
+                              labelText: 'Fin',
+                              prefixIcon: Icon(Icons.schedule_outlined),
+                            ),
+                            child: Text(_formatTime(_horaFin)),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-          ),
+                  const SizedBox(height: 12),
+
+                  // Duración
+                  DropdownButtonFormField<double>(
+                    value: _horas,
+                    decoration: const InputDecoration(
+                      labelText: 'Duración',
+                      prefixIcon: Icon(Icons.access_time_rounded),
+                    ),
+                    items: [0.5, 0.75, 1.0, 1.5, 2.0]
+                        .map((h) => DropdownMenuItem(
+                              value: h,
+                              child: Text(
+                                h == 0.5
+                                    ? '30 min'
+                                    : h == 0.75
+                                        ? '45 min'
+                                        : h == 1.5
+                                            ? '1h 30min'
+                                            : h == 2.0
+                                                ? '2 horas'
+                                                : '1 hora',
+                              ),
+                            ))
+                        .toList(),
+                    onChanged: (v) {
+                      if (v != null) _onHorasChanged(v);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Importe y cobro (solo para fuentes no-empleo)
+                  if (!esEmpleo) ...[
+                    TextFormField(
+                      controller: _importeCtrl,
+                      enabled: _importeEditable,
+                      decoration: InputDecoration(
+                        labelText: 'Importe (€)',
+                        prefixIcon: const Icon(Icons.euro_rounded),
+                        helperText: _importeHelper,
+                        suffixIcon: _importeEditable
+                            ? null
+                            : IconButton(
+                                icon: const Icon(Icons.edit_outlined),
+                                tooltip: 'Editar importe',
+                                onPressed: () =>
+                                    setState(() => _importeEditable = true),
+                              ),
+                      ),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return 'Introduce el importe';
+                        }
+                        if (double.tryParse(v) == null)
+                          return 'Número inválido';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    const Divider(),
+                    const SizedBox(height: 16),
+
+                    // Estado de cobro — SegmentedButton
+                    Text(
+                      '¿Cuándo cobras?',
+                      style: AppTextStyles.titleSmall,
+                    ),
+                    const SizedBox(height: 12),
+                    SegmentedButton<bool>(
+                      segments: const [
+                        ButtonSegment(
+                          value: false,
+                          label: Text('Pendiente'),
+                          icon: Icon(Icons.schedule_outlined),
+                        ),
+                        ButtonSegment(
+                          value: true,
+                          label: Text('Cobré ahora'),
+                          icon: Icon(Icons.payments_outlined),
+                        ),
+                      ],
+                      selected: {_cobradoAhora},
+                      onSelectionChanged: (s) =>
+                          setState(() => _cobradoAhora = s.first),
+                    ),
+                  ],
+                  const SizedBox(height: 32),
+
+                  FilledButton.icon(
+                    onPressed: _fuenteId != null ? _confirmar : null,
+                    icon: const Icon(Icons.check),
+                    label: const Text('Confirmar sesión'),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
   }
 
+  String _formatTime(TimeOfDay t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+  Future<void> _pickFecha() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _fecha,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null) setState(() => _fecha = picked);
+  }
+
+  Future<void> _pickHora({required bool isInicio}) async {
+    final initial = isInicio ? _horaInicio : _horaFin;
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: initial,
+    );
+    if (picked != null) {
+      setState(() {
+        if (isInicio) {
+          _horaInicio = picked;
+          // Auto-ajustar horaFin según duración actual
+          final totalMin =
+              picked.hour * 60 + picked.minute + (_horas * 60).round();
+          _horaFin = TimeOfDay(hour: totalMin ~/ 60, minute: totalMin % 60);
+        } else {
+          _horaFin = picked;
+          // Recalcular duración
+          final diffMin = (picked.hour * 60 + picked.minute) -
+              (_horaInicio.hour * 60 + _horaInicio.minute);
+          if (diffMin > 0) {
+            _horas = diffMin / 60.0;
+          }
+        }
+      });
+    }
+  }
+
   Future<void> _confirmar() async {
     if (_fuenteId == null) return;
-    if (!_formKey.currentState!.validate()) return;
 
-    final tarifa = double.parse(_importeCtrl.text);
+    final fuentesAsync = ref.read(fuentesProvider);
+    final fuentes = fuentesAsync.valueOrNull ?? [];
+    final fuente = fuentes.where((f) => f.id == _fuenteId).firstOrNull;
+    final esEmpleo = fuente?.tipo == FuenteTipo.empleo;
 
-    final sesionId = _uuid.v4();
-    final sesion = SesionRealizada(
-      id: sesionId,
-      alumnoId: _alumnoId,
+    if (!esEmpleo && !_formKey.currentState!.validate()) return;
+
+    if (!_esPuntual && _diasSemana.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Selecciona al menos un día de la semana')),
+      );
+      return;
+    }
+
+    final tarifa = esEmpleo ? 0.0 : (double.tryParse(_importeCtrl.text) ?? 0.0);
+    final fechaIso = AppDateUtils.formatIso(_fecha);
+    final horaInicioStr = _formatTime(_horaInicio);
+    final horaFinStr = _formatTime(_horaFin);
+
+    // 1. Crear SesionRecurrente (puntual o recurrente)
+    final recurrenteId = _uuid.v4();
+    final recurrente = SesionRecurrente(
+      id: recurrenteId,
       fuenteId: _fuenteId!,
-      fecha: AppDateUtils.formatIso(_fecha),
-      horas: _horas,
-      cobro: tarifa,
-      estado: EstadoSesion.confirmada,
-    );
-    await ref.read(sesionRepositoryProvider).saveSesionRealizada(sesion);
-
-    // Generar cobro automático
-    final cobro = Cobro(
-      id: _uuid.v4(),
-      sesionId: sesionId,
       alumnoId: _alumnoId,
-      fuenteId: _fuenteId!,
-      modoCobro: ModoCobro.sesion,
-      monto: tarifa,
-      estado: _cobradoAhora ? EstadoCobro.cobrado : EstadoCobro.pendiente,
-      fechaCobro: _cobradoAhora ? AppDateUtils.formatIso(_fecha) : null,
+      diasSemana: _esPuntual ? [_fecha.weekday] : List.from(_diasSemana),
+      horaInicio: horaInicioStr,
+      horaFin: horaFinStr,
+      fechaInicio: fechaIso,
+      esPuntual: _esPuntual,
     );
-    await ref.read(cobroRepositoryProvider).saveCobro(cobro);
+    await ref.read(sesionRepositoryProvider).saveSesionRecurrente(recurrente);
+
+    // 2. Crear SesionRealizada solo para sesiones puntuales (ya ocurrió)
+    if (_esPuntual) {
+      final sesionId = _uuid.v4();
+      final sesion = SesionRealizada(
+        id: sesionId,
+        alumnoId: _alumnoId,
+        fuenteId: _fuenteId!,
+        sesionRecurrenteId: recurrenteId,
+        fecha: fechaIso,
+        horas: _horas,
+        cobro: tarifa,
+        estado: EstadoSesion.confirmada,
+      );
+      await ref.read(sesionRepositoryProvider).saveSesionRealizada(sesion);
+
+      // 3. Flujo de cobro / horas extra según tipo de fuente
+      if (esEmpleo) {
+        final horaExtra = HoraExtra(
+          id: _uuid.v4(),
+          fuenteId: _fuenteId!,
+          fecha: fechaIso,
+          horas: _horas,
+          alumnoId: _alumnoId,
+          notas: 'Auto - registro manual',
+        );
+        await ref.read(horasExtraRepositoryProvider).saveHoraExtra(horaExtra);
+      } else {
+        final cobro = Cobro(
+          id: _uuid.v4(),
+          sesionId: sesionId,
+          alumnoId: _alumnoId,
+          fuenteId: _fuenteId!,
+          modoCobro: ModoCobro.sesion,
+          monto: tarifa,
+          estado: _cobradoAhora ? EstadoCobro.cobrado : EstadoCobro.pendiente,
+          fechaCobro: _cobradoAhora ? fechaIso : null,
+        );
+        await ref.read(cobroRepositoryProvider).saveCobro(cobro);
+      }
+    }
 
     if (mounted) context.pop();
   }

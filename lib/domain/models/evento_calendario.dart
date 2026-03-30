@@ -31,6 +31,7 @@ class EventoCalendario {
     required this.horaFin,
     required this.titulo,
     required this.fuenteId,
+    this.fuenteTipo,
     this.sesionRecurrenteId,
     this.sesionRealizadaId,
     this.alumnoId,
@@ -50,6 +51,7 @@ class EventoCalendario {
 
   final String titulo;
   final String fuenteId;
+  final FuenteTipo? fuenteTipo;
   final String? sesionRecurrenteId;
   final String? sesionRealizadaId;
   final String? alumnoId;
@@ -115,6 +117,7 @@ class EventoCalendario {
       horaFin: sesion.horaFin,
       titulo: titulo,
       fuenteId: sesion.fuenteId,
+      fuenteTipo: fuente.tipo,
       fuenteNombre: fuente.nombre,
       sesionRecurrenteId: sesion.id,
       sesionRealizadaId: realizada?.id,
@@ -132,6 +135,7 @@ class EventoCalendario {
         horaFin: horaFin,
         titulo: titulo,
         fuenteId: fuenteId,
+        fuenteTipo: fuenteTipo,
         fuenteNombre: fuenteNombre,
         sesionRecurrenteId: sesionRecurrenteId,
         sesionRealizadaId: sesionRealizadaId,

@@ -7,6 +7,8 @@ import '../../../../core/utils/currency_utils.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../../domain/models/cobro.dart';
 import '../../../../domain/models/evento_calendario.dart';
+import '../../../../domain/models/fuente.dart';
+import '../../../../domain/models/hora_extra.dart';
 import '../../../../domain/models/sesion_realizada.dart';
 import '../../../providers/database_provider.dart';
 import '../../../providers/theme_provider.dart';
@@ -29,6 +31,7 @@ Future<void> showRegistroSesionSheet(
     context: context,
     isScrollControlled: true,
     useSafeArea: true,
+    backgroundColor: Theme.of(context).colorScheme.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -150,30 +153,56 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
     final yaCancel = evento.esCancelada;
 
     if (yaRegistrada || yaCancel) {
+      final bgColor = yaCancel
+          ? AppColors.error.withValues(alpha: 0.12)
+          : AppColors.cobroCobrado.withValues(alpha: 0.12);
+      final fgColor = yaCancel ? AppColors.error : AppColors.cobroCobrado;
+      final icono = yaCancel ? Icons.cancel_outlined : Icons.check_circle;
+      final titulo = yaCancel ? 'Sesión cancelada' : 'Sesión realizada';
+      final subtitulo = yaCancel
+          ? 'Esta sesión fue marcada como no realizada.'
+          : 'Esta sesión ya está registrada como realizada.';
+
       return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color:
-                  yaCancel ? AppColors.errorLight : AppColors.cobroCobradoLight,
+              color: bgColor,
               borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: fgColor.withValues(alpha: 0.3)),
             ),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  yaCancel ? Icons.cancel_outlined : Icons.check_circle_outline,
-                  color: yaCancel ? AppColors.error : AppColors.cobroCobrado,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  yaCancel ? 'Sesión cancelada' : 'Sesión ya registrada',
-                  style: AppTextStyles.bodyMedium,
+                Icon(icono, color: fgColor, size: 24),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(titulo,
+                          style: AppTextStyles.titleSmall
+                              .copyWith(color: fgColor)),
+                      const SizedBox(height: 4),
+                      Text(subtitulo,
+                          style: AppTextStyles.bodySmall.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant)),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
           const SizedBox(height: 16),
+          OutlinedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cerrar'),
+          ),
+          const SizedBox(height: 8),
         ],
       );
     }
@@ -184,7 +213,13 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
         Text('¿Qué ocurrió con esta sesión?', style: AppTextStyles.labelMedium),
         const SizedBox(height: 12),
         FilledButton.icon(
-          onPressed: () => setState(() => _step = 1),
+          onPressed: () {
+            if (evento.fuenteTipo == FuenteTipo.empleo) {
+              _confirmarSesionEmpleo();
+            } else {
+              setState(() => _step = 1);
+            }
+          },
           icon: const Icon(Icons.check),
           label: const Text('Se realizó'),
           style: FilledButton.styleFrom(
@@ -316,6 +351,48 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
             _cobradoAhora
                 ? 'Sesión confirmada y cobrada ${CurrencyUtils.formatCompact(importe)}'
                 : 'Sesión confirmada — cobro pendiente',
+          ),
+        ),
+      );
+    }
+  }
+
+  Future<void> _confirmarSesionEmpleo() async {
+    setState(() => _loading = true);
+
+    final fechaIso = AppDateUtils.formatIso(widget.dia);
+    final evento = widget.evento;
+
+    // Guardar SesionRealizada (sin cobro económico)
+    final sesion = SesionRealizada(
+      id: _uuid.v4(),
+      alumnoId: evento.alumnoId,
+      fuenteId: evento.fuenteId,
+      sesionRecurrenteId: evento.sesionRecurrenteId,
+      fecha: fechaIso,
+      horas: evento.duracionHoras,
+      cobro: 0,
+      estado: EstadoSesion.confirmada,
+    );
+    await ref.read(sesionRepositoryProvider).saveSesionRealizada(sesion);
+
+    // Crear HoraExtra automáticamente
+    final horaExtra = HoraExtra(
+      id: _uuid.v4(),
+      fuenteId: evento.fuenteId,
+      fecha: fechaIso,
+      horas: evento.duracionHoras,
+      alumnoId: evento.alumnoId,
+      notas: 'Auto - calendario',
+    );
+    await ref.read(horasExtraRepositoryProvider).saveHoraExtra(horaExtra);
+
+    if (mounted) {
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Sesión registrada — ${evento.duracionHoras.toStringAsFixed(1)} h añadidas',
           ),
         ),
       );

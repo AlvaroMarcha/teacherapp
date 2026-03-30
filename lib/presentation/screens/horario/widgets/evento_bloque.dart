@@ -40,8 +40,8 @@ class EventoBloque extends StatelessWidget {
               ),
             ),
             padding: EdgeInsets.symmetric(
-              horizontal: 8,
-              vertical: compact ? 4 : 8,
+              horizontal: compact ? 4 : 8,
+              vertical: compact ? 2 : 8,
             ),
             child: compact
                 ? _CompactContent(evento: evento, color: color)
@@ -60,29 +60,17 @@ class _CompactContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(
-          evento.horaInicio,
-          style: AppTextStyles.labelSmall.copyWith(color: color),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            evento.titulo,
-            style: AppTextStyles.bodySmall,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        if (evento.esCancelada) ...[
-          const SizedBox(width: 4),
-          Icon(Icons.cancel_outlined, size: 12, color: color),
-        ] else if (evento.estaConfirmada) ...[
-          const SizedBox(width: 4),
-          Icon(Icons.check_circle_outline, size: 12, color: color),
-        ],
-      ],
+    // Una sola línea: hora + título truncado. Sin Row/Spacer que desborde.
+    final icon = evento.esCancelada
+        ? '✕ '
+        : evento.estaConfirmada
+            ? '✓ '
+            : '';
+    return Text(
+      '$icon${evento.horaInicio} ${evento.titulo}',
+      style: AppTextStyles.labelSmall.copyWith(color: color, fontSize: 9.5),
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

@@ -7,6 +7,7 @@ import '../../../core/router/app_router.dart';
 import '../../providers/fuentes_provider.dart';
 import '../../providers/database_provider.dart';
 import '../../../domain/models/alumno.dart';
+import '../../../domain/models/fuente.dart';
 
 class AlumnoFormScreen extends ConsumerStatefulWidget {
   const AlumnoFormScreen({super.key, this.alumnoId});
@@ -104,7 +105,10 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
                           DropdownMenuItem(value: f.id, child: Text(f.nombre)),
                     )
                     .toList(),
-                onChanged: (v) => setState(() => _fuenteIdSeleccionada = v),
+                onChanged: (v) {
+                  setState(() => _fuenteIdSeleccionada = v);
+                  if (v != null) _autoFillTarifaEmpleo(v, fuentes);
+                },
                 validator: (v) => v == null ? 'Selecciona una fuente' : null,
               ),
               const SizedBox(height: 16),
@@ -159,6 +163,19 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _autoFillTarifaEmpleo(
+    String fuenteId,
+    List<Fuente> fuentes,
+  ) async {
+    final fuente = fuentes.firstWhere((f) => f.id == fuenteId);
+    if (fuente.tipo != FuenteTipo.empleo) return;
+
+    final config = await ref.read(empleoConfigProvider(fuenteId).future);
+    if (config != null && mounted) {
+      _tarifaCtrl.text = config.tarifaHoraExtra.toStringAsFixed(2);
+    }
   }
 
   void _guardar() {
