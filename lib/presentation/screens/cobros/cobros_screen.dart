@@ -53,10 +53,13 @@ class CobrosScreen extends ConsumerWidget {
             children: [
               // Banner total pendiente
               Container(
-                width: double.infinity,
-                color: isDark
-                    ? AppColors.cobroPendienteLightDark
-                    : AppColors.cobroPendienteLight,
+                margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppColors.cobroPendienteLightDark
+                      : AppColors.cobroPendienteLight,
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 10,

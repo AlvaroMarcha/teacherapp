@@ -129,9 +129,33 @@ class _Section extends StatelessWidget {
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               )),
         ),
-        if (customContent != null) customContent!,
-        ...items,
-        const Divider(height: 1),
+        if (customContent != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Card(
+              margin: EdgeInsets.zero,
+              clipBehavior: Clip.hardEdge,
+              child: customContent!,
+            ),
+          )
+        else if (items.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Card(
+              margin: EdgeInsets.zero,
+              clipBehavior: Clip.hardEdge,
+              child: Column(
+                children: [
+                  for (int i = 0; i < items.length; i++) ...[
+                    items[i],
+                    if (i < items.length - 1)
+                      const Divider(height: 1, indent: 16, endIndent: 16),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        const SizedBox(height: 8),
       ],
     );
   }

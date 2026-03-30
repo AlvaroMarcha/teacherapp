@@ -7,6 +7,7 @@ import '../../../core/utils/date_utils.dart';
 import '../../providers/fuentes_provider.dart';
 import '../../providers/alumnos_provider.dart';
 import '../../providers/database_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../../domain/models/sesion_realizada.dart';
 import '../../../domain/models/cobro.dart';
 
@@ -34,6 +35,7 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
   DateTime _fecha = DateTime.now();
   double _horas = 1.0;
   bool _cobradoAhora = false;
+  String _importeHelper = 'Introduce el importe de la sesión';
 
   @override
   void dispose() {
@@ -44,22 +46,51 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
   Future<void> _onAlumnoChanged(String? alumnoId) async {
     setState(() => _alumnoId = alumnoId);
     if (alumnoId == null) {
-      _importeCtrl.clear();
+      // Sin alumno: intentar tarifa global como fallback
+      final global = ref.read(tarifaGlobalProvider);
+      if (global > 0) {
+        _importeCtrl.text = (global * _horas).toStringAsFixed(2);
+        setState(() => _importeHelper =
+            'Tarifa global (${global.toStringAsFixed(2)}€/h) · editable');
+      } else {
+        _importeCtrl.clear();
+        setState(() => _importeHelper = 'Introduce el importe de la sesión');
+      }
       return;
     }
     final alumno =
         await ref.read(alumnoRepositoryProvider).getAlumnoById(alumnoId);
     if (alumno != null && mounted) {
-      final tarifa = alumno.tarifaSesion * _horas;
-      _importeCtrl.text = tarifa.toStringAsFixed(2);
+      if (alumno.tarifaSesion > 0) {
+        final tarifa = alumno.tarifaSesion * _horas;
+        _importeCtrl.text = tarifa.toStringAsFixed(2);
+        setState(() => _importeHelper =
+            'Tarifa del alumno (${alumno.tarifaSesion.toStringAsFixed(2)}€/h) · editable');
+      } else {
+        // Alumno sin tarifa propia: fallback a global
+        final global = ref.read(tarifaGlobalProvider);
+        if (global > 0) {
+          _importeCtrl.text = (global * _horas).toStringAsFixed(2);
+          setState(() => _importeHelper =
+              'Tarifa global (${global.toStringAsFixed(2)}€/h) · editable');
+        } else {
+          _importeCtrl.clear();
+          setState(() => _importeHelper = 'Introduce el importe de la sesión');
+        }
+      }
     }
   }
 
   void _onHorasChanged(double horas) {
     setState(() => _horas = horas);
-    // Si ya hay alumno seleccionado, recalcular importe
     if (_alumnoId != null) {
       _onAlumnoChanged(_alumnoId);
+    } else {
+      // Sin alumno: recalcular con tarifa global si existe
+      final global = ref.read(tarifaGlobalProvider);
+      if (global > 0) {
+        _importeCtrl.text = (global * horas).toStringAsFixed(2);
+      }
     }
   }
 
@@ -165,9 +196,7 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
                   decoration: InputDecoration(
                     labelText: 'Importe (€)',
                     prefixIcon: const Icon(Icons.euro_rounded),
-                    helperText: _alumnoId != null
-                        ? 'Calculado por tarifa del alumno · editable'
-                        : 'Introduce el importe de la sesión',
+                    helperText: _importeHelper,
                   ),
                   keyboardType:
                       const TextInputType.numberWithOptions(decimal: true),

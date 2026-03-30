@@ -111,7 +111,7 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
               TextFormField(
                 controller: _tarifaCtrl,
                 decoration: const InputDecoration(
-                  labelText: 'Tarifa por sesión (€)',
+                  labelText: 'Tarifa por hora (€/h)',
                   prefixIcon: Icon(Icons.euro_rounded),
                 ),
                 keyboardType: const TextInputType.numberWithOptions(

@@ -4,6 +4,7 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/currency_utils.dart';
 import '../../providers/alumnos_provider.dart';
 import '../../providers/database_provider.dart';
+import '../../providers/theme_provider.dart';
 
 /// Pantalla para ver y editar la jerarquía de tarifas.
 ///
@@ -64,11 +65,20 @@ class _TarifaGlobalState extends ConsumerState<_TarifaGlobal> {
   final _ctrl = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final tarifa = ref.read(tarifaGlobalProvider);
+      if (tarifa > 0) _ctrl.text = tarifa.toStringAsFixed(2);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Tarifa global (€/hora)', style: AppTextStyles.titleSmall),
+        Text('Tarifa global (€/h)', style: AppTextStyles.titleSmall),
         const SizedBox(height: 8),
         Row(
           children: [
@@ -80,15 +90,24 @@ class _TarifaGlobalState extends ConsumerState<_TarifaGlobal> {
                 decoration: const InputDecoration(
                   hintText: '0,00',
                   prefixText: '€ ',
+                  suffixText: '/h',
                 ),
               ),
             ),
             const SizedBox(width: 12),
-            ElevatedButton(
+            FilledButton(
               onPressed: () {
-                // TODO: guardar tarifa global en preferences / tabla config
+                final v =
+                    double.tryParse(_ctrl.text.trim().replaceAll(',', '.'));
+                if (v == null || v < 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Introduce un número válido')),
+                  );
+                  return;
+                }
+                ref.read(tarifaGlobalProvider.notifier).set(v);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Tarifa global actualizada')),
+                  const SnackBar(content: Text('Tarifa global guardada')),
                 );
               },
               child: const Text('Guardar'),
@@ -122,28 +141,31 @@ class _TarifasPorAlumno extends ConsumerWidget {
             if (alumnos.isEmpty) {
               return const Text('No hay alumnos registrados todavía.');
             }
-            return ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: alumnos.length,
-              separatorBuilder: (_, __) => const Divider(height: 1),
-              itemBuilder: (context, i) {
-                final alumno = alumnos[i];
-                return ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(alumno.nombre),
-                  trailing: Text(
-                    alumno.tarifaSesion > 0
-                        ? CurrencyUtils.format(alumno.tarifaSesion)
-                        : 'Tarifa fuente / global',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: alumno.tarifaSesion > 0 ? null : Colors.grey,
+            return Card(
+              margin: EdgeInsets.zero,
+              clipBehavior: Clip.hardEdge,
+              child: Column(
+                children: [
+                  for (int i = 0; i < alumnos.length; i++) ...[
+                    ListTile(
+                      title: Text(alumnos[i].nombre),
+                      trailing: Text(
+                        alumnos[i].tarifaSesion > 0
+                            ? '${CurrencyUtils.format(alumnos[i].tarifaSesion)}/h'
+                            : 'Tarifa global',
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color:
+                              alumnos[i].tarifaSesion > 0 ? null : Colors.grey,
+                        ),
+                      ),
+                      onTap: () => _editarTarifa(context, ref, alumnos[i].id,
+                          alumnos[i].nombre, alumnos[i].tarifaSesion),
                     ),
-                  ),
-                  onTap: () => _editarTarifa(context, ref, alumno.id,
-                      alumno.nombre, alumno.tarifaSesion),
-                );
-              },
+                    if (i < alumnos.length - 1)
+                      const Divider(height: 1, indent: 16, endIndent: 16),
+                  ],
+                ],
+              ),
             );
           },
         ),
