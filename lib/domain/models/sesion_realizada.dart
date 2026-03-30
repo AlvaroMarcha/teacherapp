@@ -35,6 +35,7 @@ class SesionRealizada {
     required this.horas,
     required this.cobro,
     this.alumnoId,
+    this.sesionRecurrenteId,
     this.estado = EstadoSesion.pendiente,
     this.notas = '',
     this.syncStatus = 'pending',
@@ -43,6 +44,9 @@ class SesionRealizada {
   final String id;
   final String? alumnoId;
   final String fuenteId;
+
+  /// FK a la sesión recurrente que originó este registro (null si es manual).
+  final String? sesionRecurrenteId;
 
   /// Fecha ISO 8601, "yyyy-MM-dd".
   final String fecha;
@@ -61,23 +65,26 @@ class SesionRealizada {
     String? id,
     String? alumnoId,
     String? fuenteId,
+    String? sesionRecurrenteId,
     String? fecha,
     double? horas,
     double? cobro,
     EstadoSesion? estado,
     String? notas,
     String? syncStatus,
-  }) => SesionRealizada(
-    id: id ?? this.id,
-    alumnoId: alumnoId ?? this.alumnoId,
-    fuenteId: fuenteId ?? this.fuenteId,
-    fecha: fecha ?? this.fecha,
-    horas: horas ?? this.horas,
-    cobro: cobro ?? this.cobro,
-    estado: estado ?? this.estado,
-    notas: notas ?? this.notas,
-    syncStatus: syncStatus ?? this.syncStatus,
-  );
+  }) =>
+      SesionRealizada(
+        id: id ?? this.id,
+        alumnoId: alumnoId ?? this.alumnoId,
+        fuenteId: fuenteId ?? this.fuenteId,
+        sesionRecurrenteId: sesionRecurrenteId ?? this.sesionRecurrenteId,
+        fecha: fecha ?? this.fecha,
+        horas: horas ?? this.horas,
+        cobro: cobro ?? this.cobro,
+        estado: estado ?? this.estado,
+        notas: notas ?? this.notas,
+        syncStatus: syncStatus ?? this.syncStatus,
+      );
 
   @override
   bool operator ==(Object other) =>

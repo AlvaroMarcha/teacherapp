@@ -42,7 +42,7 @@ class AppColors {
   static const Color sesionRecurrente = Color(0xFF2563EB); // Azul
   static const Color sesionParticular = Color(0xFF16A34A); // Verde
   static const Color sesionUnica = Color(0xFF9333EA); // Morado
-  static const Color sesionCancelada = Color(0xFF94A3B8); // Gris
+  static const Color sesionCancelada = Color(0xFFDC2626); // Rojo
 
   // ── Estado de cobros ────────────────────────────────────────────
   static const Color cobroPendiente = Color(0xFFF59E0B); // Amber

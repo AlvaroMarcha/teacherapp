@@ -38,7 +38,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.connection);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -52,6 +52,22 @@ class AppDatabase extends _$AppDatabase {
           }
           if (from < 3) {
             await m.addColumn(horasExtraTable, horasExtraTable.alumnoId);
+          }
+          if (from < 4) {
+            // Wrapped in try/catch — column may already exist if a previous
+            // migration run crashed after ALTER TABLE but before version bump.
+            try {
+              await m.addColumn(
+                sesionesRecurrentesTable,
+                sesionesRecurrentesTable.esPuntual,
+              );
+            } catch (_) {}
+            try {
+              await m.addColumn(
+                sesionesRealizadasTable,
+                sesionesRealizadasTable.sesionRecurrenteId,
+              );
+            } catch (_) {}
           }
         },
       );
@@ -130,6 +146,12 @@ class AppDatabase extends _$AppDatabase {
       (select(
         sesionesRealizadasTable,
       )..where((t) => t.fecha.like('$periodoMes%')))
+          .watch();
+
+  Stream<List<SesionesRealizadasTableData>> watchSesionesRealizadasByFecha(
+    String fecha,
+  ) =>
+      (select(sesionesRealizadasTable)..where((t) => t.fecha.equals(fecha)))
           .watch();
 
   Future<String> upsertSesionRealizada(

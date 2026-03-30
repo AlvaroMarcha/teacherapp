@@ -25,6 +25,8 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
   final List<int> _diasSemana = [];
   TimeOfDay _horaInicio = const TimeOfDay(hour: 9, minute: 0);
   double _duracion = 1.0;
+  bool _esPuntual = false;
+  DateTime? _fechaUnica;
 
   // Labels de días lunes=1 ... domingo=7
   static const _dias = [
@@ -55,6 +57,10 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
       final finMinutes = int.parse(finParts[0]) * 60 + int.parse(finParts[1]);
       final iniMinutes = int.parse(parts[0]) * 60 + int.parse(parts[1]);
       _duracion = (finMinutes - iniMinutes) / 60.0;
+      _esPuntual = e.esPuntual;
+      if (e.esPuntual && e.fechaInicio.isNotEmpty) {
+        _fechaUnica = DateTime.tryParse(e.fechaInicio);
+      }
     }
   }
 
@@ -118,26 +124,66 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
                   ),
                   const SizedBox(height: 12),
                 ],
-                Text('Días de la semana', style: AppTextStyles.labelMedium),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: _dias.map((d) {
-                    final (num, label) = d;
-                    final selected = _diasSemana.contains(num);
-                    return FilterChip(
-                      label: Text(label),
-                      selected: selected,
-                      onSelected: (v) => setState(() {
-                        if (v) {
-                          _diasSemana.add(num);
-                        } else {
-                          _diasSemana.remove(num);
-                        }
-                      }),
-                    );
-                  }).toList(),
+                SwitchListTile(
+                  title: const Text('Clase única'),
+                  subtitle:
+                      const Text('Solo ocurre una vez, en una fecha concreta'),
+                  value: _esPuntual,
+                  contentPadding: EdgeInsets.zero,
+                  onChanged: (v) => setState(() {
+                    _esPuntual = v;
+                    if (v) {
+                      _diasSemana.clear();
+                      _fechaUnica ??= DateTime.now();
+                    } else {
+                      _fechaUnica = null;
+                    }
+                  }),
                 ),
+                const SizedBox(height: 4),
+                if (_esPuntual) ...[
+                  ListTile(
+                    title: Text('Fecha', style: AppTextStyles.labelMedium),
+                    trailing: Text(
+                      _fechaUnica != null
+                          ? '${_fechaUnica!.day.toString().padLeft(2, '0')}/${_fechaUnica!.month.toString().padLeft(2, '0')}/${_fechaUnica!.year}'
+                          : 'Seleccionar',
+                      style: AppTextStyles.bodyLarge,
+                    ),
+                    contentPadding: EdgeInsets.zero,
+                    onTap: () async {
+                      final d = await showDatePicker(
+                        context: context,
+                        initialDate: _fechaUnica ?? DateTime.now(),
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2100),
+                      );
+                      if (d != null) setState(() => _fechaUnica = d);
+                    },
+                  ),
+                ] else ...[
+                  Text('Días de la semana', style: AppTextStyles.labelMedium),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    children: _dias.map((d) {
+                      final (num, label) = d;
+                      final selected = _diasSemana.contains(num);
+                      return FilterChip(
+                        label: Text(label),
+                        selected: selected,
+                        shape: const StadiumBorder(),
+                        onSelected: (v) => setState(() {
+                          if (v) {
+                            _diasSemana.add(num);
+                          } else {
+                            _diasSemana.remove(num);
+                          }
+                        }),
+                      );
+                    }).toList(),
+                  ),
+                ],
                 const SizedBox(height: 12),
                 ListTile(
                   title:
@@ -189,29 +235,50 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
 
   Future<void> _guardar() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_diasSemana.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecciona al menos un día')),
-      );
-      return;
-    }
     if (_fuenteId == null) return;
 
-    String _fmt(int h, int m) =>
+    if (_esPuntual) {
+      if (_fechaUnica == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Selecciona una fecha para la clase única')),
+        );
+        return;
+      }
+    } else {
+      if (_diasSemana.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Selecciona al menos un día')),
+        );
+        return;
+      }
+    }
+
+    String fmt(int h, int m) =>
         '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}';
-    final horaInicio = _fmt(_horaInicio.hour, _horaInicio.minute);
+    final horaInicio = fmt(_horaInicio.hour, _horaInicio.minute);
     final totalMinutes =
         _horaInicio.hour * 60 + _horaInicio.minute + (_duracion * 60).round();
-    final horaFin = _fmt(totalMinutes ~/ 60 % 24, totalMinutes % 60);
+    final horaFin = fmt(totalMinutes ~/ 60 % 24, totalMinutes % 60);
+
+    final fechaBase = _esPuntual
+        ? _fechaUnica!.toIso8601String().substring(0, 10)
+        : (widget.existing?.fechaInicio ??
+            DateTime.now().toIso8601String().substring(0, 10));
+
+    final diasFinales = _esPuntual
+        ? [_fechaUnica!.weekday]
+        : (List<int>.from(_diasSemana)..sort());
+
     final sesion = SesionRecurrente(
       id: widget.existing?.id ?? _uuid.v4(),
       alumnoId: _alumnoId,
       fuenteId: _fuenteId!,
-      diasSemana: List.from(_diasSemana)..sort(),
+      diasSemana: diasFinales,
       horaInicio: horaInicio,
       horaFin: horaFin,
-      fechaInicio: widget.existing?.fechaInicio ??
-          DateTime.now().toIso8601String().substring(0, 10),
+      fechaInicio: fechaBase,
+      esPuntual: _esPuntual,
     );
 
     await ref.read(sesionRepositoryProvider).saveSesionRecurrente(sesion);

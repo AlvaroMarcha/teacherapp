@@ -12,6 +12,7 @@ class SesionRecurrente {
     required this.fechaInicio,
     this.alumnoId,
     this.fechaFin,
+    this.esPuntual = false,
     this.syncStatus = 'pending',
   });
 
@@ -34,6 +35,9 @@ class SesionRecurrente {
   /// Fecha de fin de la recurrencia (null = indefinida).
   final String? fechaFin;
 
+  /// true = clase puntual/única (no se repite semana a semana).
+  final bool esPuntual;
+
   final String syncStatus;
 
   SesionRecurrente copyWith({
@@ -45,18 +49,21 @@ class SesionRecurrente {
     String? horaFin,
     String? fechaInicio,
     String? fechaFin,
+    bool? esPuntual,
     String? syncStatus,
-  }) => SesionRecurrente(
-    id: id ?? this.id,
-    alumnoId: alumnoId ?? this.alumnoId,
-    fuenteId: fuenteId ?? this.fuenteId,
-    diasSemana: diasSemana ?? this.diasSemana,
-    horaInicio: horaInicio ?? this.horaInicio,
-    horaFin: horaFin ?? this.horaFin,
-    fechaInicio: fechaInicio ?? this.fechaInicio,
-    fechaFin: fechaFin ?? this.fechaFin,
-    syncStatus: syncStatus ?? this.syncStatus,
-  );
+  }) =>
+      SesionRecurrente(
+        id: id ?? this.id,
+        alumnoId: alumnoId ?? this.alumnoId,
+        fuenteId: fuenteId ?? this.fuenteId,
+        diasSemana: diasSemana ?? this.diasSemana,
+        horaInicio: horaInicio ?? this.horaInicio,
+        horaFin: horaFin ?? this.horaFin,
+        fechaInicio: fechaInicio ?? this.fechaInicio,
+        fechaFin: fechaFin ?? this.fechaFin,
+        esPuntual: esPuntual ?? this.esPuntual,
+        syncStatus: syncStatus ?? this.syncStatus,
+      );
 
   @override
   bool operator ==(Object other) =>

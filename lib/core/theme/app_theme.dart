@@ -75,19 +75,19 @@ class AppTheme {
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(14),
             borderSide: const BorderSide(color: AppColors.border),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(14),
             borderSide: const BorderSide(color: AppColors.border),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(14),
             borderSide: const BorderSide(color: AppColors.primary, width: 2),
           ),
           errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(14),
             borderSide: const BorderSide(color: AppColors.error),
           ),
           labelStyle: AppTextStyles.bodyMedium.copyWith(
@@ -106,7 +106,7 @@ class AppTheme {
             elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
             shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             textStyle: AppTextStyles.labelLarge,
           ),
         ),
@@ -126,7 +126,7 @@ class AppTheme {
             side: const BorderSide(color: AppColors.primary),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
             shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             textStyle: AppTextStyles.labelLarge,
           ),
         ),
@@ -137,8 +137,8 @@ class AppTheme {
           selectedColor: AppColors.primaryLight,
           labelStyle: AppTextStyles.labelMedium,
           side: const BorderSide(color: AppColors.border),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+          shape: const StadiumBorder(),
+          padding: const EdgeInsets.symmetric(horizontal: 4),
         ),
 
         // ── Divider ──────────────────────────────────────────────
@@ -153,7 +153,7 @@ class AppTheme {
           behavior: SnackBarBehavior.floating,
           backgroundColor: const Color(0xFF1C1C1E),
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           contentTextStyle:
               AppTextStyles.bodyMedium.copyWith(color: Colors.white),
         ),
@@ -268,19 +268,19 @@ class AppTheme {
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(14),
             borderSide: const BorderSide(color: AppColors.borderDark),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(14),
             borderSide: const BorderSide(color: AppColors.borderDark),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(14),
             borderSide: const BorderSide(color: AppColors.primary, width: 2),
           ),
           errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(14),
             borderSide: const BorderSide(color: AppColors.error),
           ),
           labelStyle: AppTextStyles.bodyMedium.copyWith(
@@ -299,7 +299,7 @@ class AppTheme {
             elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
             shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             textStyle: AppTextStyles.labelLarge,
           ),
         ),
@@ -319,7 +319,7 @@ class AppTheme {
             side: const BorderSide(color: AppColors.primary),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
             shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             textStyle: AppTextStyles.labelLarge,
           ),
         ),
@@ -332,8 +332,8 @@ class AppTheme {
             color: AppColors.textPrimaryDark,
           ),
           side: const BorderSide(color: AppColors.borderDark),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+          shape: const StadiumBorder(),
+          padding: const EdgeInsets.symmetric(horizontal: 4),
         ),
 
         // ── Divider ──────────────────────────────────────────────
@@ -348,7 +348,7 @@ class AppTheme {
           behavior: SnackBarBehavior.floating,
           backgroundColor: const Color(0xFF2C2C2E),
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           contentTextStyle:
               AppTextStyles.bodyMedium.copyWith(color: Colors.white),
         ),
@@ -462,20 +462,20 @@ class AppTheme {
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(14),
             borderSide: const BorderSide(color: AppColors.borderPastel),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(14),
             borderSide: const BorderSide(color: AppColors.borderPastel),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(14),
             borderSide:
                 const BorderSide(color: AppColors.primaryPastel, width: 2),
           ),
           errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(14),
             borderSide: const BorderSide(color: AppColors.error),
           ),
           labelStyle: AppTextStyles.bodyMedium
@@ -492,7 +492,7 @@ class AppTheme {
             elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
             shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             textStyle: AppTextStyles.labelLarge,
           ),
         ),
@@ -512,7 +512,7 @@ class AppTheme {
             side: const BorderSide(color: AppColors.primaryPastel),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
             shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
             textStyle: AppTextStyles.labelLarge,
           ),
         ),
@@ -540,7 +540,7 @@ class AppTheme {
           behavior: SnackBarBehavior.floating,
           backgroundColor: const Color(0xFF1C1C1E),
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           contentTextStyle:
               AppTextStyles.bodyMedium.copyWith(color: Colors.white),
         ),

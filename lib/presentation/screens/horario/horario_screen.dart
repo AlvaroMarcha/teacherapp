@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:table_calendar/table_calendar.dart';
-import '../../../core/constants/app_colors.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_text_styles.dart';
-import '../../providers/sesiones_provider.dart';
-import '../../providers/fuentes_provider.dart';
-import '../../../domain/models/sesion_recurrente.dart';
-import '../../../domain/models/fuente.dart';
+import '../../../core/router/app_router.dart';
+import '../../../core/utils/date_utils.dart';
+import '../../../domain/models/evento_calendario.dart';
+import 'widgets/dia_list.dart';
+import 'widgets/mes_calendar.dart';
+import 'widgets/semana_timeline.dart';
+import 'widgets/anio_heatmap.dart';
+import 'widgets/registro_sesion_sheet.dart';
+
+enum _VistaCalendario { dia, semana, mes, anio }
 
 class HorarioScreen extends ConsumerStatefulWidget {
   const HorarioScreen({super.key});
@@ -16,191 +21,172 @@ class HorarioScreen extends ConsumerStatefulWidget {
 }
 
 class _HorarioScreenState extends ConsumerState<HorarioScreen> {
-  DateTime _focusedDay = DateTime.now();
+  _VistaCalendario _vista = _VistaCalendario.semana;
   DateTime _selectedDay = DateTime.now();
-  CalendarFormat _calendarFormat = CalendarFormat.week;
+  DateTime _focusedDay = DateTime.now();
+
+  // ── Navegación ───────────────────────────────────────────────────
+
+  void _irHoy() => setState(() {
+        _selectedDay = DateTime.now();
+        _focusedDay = DateTime.now();
+      });
+
+  void _irAnterior() {
+    setState(() {
+      switch (_vista) {
+        case _VistaCalendario.dia:
+          _selectedDay = _selectedDay.subtract(const Duration(days: 1));
+          _focusedDay = _selectedDay;
+        case _VistaCalendario.semana:
+          _selectedDay = _selectedDay.subtract(const Duration(days: 7));
+          _focusedDay = _selectedDay;
+        case _VistaCalendario.mes:
+          _focusedDay = DateTime(_focusedDay.year, _focusedDay.month - 1, 1);
+        case _VistaCalendario.anio:
+          _focusedDay = DateTime(_focusedDay.year - 1, 1, 1);
+      }
+    });
+  }
+
+  void _irSiguiente() {
+    setState(() {
+      switch (_vista) {
+        case _VistaCalendario.dia:
+          _selectedDay = _selectedDay.add(const Duration(days: 1));
+          _focusedDay = _selectedDay;
+        case _VistaCalendario.semana:
+          _selectedDay = _selectedDay.add(const Duration(days: 7));
+          _focusedDay = _selectedDay;
+        case _VistaCalendario.mes:
+          _focusedDay = DateTime(_focusedDay.year, _focusedDay.month + 1, 1);
+        case _VistaCalendario.anio:
+          _focusedDay = DateTime(_focusedDay.year + 1, 1, 1);
+      }
+    });
+  }
+
+  String get _tituloActual {
+    switch (_vista) {
+      case _VistaCalendario.dia:
+        return AppDateUtils.formatFullDate(_selectedDay);
+      case _VistaCalendario.semana:
+        final lunes = _semanaInicio(_selectedDay);
+        final domingo = lunes.add(const Duration(days: 6));
+        if (lunes.month == domingo.month) {
+          return '${lunes.day}–${domingo.day} ${AppDateUtils.formatMonth(lunes)}';
+        }
+        return '${AppDateUtils.formatShortDate(lunes)} – ${AppDateUtils.formatShortDate(domingo)}';
+      case _VistaCalendario.mes:
+        return AppDateUtils.formatMonth(_focusedDay);
+      case _VistaCalendario.anio:
+        return '${_focusedDay.year}';
+    }
+  }
+
+  DateTime _semanaInicio(DateTime dia) =>
+      dia.subtract(Duration(days: dia.weekday - 1));
+
+  void _onEventoTap(EventoCalendario evento, DateTime dia) {
+    showRegistroSesionSheet(context, evento, dia);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final sesionesAsync = ref.watch(sesionesRecurrentesProvider);
-    final fuentesAsync = ref.watch(fuentesProvider);
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Horario'),
+        title: Text(_tituloActual, style: AppTextStyles.titleSmall),
+        centerTitle: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.today),
-            onPressed: () => setState(() {
-              _focusedDay = DateTime.now();
-              _selectedDay = DateTime.now();
-            }),
+            icon: const Icon(Icons.today_outlined),
+            onPressed: _irHoy,
             tooltip: 'Hoy',
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          fuentesAsync.when(
-            loading: () => const SizedBox(),
-            error: (_, __) => const SizedBox(),
-            data: (fuentes) => sesionesAsync.when(
-              loading: () => const LinearProgressIndicator(),
-              error: (_, __) => const SizedBox(),
-              data: (sesiones) => TableCalendar(
-                firstDay: DateTime.utc(2025, 1, 1),
-                lastDay: DateTime.utc(2027, 12, 31),
-                focusedDay: _focusedDay,
-                selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                calendarFormat: _calendarFormat,
-                onFormatChanged: (f) => setState(() => _calendarFormat = f),
-                onDaySelected: (selected, focused) => setState(() {
-                  _selectedDay = selected;
-                  _focusedDay = focused;
-                }),
-                eventLoader: (day) => _getEventosDelDia(day, sesiones),
-                calendarStyle: CalendarStyle(
-                  todayDecoration: BoxDecoration(
-                    color: AppColors.primaryLight,
-                    shape: BoxShape.circle,
-                  ),
-                  todayTextStyle: AppTextStyles.bodyMedium.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
-                  ),
-                  selectedDecoration: const BoxDecoration(
-                    color: AppColors.primary,
-                    shape: BoxShape.circle,
-                  ),
-                  markerDecoration: const BoxDecoration(
-                    color: AppColors.sesionRecurrente,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                headerStyle: HeaderStyle(
-                  formatButtonTextStyle: AppTextStyles.labelMedium,
-                  titleTextStyle: AppTextStyles.titleSmall,
-                  formatButtonDecoration: BoxDecoration(
-                    border: Border.all(color: AppColors.primary),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                locale: 'es_ES',
-              ),
-            ),
+          IconButton(
+            icon: const Icon(Icons.chevron_left),
+            onPressed: _irAnterior,
           ),
-          const Divider(height: 1),
-          Expanded(
-            child: sesionesAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(child: Text('Error: $e')),
-              data: (sesiones) => fuentesAsync.when(
-                loading: () => const SizedBox(),
-                error: (_, __) => const SizedBox(),
-                data: (fuentes) => _SesionesDelDia(
-                  dia: _selectedDay,
-                  sesiones: sesiones,
-                  fuentes: fuentes,
-                ),
-              ),
-            ),
+          IconButton(
+            icon: const Icon(Icons.chevron_right),
+            onPressed: _irSiguiente,
           ),
         ],
-      ),
-    );
-  }
-
-  List<SesionRecurrente> _getEventosDelDia(
-    DateTime day,
-    List<SesionRecurrente> sesiones,
-  ) {
-    final weekday = day.weekday;
-    return sesiones.where((s) => s.diasSemana.contains(weekday)).toList();
-  }
-}
-
-class _SesionesDelDia extends StatelessWidget {
-  const _SesionesDelDia({
-    required this.dia,
-    required this.sesiones,
-    required this.fuentes,
-  });
-
-  final DateTime dia;
-  final List<SesionRecurrente> sesiones;
-  final List<Fuente> fuentes;
-
-  @override
-  Widget build(BuildContext context) {
-    final weekday = dia.weekday;
-    final sesionesDelDia = sesiones
-        .where((s) => s.diasSemana.contains(weekday))
-        .toList()
-      ..sort((a, b) => a.horaInicio.compareTo(b.horaInicio));
-
-    if (sesionesDelDia.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.event_available,
-              size: 48,
-              color: Theme.of(context).colorScheme.outline,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Sin clases este día',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+            child: SegmentedButton<_VistaCalendario>(
+              showSelectedIcon: false,
+              style: SegmentedButton.styleFrom(
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
+              segments: const [
+                ButtonSegment(
+                  value: _VistaCalendario.dia,
+                  label: Text('Día'),
+                ),
+                ButtonSegment(
+                  value: _VistaCalendario.semana,
+                  label: Text('Semana'),
+                ),
+                ButtonSegment(
+                  value: _VistaCalendario.mes,
+                  label: Text('Mes'),
+                ),
+                ButtonSegment(
+                  value: _VistaCalendario.anio,
+                  label: Text('Año'),
+                ),
+              ],
+              selected: {_vista},
+              onSelectionChanged: (v) => setState(() => _vista = v.first),
             ),
-          ],
+          ),
         ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: sesionesDelDia.length,
-      itemBuilder: (context, i) {
-        final sesion = sesionesDelDia[i];
-        final fuente = fuentes.firstWhere(
-          (f) => f.id == sesion.fuenteId,
-          orElse: () => fuentes.first,
-        );
-        final color = AppColors.forFuenteTipo(fuente.tipo.value);
-
-        return Card(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: ListTile(
-            leading: Container(
-              width: 4,
-              height: 48,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            title: Text(
-              '${sesion.horaInicio} – ${sesion.horaFin}',
-              style: AppTextStyles.titleSmall,
-            ),
-            subtitle: Text(fuente.nombre, style: AppTextStyles.bodySmall),
-            trailing: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: AppColors.lightForFuenteTipo(fuente.tipo.value),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                fuente.nombre,
-                style: AppTextStyles.labelSmall.copyWith(color: color),
-              ),
-            ),
-          ),
-        );
-      },
+      ),
+      body: _buildBody(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push(AppRoutes.sesionForm),
+        tooltip: 'Nueva sesión recurrente',
+        child: const Icon(Icons.add),
+      ),
     );
+  }
+
+  Widget _buildBody() {
+    switch (_vista) {
+      case _VistaCalendario.dia:
+        return DiaList(
+          dia: _selectedDay,
+          onEventoTap: (e) => _onEventoTap(e, _selectedDay),
+        );
+
+      case _VistaCalendario.semana:
+        return SemanaTimeline(
+          semanaInicio: _semanaInicio(_selectedDay),
+          selectedDay: _selectedDay,
+          onDaySelected: (d) => setState(() {
+            _selectedDay = d;
+            _focusedDay = d;
+          }),
+          onEventoTap: (e) => _onEventoTap(e, _selectedDay),
+        );
+
+      case _VistaCalendario.mes:
+        return MesCalendar(
+          focusedDay: _focusedDay,
+          selectedDay: _selectedDay,
+          onDaySelected: (selected, focused) => setState(() {
+            _selectedDay = selected;
+            _focusedDay = focused;
+          }),
+          onPageChanged: (d) => setState(() => _focusedDay = d),
+          onEventoTap: (e) => _onEventoTap(e, _selectedDay),
+        );
+
+      case _VistaCalendario.anio:
+        return AnioHeatmap(anio: _focusedDay.year);
+    }
   }
 }

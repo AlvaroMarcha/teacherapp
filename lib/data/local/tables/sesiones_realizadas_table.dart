@@ -22,6 +22,9 @@ class SesionesRealizadasTable extends Table {
   /// 'pendiente' | 'confirmada' | 'cancelada'
   TextColumn get estado => text().withDefault(const Constant('pendiente'))();
 
+  /// FK opcional a la sesión recurrente que originó este registro.
+  TextColumn get sesionRecurrenteId => text().nullable()();
+
   TextColumn get notas => text().withDefault(const Constant(''))();
   TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
 

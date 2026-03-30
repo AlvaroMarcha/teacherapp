@@ -23,6 +23,7 @@ class SesionRepository {
         horaFin: row.horaFin,
         fechaInicio: row.fechaInicio,
         fechaFin: row.fechaFin,
+        esPuntual: row.esPuntual,
         syncStatus: row.syncStatus,
       );
 
@@ -31,6 +32,7 @@ class SesionRepository {
         id: row.id,
         alumnoId: row.alumnoId,
         fuenteId: row.fuenteId,
+        sesionRecurrenteId: row.sesionRecurrenteId,
         fecha: row.fecha,
         horas: row.horas,
         cobro: row.cobro,
@@ -62,6 +64,7 @@ class SesionRepository {
         horaFin: Value(sesion.horaFin),
         fechaInicio: Value(sesion.fechaInicio),
         fechaFin: Value(sesion.fechaFin),
+        esPuntual: Value(sesion.esPuntual),
         syncStatus: Value(sesion.syncStatus),
       ),
     );
@@ -78,9 +81,17 @@ class SesionRepository {
 
   Stream<List<SesionRealizada>> watchSesionesRealizadasByMes(
     String periodoMes,
-  ) => _db
-      .watchSesionesRealizadasByMes(periodoMes)
-      .map((rows) => rows.map(_mapRealizada).toList());
+  ) =>
+      _db
+          .watchSesionesRealizadasByMes(periodoMes)
+          .map((rows) => rows.map(_mapRealizada).toList());
+
+  Stream<List<SesionRealizada>> watchSesionesRealizadasByFecha(
+    String fecha,
+  ) =>
+      _db
+          .watchSesionesRealizadasByFecha(fecha)
+          .map((rows) => rows.map(_mapRealizada).toList());
 
   Future<String> saveSesionRealizada(SesionRealizada sesion) {
     final id = sesion.id.isEmpty ? _uuid.v4() : sesion.id;
@@ -89,6 +100,7 @@ class SesionRepository {
         id: Value(id),
         alumnoId: Value(sesion.alumnoId),
         fuenteId: Value(sesion.fuenteId),
+        sesionRecurrenteId: Value(sesion.sesionRecurrenteId),
         fecha: Value(sesion.fecha),
         horas: Value(sesion.horas),
         cobro: Value(sesion.cobro),

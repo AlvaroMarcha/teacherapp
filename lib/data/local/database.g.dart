@@ -1127,6 +1127,16 @@ class $SesionesRecurrentesTableTable extends SesionesRecurrentesTable
   late final GeneratedColumn<String> fechaFin = GeneratedColumn<String>(
       'fecha_fin', aliasedName, true,
       type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _esPuntualMeta =
+      const VerificationMeta('esPuntual');
+  @override
+  late final GeneratedColumn<bool> esPuntual = GeneratedColumn<bool>(
+      'es_puntual', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("es_puntual" IN (0, 1))'),
+      defaultValue: const Constant(false));
   static const VerificationMeta _syncStatusMeta =
       const VerificationMeta('syncStatus');
   @override
@@ -1145,6 +1155,7 @@ class $SesionesRecurrentesTableTable extends SesionesRecurrentesTable
         horaFin,
         fechaInicio,
         fechaFin,
+        esPuntual,
         syncStatus
       ];
   @override
@@ -1207,6 +1218,10 @@ class $SesionesRecurrentesTableTable extends SesionesRecurrentesTable
       context.handle(_fechaFinMeta,
           fechaFin.isAcceptableOrUnknown(data['fecha_fin']!, _fechaFinMeta));
     }
+    if (data.containsKey('es_puntual')) {
+      context.handle(_esPuntualMeta,
+          esPuntual.isAcceptableOrUnknown(data['es_puntual']!, _esPuntualMeta));
+    }
     if (data.containsKey('sync_status')) {
       context.handle(
           _syncStatusMeta,
@@ -1239,6 +1254,8 @@ class $SesionesRecurrentesTableTable extends SesionesRecurrentesTable
           .read(DriftSqlType.string, data['${effectivePrefix}fecha_inicio'])!,
       fechaFin: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}fecha_fin']),
+      esPuntual: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}es_puntual'])!,
       syncStatus: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}sync_status'])!,
     );
@@ -1270,6 +1287,9 @@ class SesionesRecurrentesTableData extends DataClass
 
   /// "yyyy-MM-dd" | null (indefinida)
   final String? fechaFin;
+
+  /// true = clase puntual/única (no se repite semana a semana)
+  final bool esPuntual;
   final String syncStatus;
   const SesionesRecurrentesTableData(
       {required this.id,
@@ -1280,6 +1300,7 @@ class SesionesRecurrentesTableData extends DataClass
       required this.horaFin,
       required this.fechaInicio,
       this.fechaFin,
+      required this.esPuntual,
       required this.syncStatus});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1296,6 +1317,7 @@ class SesionesRecurrentesTableData extends DataClass
     if (!nullToAbsent || fechaFin != null) {
       map['fecha_fin'] = Variable<String>(fechaFin);
     }
+    map['es_puntual'] = Variable<bool>(esPuntual);
     map['sync_status'] = Variable<String>(syncStatus);
     return map;
   }
@@ -1314,6 +1336,7 @@ class SesionesRecurrentesTableData extends DataClass
       fechaFin: fechaFin == null && nullToAbsent
           ? const Value.absent()
           : Value(fechaFin),
+      esPuntual: Value(esPuntual),
       syncStatus: Value(syncStatus),
     );
   }
@@ -1330,6 +1353,7 @@ class SesionesRecurrentesTableData extends DataClass
       horaFin: serializer.fromJson<String>(json['horaFin']),
       fechaInicio: serializer.fromJson<String>(json['fechaInicio']),
       fechaFin: serializer.fromJson<String?>(json['fechaFin']),
+      esPuntual: serializer.fromJson<bool>(json['esPuntual']),
       syncStatus: serializer.fromJson<String>(json['syncStatus']),
     );
   }
@@ -1345,6 +1369,7 @@ class SesionesRecurrentesTableData extends DataClass
       'horaFin': serializer.toJson<String>(horaFin),
       'fechaInicio': serializer.toJson<String>(fechaInicio),
       'fechaFin': serializer.toJson<String?>(fechaFin),
+      'esPuntual': serializer.toJson<bool>(esPuntual),
       'syncStatus': serializer.toJson<String>(syncStatus),
     };
   }
@@ -1358,6 +1383,7 @@ class SesionesRecurrentesTableData extends DataClass
           String? horaFin,
           String? fechaInicio,
           Value<String?> fechaFin = const Value.absent(),
+          bool? esPuntual,
           String? syncStatus}) =>
       SesionesRecurrentesTableData(
         id: id ?? this.id,
@@ -1368,6 +1394,7 @@ class SesionesRecurrentesTableData extends DataClass
         horaFin: horaFin ?? this.horaFin,
         fechaInicio: fechaInicio ?? this.fechaInicio,
         fechaFin: fechaFin.present ? fechaFin.value : this.fechaFin,
+        esPuntual: esPuntual ?? this.esPuntual,
         syncStatus: syncStatus ?? this.syncStatus,
       );
   SesionesRecurrentesTableData copyWithCompanion(
@@ -1384,6 +1411,7 @@ class SesionesRecurrentesTableData extends DataClass
       fechaInicio:
           data.fechaInicio.present ? data.fechaInicio.value : this.fechaInicio,
       fechaFin: data.fechaFin.present ? data.fechaFin.value : this.fechaFin,
+      esPuntual: data.esPuntual.present ? data.esPuntual.value : this.esPuntual,
       syncStatus:
           data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
     );
@@ -1400,6 +1428,7 @@ class SesionesRecurrentesTableData extends DataClass
           ..write('horaFin: $horaFin, ')
           ..write('fechaInicio: $fechaInicio, ')
           ..write('fechaFin: $fechaFin, ')
+          ..write('esPuntual: $esPuntual, ')
           ..write('syncStatus: $syncStatus')
           ..write(')'))
         .toString();
@@ -1407,7 +1436,7 @@ class SesionesRecurrentesTableData extends DataClass
 
   @override
   int get hashCode => Object.hash(id, alumnoId, fuenteId, diasSemana,
-      horaInicio, horaFin, fechaInicio, fechaFin, syncStatus);
+      horaInicio, horaFin, fechaInicio, fechaFin, esPuntual, syncStatus);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1420,6 +1449,7 @@ class SesionesRecurrentesTableData extends DataClass
           other.horaFin == this.horaFin &&
           other.fechaInicio == this.fechaInicio &&
           other.fechaFin == this.fechaFin &&
+          other.esPuntual == this.esPuntual &&
           other.syncStatus == this.syncStatus);
 }
 
@@ -1433,6 +1463,7 @@ class SesionesRecurrentesTableCompanion
   final Value<String> horaFin;
   final Value<String> fechaInicio;
   final Value<String?> fechaFin;
+  final Value<bool> esPuntual;
   final Value<String> syncStatus;
   final Value<int> rowid;
   const SesionesRecurrentesTableCompanion({
@@ -1444,6 +1475,7 @@ class SesionesRecurrentesTableCompanion
     this.horaFin = const Value.absent(),
     this.fechaInicio = const Value.absent(),
     this.fechaFin = const Value.absent(),
+    this.esPuntual = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1456,6 +1488,7 @@ class SesionesRecurrentesTableCompanion
     required String horaFin,
     required String fechaInicio,
     this.fechaFin = const Value.absent(),
+    this.esPuntual = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
@@ -1473,6 +1506,7 @@ class SesionesRecurrentesTableCompanion
     Expression<String>? horaFin,
     Expression<String>? fechaInicio,
     Expression<String>? fechaFin,
+    Expression<bool>? esPuntual,
     Expression<String>? syncStatus,
     Expression<int>? rowid,
   }) {
@@ -1485,6 +1519,7 @@ class SesionesRecurrentesTableCompanion
       if (horaFin != null) 'hora_fin': horaFin,
       if (fechaInicio != null) 'fecha_inicio': fechaInicio,
       if (fechaFin != null) 'fecha_fin': fechaFin,
+      if (esPuntual != null) 'es_puntual': esPuntual,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1499,6 +1534,7 @@ class SesionesRecurrentesTableCompanion
       Value<String>? horaFin,
       Value<String>? fechaInicio,
       Value<String?>? fechaFin,
+      Value<bool>? esPuntual,
       Value<String>? syncStatus,
       Value<int>? rowid}) {
     return SesionesRecurrentesTableCompanion(
@@ -1510,6 +1546,7 @@ class SesionesRecurrentesTableCompanion
       horaFin: horaFin ?? this.horaFin,
       fechaInicio: fechaInicio ?? this.fechaInicio,
       fechaFin: fechaFin ?? this.fechaFin,
+      esPuntual: esPuntual ?? this.esPuntual,
       syncStatus: syncStatus ?? this.syncStatus,
       rowid: rowid ?? this.rowid,
     );
@@ -1542,6 +1579,9 @@ class SesionesRecurrentesTableCompanion
     if (fechaFin.present) {
       map['fecha_fin'] = Variable<String>(fechaFin.value);
     }
+    if (esPuntual.present) {
+      map['es_puntual'] = Variable<bool>(esPuntual.value);
+    }
     if (syncStatus.present) {
       map['sync_status'] = Variable<String>(syncStatus.value);
     }
@@ -1562,6 +1602,7 @@ class SesionesRecurrentesTableCompanion
           ..write('horaFin: $horaFin, ')
           ..write('fechaInicio: $fechaInicio, ')
           ..write('fechaFin: $fechaFin, ')
+          ..write('esPuntual: $esPuntual, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1614,6 +1655,12 @@ class $SesionesRealizadasTableTable extends SesionesRealizadasTable
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       defaultValue: const Constant('pendiente'));
+  static const VerificationMeta _sesionRecurrenteIdMeta =
+      const VerificationMeta('sesionRecurrenteId');
+  @override
+  late final GeneratedColumn<String> sesionRecurrenteId =
+      GeneratedColumn<String>('sesion_recurrente_id', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
   static const VerificationMeta _notasMeta = const VerificationMeta('notas');
   @override
   late final GeneratedColumn<String> notas = GeneratedColumn<String>(
@@ -1630,8 +1677,18 @@ class $SesionesRealizadasTableTable extends SesionesRealizadasTable
       requiredDuringInsert: false,
       defaultValue: const Constant('pending'));
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, alumnoId, fuenteId, fecha, horas, cobro, estado, notas, syncStatus];
+  List<GeneratedColumn> get $columns => [
+        id,
+        alumnoId,
+        fuenteId,
+        fecha,
+        horas,
+        cobro,
+        estado,
+        sesionRecurrenteId,
+        notas,
+        syncStatus
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1680,6 +1737,12 @@ class $SesionesRealizadasTableTable extends SesionesRealizadasTable
       context.handle(_estadoMeta,
           estado.isAcceptableOrUnknown(data['estado']!, _estadoMeta));
     }
+    if (data.containsKey('sesion_recurrente_id')) {
+      context.handle(
+          _sesionRecurrenteIdMeta,
+          sesionRecurrenteId.isAcceptableOrUnknown(
+              data['sesion_recurrente_id']!, _sesionRecurrenteIdMeta));
+    }
     if (data.containsKey('notas')) {
       context.handle(
           _notasMeta, notas.isAcceptableOrUnknown(data['notas']!, _notasMeta));
@@ -1714,6 +1777,8 @@ class $SesionesRealizadasTableTable extends SesionesRealizadasTable
           .read(DriftSqlType.double, data['${effectivePrefix}cobro'])!,
       estado: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}estado'])!,
+      sesionRecurrenteId: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}sesion_recurrente_id']),
       notas: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}notas'])!,
       syncStatus: attachedDatabase.typeMapping
@@ -1744,6 +1809,9 @@ class SesionesRealizadasTableData extends DataClass
 
   /// 'pendiente' | 'confirmada' | 'cancelada'
   final String estado;
+
+  /// FK opcional a la sesión recurrente que originó este registro.
+  final String? sesionRecurrenteId;
   final String notas;
   final String syncStatus;
   const SesionesRealizadasTableData(
@@ -1754,6 +1822,7 @@ class SesionesRealizadasTableData extends DataClass
       required this.horas,
       required this.cobro,
       required this.estado,
+      this.sesionRecurrenteId,
       required this.notas,
       required this.syncStatus});
   @override
@@ -1768,6 +1837,9 @@ class SesionesRealizadasTableData extends DataClass
     map['horas'] = Variable<double>(horas);
     map['cobro'] = Variable<double>(cobro);
     map['estado'] = Variable<String>(estado);
+    if (!nullToAbsent || sesionRecurrenteId != null) {
+      map['sesion_recurrente_id'] = Variable<String>(sesionRecurrenteId);
+    }
     map['notas'] = Variable<String>(notas);
     map['sync_status'] = Variable<String>(syncStatus);
     return map;
@@ -1784,6 +1856,9 @@ class SesionesRealizadasTableData extends DataClass
       horas: Value(horas),
       cobro: Value(cobro),
       estado: Value(estado),
+      sesionRecurrenteId: sesionRecurrenteId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sesionRecurrenteId),
       notas: Value(notas),
       syncStatus: Value(syncStatus),
     );
@@ -1800,6 +1875,8 @@ class SesionesRealizadasTableData extends DataClass
       horas: serializer.fromJson<double>(json['horas']),
       cobro: serializer.fromJson<double>(json['cobro']),
       estado: serializer.fromJson<String>(json['estado']),
+      sesionRecurrenteId:
+          serializer.fromJson<String?>(json['sesionRecurrenteId']),
       notas: serializer.fromJson<String>(json['notas']),
       syncStatus: serializer.fromJson<String>(json['syncStatus']),
     );
@@ -1815,6 +1892,7 @@ class SesionesRealizadasTableData extends DataClass
       'horas': serializer.toJson<double>(horas),
       'cobro': serializer.toJson<double>(cobro),
       'estado': serializer.toJson<String>(estado),
+      'sesionRecurrenteId': serializer.toJson<String?>(sesionRecurrenteId),
       'notas': serializer.toJson<String>(notas),
       'syncStatus': serializer.toJson<String>(syncStatus),
     };
@@ -1828,6 +1906,7 @@ class SesionesRealizadasTableData extends DataClass
           double? horas,
           double? cobro,
           String? estado,
+          Value<String?> sesionRecurrenteId = const Value.absent(),
           String? notas,
           String? syncStatus}) =>
       SesionesRealizadasTableData(
@@ -1838,6 +1917,9 @@ class SesionesRealizadasTableData extends DataClass
         horas: horas ?? this.horas,
         cobro: cobro ?? this.cobro,
         estado: estado ?? this.estado,
+        sesionRecurrenteId: sesionRecurrenteId.present
+            ? sesionRecurrenteId.value
+            : this.sesionRecurrenteId,
         notas: notas ?? this.notas,
         syncStatus: syncStatus ?? this.syncStatus,
       );
@@ -1851,6 +1933,9 @@ class SesionesRealizadasTableData extends DataClass
       horas: data.horas.present ? data.horas.value : this.horas,
       cobro: data.cobro.present ? data.cobro.value : this.cobro,
       estado: data.estado.present ? data.estado.value : this.estado,
+      sesionRecurrenteId: data.sesionRecurrenteId.present
+          ? data.sesionRecurrenteId.value
+          : this.sesionRecurrenteId,
       notas: data.notas.present ? data.notas.value : this.notas,
       syncStatus:
           data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
@@ -1867,6 +1952,7 @@ class SesionesRealizadasTableData extends DataClass
           ..write('horas: $horas, ')
           ..write('cobro: $cobro, ')
           ..write('estado: $estado, ')
+          ..write('sesionRecurrenteId: $sesionRecurrenteId, ')
           ..write('notas: $notas, ')
           ..write('syncStatus: $syncStatus')
           ..write(')'))
@@ -1874,8 +1960,8 @@ class SesionesRealizadasTableData extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(
-      id, alumnoId, fuenteId, fecha, horas, cobro, estado, notas, syncStatus);
+  int get hashCode => Object.hash(id, alumnoId, fuenteId, fecha, horas, cobro,
+      estado, sesionRecurrenteId, notas, syncStatus);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1887,6 +1973,7 @@ class SesionesRealizadasTableData extends DataClass
           other.horas == this.horas &&
           other.cobro == this.cobro &&
           other.estado == this.estado &&
+          other.sesionRecurrenteId == this.sesionRecurrenteId &&
           other.notas == this.notas &&
           other.syncStatus == this.syncStatus);
 }
@@ -1900,6 +1987,7 @@ class SesionesRealizadasTableCompanion
   final Value<double> horas;
   final Value<double> cobro;
   final Value<String> estado;
+  final Value<String?> sesionRecurrenteId;
   final Value<String> notas;
   final Value<String> syncStatus;
   final Value<int> rowid;
@@ -1911,6 +1999,7 @@ class SesionesRealizadasTableCompanion
     this.horas = const Value.absent(),
     this.cobro = const Value.absent(),
     this.estado = const Value.absent(),
+    this.sesionRecurrenteId = const Value.absent(),
     this.notas = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1923,6 +2012,7 @@ class SesionesRealizadasTableCompanion
     required double horas,
     required double cobro,
     this.estado = const Value.absent(),
+    this.sesionRecurrenteId = const Value.absent(),
     this.notas = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1939,6 +2029,7 @@ class SesionesRealizadasTableCompanion
     Expression<double>? horas,
     Expression<double>? cobro,
     Expression<String>? estado,
+    Expression<String>? sesionRecurrenteId,
     Expression<String>? notas,
     Expression<String>? syncStatus,
     Expression<int>? rowid,
@@ -1951,6 +2042,8 @@ class SesionesRealizadasTableCompanion
       if (horas != null) 'horas': horas,
       if (cobro != null) 'cobro': cobro,
       if (estado != null) 'estado': estado,
+      if (sesionRecurrenteId != null)
+        'sesion_recurrente_id': sesionRecurrenteId,
       if (notas != null) 'notas': notas,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (rowid != null) 'rowid': rowid,
@@ -1965,6 +2058,7 @@ class SesionesRealizadasTableCompanion
       Value<double>? horas,
       Value<double>? cobro,
       Value<String>? estado,
+      Value<String?>? sesionRecurrenteId,
       Value<String>? notas,
       Value<String>? syncStatus,
       Value<int>? rowid}) {
@@ -1976,6 +2070,7 @@ class SesionesRealizadasTableCompanion
       horas: horas ?? this.horas,
       cobro: cobro ?? this.cobro,
       estado: estado ?? this.estado,
+      sesionRecurrenteId: sesionRecurrenteId ?? this.sesionRecurrenteId,
       notas: notas ?? this.notas,
       syncStatus: syncStatus ?? this.syncStatus,
       rowid: rowid ?? this.rowid,
@@ -2006,6 +2101,9 @@ class SesionesRealizadasTableCompanion
     if (estado.present) {
       map['estado'] = Variable<String>(estado.value);
     }
+    if (sesionRecurrenteId.present) {
+      map['sesion_recurrente_id'] = Variable<String>(sesionRecurrenteId.value);
+    }
     if (notas.present) {
       map['notas'] = Variable<String>(notas.value);
     }
@@ -2028,6 +2126,7 @@ class SesionesRealizadasTableCompanion
           ..write('horas: $horas, ')
           ..write('cobro: $cobro, ')
           ..write('estado: $estado, ')
+          ..write('sesionRecurrenteId: $sesionRecurrenteId, ')
           ..write('notas: $notas, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('rowid: $rowid')
@@ -3645,6 +3744,7 @@ typedef $$SesionesRecurrentesTableTableCreateCompanionBuilder
   required String horaFin,
   required String fechaInicio,
   Value<String?> fechaFin,
+  Value<bool> esPuntual,
   Value<String> syncStatus,
   Value<int> rowid,
 });
@@ -3658,6 +3758,7 @@ typedef $$SesionesRecurrentesTableTableUpdateCompanionBuilder
   Value<String> horaFin,
   Value<String> fechaInicio,
   Value<String?> fechaFin,
+  Value<bool> esPuntual,
   Value<String> syncStatus,
   Value<int> rowid,
 });
@@ -3694,6 +3795,9 @@ class $$SesionesRecurrentesTableTableFilterComposer
 
   ColumnFilters<String> get fechaFin => $composableBuilder(
       column: $table.fechaFin, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get esPuntual => $composableBuilder(
+      column: $table.esPuntual, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get syncStatus => $composableBuilder(
       column: $table.syncStatus, builder: (column) => ColumnFilters(column));
@@ -3732,6 +3836,9 @@ class $$SesionesRecurrentesTableTableOrderingComposer
   ColumnOrderings<String> get fechaFin => $composableBuilder(
       column: $table.fechaFin, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<bool> get esPuntual => $composableBuilder(
+      column: $table.esPuntual, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get syncStatus => $composableBuilder(
       column: $table.syncStatus, builder: (column) => ColumnOrderings(column));
 }
@@ -3768,6 +3875,9 @@ class $$SesionesRecurrentesTableTableAnnotationComposer
 
   GeneratedColumn<String> get fechaFin =>
       $composableBuilder(column: $table.fechaFin, builder: (column) => column);
+
+  GeneratedColumn<bool> get esPuntual =>
+      $composableBuilder(column: $table.esPuntual, builder: (column) => column);
 
   GeneratedColumn<String> get syncStatus => $composableBuilder(
       column: $table.syncStatus, builder: (column) => column);
@@ -3812,6 +3922,7 @@ class $$SesionesRecurrentesTableTableTableManager extends RootTableManager<
             Value<String> horaFin = const Value.absent(),
             Value<String> fechaInicio = const Value.absent(),
             Value<String?> fechaFin = const Value.absent(),
+            Value<bool> esPuntual = const Value.absent(),
             Value<String> syncStatus = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -3824,6 +3935,7 @@ class $$SesionesRecurrentesTableTableTableManager extends RootTableManager<
             horaFin: horaFin,
             fechaInicio: fechaInicio,
             fechaFin: fechaFin,
+            esPuntual: esPuntual,
             syncStatus: syncStatus,
             rowid: rowid,
           ),
@@ -3836,6 +3948,7 @@ class $$SesionesRecurrentesTableTableTableManager extends RootTableManager<
             required String horaFin,
             required String fechaInicio,
             Value<String?> fechaFin = const Value.absent(),
+            Value<bool> esPuntual = const Value.absent(),
             Value<String> syncStatus = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -3848,6 +3961,7 @@ class $$SesionesRecurrentesTableTableTableManager extends RootTableManager<
             horaFin: horaFin,
             fechaInicio: fechaInicio,
             fechaFin: fechaFin,
+            esPuntual: esPuntual,
             syncStatus: syncStatus,
             rowid: rowid,
           ),
@@ -3884,6 +3998,7 @@ typedef $$SesionesRealizadasTableTableCreateCompanionBuilder
   required double horas,
   required double cobro,
   Value<String> estado,
+  Value<String?> sesionRecurrenteId,
   Value<String> notas,
   Value<String> syncStatus,
   Value<int> rowid,
@@ -3897,6 +4012,7 @@ typedef $$SesionesRealizadasTableTableUpdateCompanionBuilder
   Value<double> horas,
   Value<double> cobro,
   Value<String> estado,
+  Value<String?> sesionRecurrenteId,
   Value<String> notas,
   Value<String> syncStatus,
   Value<int> rowid,
@@ -3931,6 +4047,10 @@ class $$SesionesRealizadasTableTableFilterComposer
 
   ColumnFilters<String> get estado => $composableBuilder(
       column: $table.estado, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get sesionRecurrenteId => $composableBuilder(
+      column: $table.sesionRecurrenteId,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get notas => $composableBuilder(
       column: $table.notas, builder: (column) => ColumnFilters(column));
@@ -3969,6 +4089,10 @@ class $$SesionesRealizadasTableTableOrderingComposer
   ColumnOrderings<String> get estado => $composableBuilder(
       column: $table.estado, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get sesionRecurrenteId => $composableBuilder(
+      column: $table.sesionRecurrenteId,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get notas => $composableBuilder(
       column: $table.notas, builder: (column) => ColumnOrderings(column));
 
@@ -4005,6 +4129,9 @@ class $$SesionesRealizadasTableTableAnnotationComposer
 
   GeneratedColumn<String> get estado =>
       $composableBuilder(column: $table.estado, builder: (column) => column);
+
+  GeneratedColumn<String> get sesionRecurrenteId => $composableBuilder(
+      column: $table.sesionRecurrenteId, builder: (column) => column);
 
   GeneratedColumn<String> get notas =>
       $composableBuilder(column: $table.notas, builder: (column) => column);
@@ -4051,6 +4178,7 @@ class $$SesionesRealizadasTableTableTableManager extends RootTableManager<
             Value<double> horas = const Value.absent(),
             Value<double> cobro = const Value.absent(),
             Value<String> estado = const Value.absent(),
+            Value<String?> sesionRecurrenteId = const Value.absent(),
             Value<String> notas = const Value.absent(),
             Value<String> syncStatus = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -4063,6 +4191,7 @@ class $$SesionesRealizadasTableTableTableManager extends RootTableManager<
             horas: horas,
             cobro: cobro,
             estado: estado,
+            sesionRecurrenteId: sesionRecurrenteId,
             notas: notas,
             syncStatus: syncStatus,
             rowid: rowid,
@@ -4075,6 +4204,7 @@ class $$SesionesRealizadasTableTableTableManager extends RootTableManager<
             required double horas,
             required double cobro,
             Value<String> estado = const Value.absent(),
+            Value<String?> sesionRecurrenteId = const Value.absent(),
             Value<String> notas = const Value.absent(),
             Value<String> syncStatus = const Value.absent(),
             Value<int> rowid = const Value.absent(),
@@ -4087,6 +4217,7 @@ class $$SesionesRealizadasTableTableTableManager extends RootTableManager<
             horas: horas,
             cobro: cobro,
             estado: estado,
+            sesionRecurrenteId: sesionRecurrenteId,
             notas: notas,
             syncStatus: syncStatus,
             rowid: rowid,
