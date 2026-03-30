@@ -40,14 +40,14 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-    onCreate: (m) async {
-      await m.createAll();
-      await _seedDemoData();
-    },
-    onUpgrade: (m, from, to) async {
-      // Migraciones futuras aquí
-    },
-  );
+        onCreate: (m) async {
+          await m.createAll();
+          await _seedDemoData();
+        },
+        onUpgrade: (m, from, to) async {
+          // Migraciones futuras aquí
+        },
+      );
 
   // ── Queries — Fuentes ────────────────────────────────────────────
 
@@ -60,8 +60,8 @@ class AppDatabase extends _$AppDatabase {
       (select(fuentesTable)..where((t) => t.id.equals(id))).getSingleOrNull();
 
   Future<String> upsertFuente(FuentesTableCompanion fuente) => into(
-    fuentesTable,
-  ).insertOnConflictUpdate(fuente).then((_) => fuente.id.value);
+        fuentesTable,
+      ).insertOnConflictUpdate(fuente).then((_) => fuente.id.value);
 
   Future<int> deleteFuente(String id) =>
       (delete(fuentesTable)..where((t) => t.id.equals(id))).go();
@@ -69,8 +69,9 @@ class AppDatabase extends _$AppDatabase {
   // ── Queries — EmpleoConfig ───────────────────────────────────────
 
   Future<EmpleoConfigTableData?> getEmpleoConfig(String fuenteId) => (select(
-    empleoConfigTable,
-  )..where((t) => t.fuenteId.equals(fuenteId))).getSingleOrNull();
+        empleoConfigTable,
+      )..where((t) => t.fuenteId.equals(fuenteId)))
+          .getSingleOrNull();
 
   Future<void> upsertEmpleoConfig(EmpleoConfigTableCompanion config) =>
       into(empleoConfigTable).insertOnConflictUpdate(config);
@@ -87,8 +88,8 @@ class AppDatabase extends _$AppDatabase {
       (select(alumnosTable)..where((t) => t.id.equals(id))).getSingleOrNull();
 
   Future<String> upsertAlumno(AlumnosTableCompanion alumno) => into(
-    alumnosTable,
-  ).insertOnConflictUpdate(alumno).then((_) => alumno.id.value);
+        alumnosTable,
+      ).insertOnConflictUpdate(alumno).then((_) => alumno.id.value);
 
   Future<int> deleteAlumno(String id) =>
       (delete(alumnosTable)..where((t) => t.id.equals(id))).go();
@@ -103,9 +104,10 @@ class AppDatabase extends _$AppDatabase {
 
   Future<String> upsertSesionRecurrente(
     SesionesRecurrentesTableCompanion sesion,
-  ) => into(
-    sesionesRecurrentesTable,
-  ).insertOnConflictUpdate(sesion).then((_) => sesion.id.value);
+  ) =>
+      into(
+        sesionesRecurrentesTable,
+      ).insertOnConflictUpdate(sesion).then((_) => sesion.id.value);
 
   Future<int> deleteSesionRecurrente(String id) =>
       (delete(sesionesRecurrentesTable)..where((t) => t.id.equals(id))).go();
@@ -117,27 +119,29 @@ class AppDatabase extends _$AppDatabase {
 
   Stream<List<SesionesRealizadasTableData>> watchSesionesRealizadasByMes(
     String periodoMes,
-  ) => (select(
-    sesionesRealizadasTable,
-  )..where((t) => t.fecha.like('$periodoMes%'))).watch();
+  ) =>
+      (select(
+        sesionesRealizadasTable,
+      )..where((t) => t.fecha.like('$periodoMes%')))
+          .watch();
 
   Future<String> upsertSesionRealizada(
     SesionesRealizadasTableCompanion sesion,
-  ) => into(
-    sesionesRealizadasTable,
-  ).insertOnConflictUpdate(sesion).then((_) => sesion.id.value);
+  ) =>
+      into(
+        sesionesRealizadasTable,
+      ).insertOnConflictUpdate(sesion).then((_) => sesion.id.value);
 
   // ── Queries — Cobros ─────────────────────────────────────────────
 
   Stream<List<CobrosTableData>> watchAllCobros() => select(cobrosTable).watch();
 
-  Stream<List<CobrosTableData>> watchCobrosPendientes() =>
-      (select(cobrosTable)
-            ..where(
-              (t) => t.estado.equals('pendiente') | t.estado.equals('parcial'),
-            )
-            ..orderBy([(t) => OrderingTerm.asc(t.id)]))
-          .watch();
+  Stream<List<CobrosTableData>> watchCobrosPendientes() => (select(cobrosTable)
+        ..where(
+          (t) => t.estado.equals('pendiente') | t.estado.equals('parcial'),
+        )
+        ..orderBy([(t) => OrderingTerm.asc(t.id)]))
+      .watch();
 
   Stream<List<CobrosTableData>> watchCobrosByFuente(String fuenteId) =>
       (select(cobrosTable)..where((t) => t.fuenteId.equals(fuenteId))).watch();
@@ -146,21 +150,41 @@ class AppDatabase extends _$AppDatabase {
       (select(cobrosTable)..where((t) => t.id.equals(id))).getSingleOrNull();
 
   Future<String> upsertCobro(CobrosTableCompanion cobro) => into(
-    cobrosTable,
-  ).insertOnConflictUpdate(cobro).then((_) => cobro.id.value);
+        cobrosTable,
+      ).insertOnConflictUpdate(cobro).then((_) => cobro.id.value);
 
   Future<int> deleteCobro(String id) =>
       (delete(cobrosTable)..where((t) => t.id.equals(id))).go();
+
+  Future<void> deleteCobrosByFuente(String fuenteId) =>
+      (delete(cobrosTable)..where((t) => t.fuenteId.equals(fuenteId))).go();
+
+  Future<void> deleteSesionesRealizadasByFuente(String fuenteId) =>
+      (delete(sesionesRealizadasTable)
+            ..where((t) => t.fuenteId.equals(fuenteId)))
+          .go();
+
+  Future<void> deleteSesionesRecurrentesByFuente(String fuenteId) =>
+      (delete(sesionesRecurrentesTable)
+            ..where((t) => t.fuenteId.equals(fuenteId)))
+          .go();
+
+  Future<void> deleteAlumnosByFuente(String fuenteId) =>
+      (delete(alumnosTable)..where((t) => t.fuenteId.equals(fuenteId))).go();
+
+  Future<void> deleteEmpleoConfigByFuente(String fuenteId) =>
+      (delete(empleoConfigTable)..where((t) => t.fuenteId.equals(fuenteId)))
+          .go();
 
   // ── Aggregates (Dashboard) ───────────────────────────────────────
 
   /// Total de pendientes (€) del mes actual.
   Future<double> getTotalPendienteMes(String periodoMes) async {
-    final cobros =
-        await (select(cobrosTable)..where(
-              (t) => t.estado.equals('pendiente') | t.estado.equals('parcial'),
-            ))
-            .get();
+    final cobros = await (select(cobrosTable)
+          ..where(
+            (t) => t.estado.equals('pendiente') | t.estado.equals('parcial'),
+          ))
+        .get();
     return cobros.fold<double>(0, (acc, c) {
       if (c.estado == 'parcial' && c.montoParcial != null) {
         return acc + (c.monto - c.montoParcial!);

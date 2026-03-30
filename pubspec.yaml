@@ -47,6 +47,9 @@ dependencies:
   # UUID para generación de IDs
   uuid: ^4.4.0
 
+  # Selector de color libre
+  flutter_colorpicker: ^1.1.0
+
   # Persistencia de preferencias (tema)
   shared_preferences: ^2.3.0
 

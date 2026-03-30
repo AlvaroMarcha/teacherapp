@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../presentation/screens/dashboard/dashboard_screen.dart';
 import '../../presentation/screens/fuentes/fuentes_screen.dart';
+import '../../presentation/screens/fuentes/fuente_form_screen.dart';
 import '../../presentation/screens/horario/horario_screen.dart';
 import '../../presentation/screens/alumnos/alumnos_list_screen.dart';
 import '../../presentation/screens/alumnos/alumno_detalle_screen.dart';
@@ -21,6 +22,7 @@ abstract class AppRoutes {
   static const String onboarding = '/onboarding';
   static const String dashboard = '/';
   static const String fuentes = '/fuentes';
+  static const String fuenteForm = '/fuentes/form';
   static const String horario = '/horario';
   static const String alumnos = '/alumnos';
   static const String alumnoDetalle = '/alumnos/:id';
@@ -114,6 +116,13 @@ final appRouter = GoRouter(
     ),
 
     // ── Rutas fuera del shell ─────────────────────────────────────
+    GoRoute(
+      path: AppRoutes.fuenteForm,
+      builder: (context, state) {
+        final id = state.uri.queryParameters['id'];
+        return FuenteFormScreen(fuenteId: id);
+      },
+    ),
     GoRoute(
       path: AppRoutes.registroSesion,
       builder: (_, __) => const RegistroSesionScreen(),

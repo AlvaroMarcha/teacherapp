@@ -62,6 +62,15 @@ class FuenteRepository {
 
   Future<int> deleteFuente(String id) => _db.deleteFuente(id);
 
+  Future<void> deleteFuenteCascade(String id) => _db.transaction(() async {
+        await _db.deleteCobrosByFuente(id);
+        await _db.deleteSesionesRealizadasByFuente(id);
+        await _db.deleteSesionesRecurrentesByFuente(id);
+        await _db.deleteAlumnosByFuente(id);
+        await _db.deleteEmpleoConfigByFuente(id);
+        await _db.deleteFuente(id);
+      });
+
   // ── EmpleoConfig ─────────────────────────────────────────────────
 
   Future<EmpleoConfig?> getEmpleoConfig(String fuenteId) async {
