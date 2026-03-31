@@ -210,6 +210,8 @@ class AppLocalizations {
     required this.sinAlumno,
     required this.eliminarRegistro,
     required this.confirmarEliminarHoraExtra,
+    required this.confirmarEliminarSesion,
+    required this.registroEliminado,
 
     // ── Ajustes ──
     required this.ajustesTitle,
@@ -494,6 +496,8 @@ class AppLocalizations {
   final String sinAlumno;
   final String eliminarRegistro;
   final String confirmarEliminarHoraExtra;
+  final String confirmarEliminarSesion;
+  final String registroEliminado;
 
   // ── Ajustes ──
   final String ajustesTitle;
@@ -764,6 +768,9 @@ class AppLocalizations {
     sinAlumno: 'Sin alumno',
     eliminarRegistro: 'Eliminar registro',
     confirmarEliminarHoraExtra: '¿Eliminar este registro de horas extra?',
+    confirmarEliminarSesion:
+        '¿Eliminar esta sesión registrada? Se borrarán también los cobros o horas extra vinculados.',
+    registroEliminado: 'Registro eliminado',
     ajustesTitle: 'Ajustes',
     miCuenta: 'Mi cuenta',
     miPerfil: 'Mi perfil',
@@ -1012,6 +1019,9 @@ class AppLocalizations {
     sinAlumno: 'No student',
     eliminarRegistro: 'Delete record',
     confirmarEliminarHoraExtra: 'Delete this overtime record?',
+    confirmarEliminarSesion:
+        'Delete this registered session? Linked charges or overtime entries will also be removed.',
+    registroEliminado: 'Record deleted',
     ajustesTitle: 'Settings',
     miCuenta: 'My account',
     miPerfil: 'My profile',
@@ -1263,6 +1273,9 @@ class AppLocalizations {
     sinAlumno: 'Nessuno studente',
     eliminarRegistro: 'Elimina registro',
     confirmarEliminarHoraExtra: 'Eliminare questo registro di straordinari?',
+    confirmarEliminarSesion:
+        'Eliminare questa sessione registrata? Verranno rimossi anche gli addebiti o gli straordinari collegati.',
+    registroEliminado: 'Registro eliminato',
     ajustesTitle: 'Impostazioni',
     miCuenta: 'Il mio account',
     miPerfil: 'Il mio profilo',

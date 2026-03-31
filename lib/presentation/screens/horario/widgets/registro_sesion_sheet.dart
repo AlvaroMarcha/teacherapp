@@ -203,6 +203,13 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
             child: Text(l.cerrar),
           ),
           const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: () => _eliminarRegistro(context, evento),
+            icon: const Icon(Icons.delete_outline, size: 18),
+            label: Text(l.eliminarRegistro),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+          ),
+          const SizedBox(height: 8),
         ],
       );
     }
@@ -398,6 +405,59 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
             '${l.sesionRegistradaHoras} (${evento.duracionHoras.toStringAsFixed(1)}h)',
           ),
         ),
+      );
+    }
+  }
+
+  Future<void> _eliminarRegistro(
+    BuildContext context,
+    EventoCalendario evento,
+  ) async {
+    final l = ref.read(appLocalizationsProvider);
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        title: Text(l.eliminarRegistro),
+        content: Text(l.confirmarEliminarSesion),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx, false),
+            child: Text(l.cancelar),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogCtx, true),
+            child: Text(l.eliminar),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    final sesionId = evento.sesionRealizadaId;
+    if (sesionId == null) return;
+
+    // Eliminar SesionRealizada
+    await ref.read(sesionRepositoryProvider).deleteSesionRealizada(sesionId);
+
+    // Eliminar registros vinculados
+    if (evento.fuenteTipo == FuenteTipo.empleo) {
+      // Eliminar HoraExtra auto vinculada
+      final fechaIso = AppDateUtils.formatIso(widget.dia);
+      await ref
+          .read(databaseProvider)
+          .deleteHoraExtraByFechaAndFuente(fechaIso, evento.fuenteId);
+    } else {
+      // Eliminar Cobro vinculado
+      await ref.read(cobroRepositoryProvider).deleteCobroBySesionId(sesionId);
+    }
+
+    if (mounted) {
+      navigator.pop();
+      messenger.showSnackBar(
+        SnackBar(content: Text(l.registroEliminado)),
       );
     }
   }

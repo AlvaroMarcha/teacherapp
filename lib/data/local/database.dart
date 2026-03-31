@@ -175,6 +175,29 @@ class AppDatabase extends _$AppDatabase {
         sesionesRealizadasTable,
       ).insertOnConflictUpdate(sesion).then((_) => sesion.id.value);
 
+  Future<int> deleteSesionRealizada(String id) =>
+      (delete(sesionesRealizadasTable)..where((t) => t.id.equals(id))).go();
+
+  Future<int> deleteHoraExtraByFechaAndFuente(
+    String fecha,
+    String fuenteId,
+  ) =>
+      (delete(horasExtraTable)
+            ..where(
+              (t) => t.fecha.equals(fecha) & t.fuenteId.equals(fuenteId),
+            ))
+          .go();
+
+  Future<int> deleteSesionRealizadaByFechaAndFuente(
+    String fecha,
+    String fuenteId,
+  ) =>
+      (delete(sesionesRealizadasTable)
+            ..where(
+              (t) => t.fecha.equals(fecha) & t.fuenteId.equals(fuenteId),
+            ))
+          .go();
+
   // ── Queries — Cobros ─────────────────────────────────────────────
 
   Stream<List<CobrosTableData>> watchAllCobros() => select(cobrosTable).watch();
@@ -198,6 +221,9 @@ class AppDatabase extends _$AppDatabase {
 
   Future<int> deleteCobro(String id) =>
       (delete(cobrosTable)..where((t) => t.id.equals(id))).go();
+
+  Future<int> deleteCobroBySesionId(String sesionId) =>
+      (delete(cobrosTable)..where((t) => t.sesionId.equals(sesionId))).go();
 
   Future<void> deleteCobrosByFuente(String fuenteId) =>
       (delete(cobrosTable)..where((t) => t.fuenteId.equals(fuenteId))).go();

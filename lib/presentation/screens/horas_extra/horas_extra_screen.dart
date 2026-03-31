@@ -214,6 +214,15 @@ class _HorasExtraBody extends ConsumerWidget {
                         await ref
                             .read(horasExtraRepositoryProvider)
                             .deleteHoraExtra(e.id);
+                        // Si es auto (del calendario), eliminar también la sesión
+                        if (e.notas.startsWith('Auto')) {
+                          await ref
+                              .read(databaseProvider)
+                              .deleteSesionRealizadaByFechaAndFuente(
+                                e.fecha,
+                                e.fuenteId,
+                              );
+                        }
                       }
                     },
                   ),

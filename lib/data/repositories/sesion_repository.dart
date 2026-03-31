@@ -73,6 +73,8 @@ class SesionRepository {
   Future<int> deleteSesionRecurrente(String id) =>
       _db.deleteSesionRecurrente(id);
 
+  Future<int> deleteSesionRealizada(String id) => _db.deleteSesionRealizada(id);
+
   // ── Sesiones Realizadas ──────────────────────────────────────────
 
   Stream<List<SesionRealizada>> watchSesionesRealizadas() => _db

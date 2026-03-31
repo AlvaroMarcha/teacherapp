@@ -12,19 +12,19 @@ class CobroRepository {
   // ── Mappers ──────────────────────────────────────────────────────
 
   static Cobro _mapToCobro(CobrosTableData row) => Cobro(
-    id: row.id,
-    sesionId: row.sesionId,
-    alumnoId: row.alumnoId,
-    fuenteId: row.fuenteId,
-    modoCobro: ModoCobroExt.fromString(row.modoCobro),
-    periodoMes: row.periodoMes,
-    monto: row.monto,
-    montoParcial: row.montoParcial,
-    estado: EstadoCobroExt.fromString(row.estado),
-    fechaCobro: row.fechaCobro,
-    notas: row.notas,
-    syncStatus: row.syncStatus,
-  );
+        id: row.id,
+        sesionId: row.sesionId,
+        alumnoId: row.alumnoId,
+        fuenteId: row.fuenteId,
+        modoCobro: ModoCobroExt.fromString(row.modoCobro),
+        periodoMes: row.periodoMes,
+        monto: row.monto,
+        montoParcial: row.montoParcial,
+        estado: EstadoCobroExt.fromString(row.estado),
+        fechaCobro: row.fechaCobro,
+        notas: row.notas,
+        syncStatus: row.syncStatus,
+      );
 
   // ── Queries ──────────────────────────────────────────────────────
 
@@ -90,4 +90,7 @@ class CobroRepository {
   }
 
   Future<int> deleteCobro(String id) => _db.deleteCobro(id);
+
+  Future<int> deleteCobroBySesionId(String sesionId) =>
+      _db.deleteCobroBySesionId(sesionId);
 }
