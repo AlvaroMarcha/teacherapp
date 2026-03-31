@@ -128,17 +128,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // ── Logo / icono ─────────────────────────────
-                  Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: cs.primary,
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                    child: const Icon(
-                      Icons.school_rounded,
-                      color: Colors.white,
-                      size: 44,
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: Image.asset(
+                      'assets/images/logo-laura.png',
+                      width: 120,
+                      height: 120,
                     ),
                   ),
                   const SizedBox(height: 24),
