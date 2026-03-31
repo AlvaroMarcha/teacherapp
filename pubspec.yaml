@@ -1,5 +1,5 @@
 name: teacher_app
-description: Control de clases, horas y finanzas para profesores autónomos
+description: Laura's Language — gestión de clases de idiomas
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -78,6 +78,14 @@ dev_dependencies:
   drift_dev: ^2.18.0
   riverpod_generator: ^2.4.0
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.14.3
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "logo-laura.png"
+  min_sdk_android: 21
+  remove_alpha_ios: true
 
 flutter:
   uses-material-design: true

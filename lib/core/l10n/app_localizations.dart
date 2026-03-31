@@ -676,7 +676,7 @@ class AppLocalizations {
   // ESPAÑOL
   // ═══════════════════════════════════════════════════════════════════
   static const _es = AppLocalizations._(
-    appName: 'Teacher Finance',
+    appName: "Laura's Language",
     navInicio: 'Inicio',
     navFuentes: 'Fuentes',
     navHorario: 'Horario',
@@ -918,7 +918,7 @@ class AppLocalizations {
     compartirCopia: 'Compartir archivo de copia',
     sinCopiaLocal: 'Aún no hay copia local',
     versionInfo:
-        'Teacher Finance v1.0.0\nOffline-first — tus datos siempre contigo',
+        "Laura's Language v1.0.0\nOffline-first — tus datos siempre contigo",
     nombre: 'Nombre',
     tuNombre: 'Tu nombre',
     preferencias: 'Preferencias',
@@ -974,7 +974,7 @@ class AppLocalizations {
   // ENGLISH
   // ═══════════════════════════════════════════════════════════════════
   static const _en = AppLocalizations._(
-    appName: 'Teacher Finance',
+    appName: "Laura's Language",
     navInicio: 'Home',
     navFuentes: 'Sources',
     navHorario: 'Schedule',
@@ -1213,7 +1213,7 @@ class AppLocalizations {
     compartirCopia: 'Share backup file',
     sinCopiaLocal: 'No local backup yet',
     versionInfo:
-        'Teacher Finance v1.0.0\nOffline-first — your data always with you',
+        "Laura's Language v1.0.0\nOffline-first — your data always with you",
     nombre: 'Name',
     tuNombre: 'Your name',
     preferencias: 'Preferences',
@@ -1269,7 +1269,7 @@ class AppLocalizations {
   // ITALIANO
   // ═══════════════════════════════════════════════════════════════════
   static const _it = AppLocalizations._(
-    appName: 'Teacher Finance',
+    appName: "Laura's Language",
     navInicio: 'Home',
     navFuentes: 'Fonti',
     navHorario: 'Orario',
@@ -1513,7 +1513,7 @@ class AppLocalizations {
     compartirCopia: 'Condividi file di backup',
     sinCopiaLocal: 'Nessun backup locale ancora',
     versionInfo:
-        'Teacher Finance v1.0.0\nOffline-first — i tuoi dati sempre con te',
+        "Laura's Language v1.0.0\nOffline-first — i tuoi dati sempre con te",
     nombre: 'Nome',
     tuNombre: 'Il tuo nome',
     preferencias: 'Preferenze',

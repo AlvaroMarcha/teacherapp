@@ -23,7 +23,7 @@ class TeacherApp extends ConsumerWidget {
     final lightTheme = AppTheme.pastel;
 
     return MaterialApp.router(
-      title: 'Teacher Finance',
+      title: "Laura's Language",
       theme: lightTheme,
       darkTheme: AppTheme.dark,
       themeMode: flutterThemeMode,
