@@ -14,6 +14,14 @@ final databaseProvider = Provider<AppDatabase>((ref) {
   return db;
 });
 
+/// Cierra la DB actual e invalida el provider para que se recree al acceder.
+/// Usado por el flujo de importar/restaurar backup.
+Future<void> closeAndInvalidateDb(ProviderContainer container) async {
+  final db = container.read(databaseProvider);
+  await db.close();
+  container.invalidate(databaseProvider);
+}
+
 // ── Repositories ─────────────────────────────────────────────────────────────
 
 final fuenteRepositoryProvider = Provider<FuenteRepository>((ref) {

@@ -81,4 +81,26 @@ class NotificationService {
   Future<void> cancel(int id) async {
     await _plugin.cancel(id: id);
   }
+
+  /// Muestra una notificación inmediata (usado tras backup automático).
+  Future<void> showInstant({
+    required int id,
+    required String title,
+    required String body,
+  }) async {
+    const androidDetails = AndroidNotificationDetails(
+      'backup',
+      'Copia de seguridad',
+      channelDescription: 'Notificaciones de copia de seguridad automática',
+      importance: Importance.defaultImportance,
+      priority: Priority.defaultPriority,
+    );
+    const details = NotificationDetails(android: androidDetails);
+    await _plugin.show(
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: details,
+    );
+  }
 }

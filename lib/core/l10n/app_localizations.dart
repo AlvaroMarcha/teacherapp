@@ -27,6 +27,7 @@ class AppLocalizations {
     required this.no,
     required this.volver,
     required this.cerrar,
+    required this.copiar,
     required this.ver,
     required this.cargando,
     required this.sinDatos,
@@ -234,6 +235,38 @@ class AppLocalizations {
     required this.datos,
     required this.sincronizacion,
     required this.proximamenteBackup,
+    required this.exportarCopia,
+    required this.importarCopia,
+    required this.exportarDesc,
+    required this.importarDesc,
+    required this.confirmarImportar,
+    required this.exportExitoso,
+    required this.importExitoso,
+    required this.archivoInvalido,
+    required this.conectarDrive,
+    required this.desconectarDrive,
+    required this.subirDrive,
+    required this.restaurarDrive,
+    required this.ultimaCopia,
+    required this.sinCopiaPrevia,
+    required this.backupDriveExitoso,
+    required this.restaurarDriveExitoso,
+    required this.confirmarRestaurarDrive,
+    required this.copiaLocal,
+    required this.googleDrive,
+    required this.copiaAutomatica,
+    required this.copiaAutomaticaDesc,
+    required this.horaCopia,
+    required this.tipoCopia,
+    required this.tipoLocal,
+    required this.ultimaCopiaAuto,
+    required this.copiaActivada,
+    required this.copiaDesactivada,
+    required this.driveNecesitaConexion,
+    required this.ubicacionCopia,
+    required this.rutaCopiada,
+    required this.compartirCopia,
+    required this.sinCopiaLocal,
     required this.versionInfo,
 
     // ── Perfil ──
@@ -324,6 +357,7 @@ class AppLocalizations {
   final String no;
   final String volver;
   final String cerrar;
+  final String copiar;
   final String ver;
   final String cargando;
   final String sinDatos;
@@ -531,6 +565,38 @@ class AppLocalizations {
   final String datos;
   final String sincronizacion;
   final String proximamenteBackup;
+  final String exportarCopia;
+  final String importarCopia;
+  final String exportarDesc;
+  final String importarDesc;
+  final String confirmarImportar;
+  final String exportExitoso;
+  final String importExitoso;
+  final String archivoInvalido;
+  final String conectarDrive;
+  final String desconectarDrive;
+  final String subirDrive;
+  final String restaurarDrive;
+  final String ultimaCopia;
+  final String sinCopiaPrevia;
+  final String backupDriveExitoso;
+  final String restaurarDriveExitoso;
+  final String confirmarRestaurarDrive;
+  final String copiaLocal;
+  final String googleDrive;
+  final String copiaAutomatica;
+  final String copiaAutomaticaDesc;
+  final String horaCopia;
+  final String tipoCopia;
+  final String tipoLocal;
+  final String ultimaCopiaAuto;
+  final String copiaActivada;
+  final String copiaDesactivada;
+  final String driveNecesitaConexion;
+  final String ubicacionCopia;
+  final String rutaCopiada;
+  final String compartirCopia;
+  final String sinCopiaLocal;
   final String versionInfo;
 
   // ── Perfil ──
@@ -626,6 +692,7 @@ class AppLocalizations {
     no: 'No',
     volver: 'Volver',
     cerrar: 'Cerrar',
+    copiar: 'Copiar',
     ver: 'Ver',
     cargando: 'Cargando...',
     sinDatos: 'Sin datos',
@@ -812,8 +879,44 @@ class AppLocalizations {
     tarifas: 'Tarifas',
     tarifaGlobalPorFuente: 'Tarifa global y por fuente',
     datos: 'Datos',
-    sincronizacion: 'Sincronización',
-    proximamenteBackup: 'Próximamente — backup en la nube',
+    sincronizacion: 'Copia de seguridad',
+    proximamenteBackup: 'Exporta, importa o usa Google Drive',
+    exportarCopia: 'Exportar copia de seguridad',
+    importarCopia: 'Importar copia de seguridad',
+    exportarDesc: 'Guarda tus datos en un archivo',
+    importarDesc: 'Restaura datos desde un archivo',
+    confirmarImportar:
+        '¿Importar copia? Esto reemplazará todos los datos actuales.',
+    exportExitoso: 'Copia exportada correctamente',
+    importExitoso:
+        'Datos importados. Reinicia la app para aplicar los cambios.',
+    archivoInvalido: 'El archivo seleccionado no es una copia válida',
+    conectarDrive: 'Conectar con Google Drive',
+    desconectarDrive: 'Desconectar cuenta',
+    subirDrive: 'Subir a Google Drive',
+    restaurarDrive: 'Restaurar desde Google Drive',
+    ultimaCopia: 'Última copia',
+    sinCopiaPrevia: 'No hay copia previa',
+    backupDriveExitoso: 'Copia subida a Google Drive',
+    restaurarDriveExitoso:
+        'Datos restaurados desde Google Drive. Reinicia la app.',
+    confirmarRestaurarDrive:
+        '¿Restaurar desde Google Drive? Esto reemplazará todos los datos actuales.',
+    copiaLocal: 'Copia local',
+    googleDrive: 'Google Drive',
+    copiaAutomatica: 'Copia automática',
+    copiaAutomaticaDesc: 'Programa una copia diaria a la hora que elijas',
+    horaCopia: 'Hora de la copia',
+    tipoCopia: 'Tipo de copia',
+    tipoLocal: 'Local',
+    ultimaCopiaAuto: 'Última copia automática',
+    copiaActivada: 'Copia automática activada',
+    copiaDesactivada: 'Copia automática desactivada',
+    driveNecesitaConexion: 'Conecta tu cuenta de Google Drive primero',
+    ubicacionCopia: 'Ubicación de la copia',
+    rutaCopiada: 'Ruta copiada al portapapeles',
+    compartirCopia: 'Compartir archivo de copia',
+    sinCopiaLocal: 'Aún no hay copia local',
     versionInfo:
         'Teacher Finance v1.0.0\nOffline-first — tus datos siempre contigo',
     nombre: 'Nombre',
@@ -887,6 +990,7 @@ class AppLocalizations {
     no: 'No',
     volver: 'Back',
     cerrar: 'Close',
+    copiar: 'Copy',
     ver: 'View',
     cargando: 'Loading...',
     sinDatos: 'No data',
@@ -1073,8 +1177,41 @@ class AppLocalizations {
     tarifas: 'Rates',
     tarifaGlobalPorFuente: 'Global and per-source rates',
     datos: 'Data',
-    sincronizacion: 'Sync',
-    proximamenteBackup: 'Coming soon — cloud backup',
+    sincronizacion: 'Backup',
+    proximamenteBackup: 'Export, import or use Google Drive',
+    exportarCopia: 'Export backup',
+    importarCopia: 'Import backup',
+    exportarDesc: 'Save your data to a file',
+    importarDesc: 'Restore data from a file',
+    confirmarImportar: 'Import backup? This will replace all current data.',
+    exportExitoso: 'Backup exported successfully',
+    importExitoso: 'Data imported. Restart the app to apply changes.',
+    archivoInvalido: 'The selected file is not a valid backup',
+    conectarDrive: 'Connect to Google Drive',
+    desconectarDrive: 'Disconnect account',
+    subirDrive: 'Upload to Google Drive',
+    restaurarDrive: 'Restore from Google Drive',
+    ultimaCopia: 'Last backup',
+    sinCopiaPrevia: 'No previous backup',
+    backupDriveExitoso: 'Backup uploaded to Google Drive',
+    restaurarDriveExitoso: 'Data restored from Google Drive. Restart the app.',
+    confirmarRestaurarDrive:
+        'Restore from Google Drive? This will replace all current data.',
+    copiaLocal: 'Local backup',
+    googleDrive: 'Google Drive',
+    copiaAutomatica: 'Automatic backup',
+    copiaAutomaticaDesc: 'Schedule a daily backup at your chosen time',
+    horaCopia: 'Backup time',
+    tipoCopia: 'Backup type',
+    tipoLocal: 'Local',
+    ultimaCopiaAuto: 'Last automatic backup',
+    copiaActivada: 'Automatic backup enabled',
+    copiaDesactivada: 'Automatic backup disabled',
+    driveNecesitaConexion: 'Connect your Google Drive account first',
+    ubicacionCopia: 'Backup location',
+    rutaCopiada: 'Path copied to clipboard',
+    compartirCopia: 'Share backup file',
+    sinCopiaLocal: 'No local backup yet',
     versionInfo:
         'Teacher Finance v1.0.0\nOffline-first — your data always with you',
     nombre: 'Name',
@@ -1148,6 +1285,7 @@ class AppLocalizations {
     no: 'No',
     volver: 'Indietro',
     cerrar: 'Chiudi',
+    copiar: 'Copia',
     ver: 'Vedi',
     cargando: 'Caricamento...',
     sinDatos: 'Nessun dato',
@@ -1337,8 +1475,43 @@ class AppLocalizations {
     tarifas: 'Tariffe',
     tarifaGlobalPorFuente: 'Tariffa globale e per fonte',
     datos: 'Dati',
-    sincronizacion: 'Sincronizzazione',
-    proximamenteBackup: 'Prossimamente — backup in cloud',
+    sincronizacion: 'Backup',
+    proximamenteBackup: 'Esporta, importa o usa Google Drive',
+    exportarCopia: 'Esporta backup',
+    importarCopia: 'Importa backup',
+    exportarDesc: 'Salva i tuoi dati in un file',
+    importarDesc: 'Ripristina i dati da un file',
+    confirmarImportar:
+        'Importare il backup? Questo sostituirà tutti i dati attuali.',
+    exportExitoso: 'Backup esportato correttamente',
+    importExitoso: 'Dati importati. Riavvia l\'app per applicare le modifiche.',
+    archivoInvalido: 'Il file selezionato non è un backup valido',
+    conectarDrive: 'Connetti a Google Drive',
+    desconectarDrive: 'Disconnetti account',
+    subirDrive: 'Carica su Google Drive',
+    restaurarDrive: 'Ripristina da Google Drive',
+    ultimaCopia: 'Ultimo backup',
+    sinCopiaPrevia: 'Nessun backup precedente',
+    backupDriveExitoso: 'Backup caricato su Google Drive',
+    restaurarDriveExitoso: 'Dati ripristinati da Google Drive. Riavvia l\'app.',
+    confirmarRestaurarDrive:
+        'Ripristinare da Google Drive? Questo sostituirà tutti i dati attuali.',
+    copiaLocal: 'Backup locale',
+    googleDrive: 'Google Drive',
+    copiaAutomatica: 'Backup automatico',
+    copiaAutomaticaDesc:
+        'Programma un backup giornaliero all\'ora che preferisci',
+    horaCopia: 'Ora del backup',
+    tipoCopia: 'Tipo di backup',
+    tipoLocal: 'Locale',
+    ultimaCopiaAuto: 'Ultimo backup automatico',
+    copiaActivada: 'Backup automatico attivato',
+    copiaDesactivada: 'Backup automatico disattivato',
+    driveNecesitaConexion: 'Collega prima il tuo account Google Drive',
+    ubicacionCopia: 'Posizione del backup',
+    rutaCopiada: 'Percorso copiato negli appunti',
+    compartirCopia: 'Condividi file di backup',
+    sinCopiaLocal: 'Nessun backup locale ancora',
     versionInfo:
         'Teacher Finance v1.0.0\nOffline-first — i tuoi dati sempre con te',
     nombre: 'Nome',
