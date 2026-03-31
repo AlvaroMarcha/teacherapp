@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../domain/models/fuente.dart';
+import '../../../providers/theme_provider.dart';
 
-class HorasSemanaCard extends StatelessWidget {
+class HorasSemanaCard extends ConsumerWidget {
   const HorasSemanaCard({
     super.key,
     required this.fuente,
@@ -15,7 +17,8 @@ class HorasSemanaCard extends StatelessWidget {
   final double horasExtra;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = ref.watch(appLocalizationsProvider);
     final color = fuente.flutterColor;
     final colorLight = color.withValues(alpha: 0.15);
 
@@ -32,11 +35,11 @@ class HorasSemanaCard extends StatelessWidget {
           child: Icon(Icons.access_time_outlined, color: color),
         ),
         title: Text(
-          'Horas extra (${fuente.nombre})',
+          '${l.horasExtra} (${fuente.nombre})',
           style: AppTextStyles.titleSmall,
         ),
         subtitle: Text(
-          '${horasExtra.toStringAsFixed(1)}h registradas este mes',
+          '${l.esteMesRegistradas}: ${horasExtra.toStringAsFixed(1)}h',
           style: AppTextStyles.bodySmall,
         ),
         trailing: Icon(

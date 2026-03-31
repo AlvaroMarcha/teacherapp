@@ -30,6 +30,18 @@ final sesionesRealizadasFechaProvider =
       .watchSesionesRealizadasByFecha(fecha);
 });
 
+/// Horas confirmadas de empleo para un {fuenteId}_{yyyy-MM}.
+/// El key tiene formato "fuenteId_yyyy-MM".
+final sesionesEmpleoMesProvider =
+    StreamProvider.family<List<SesionRealizada>, String>((ref, key) {
+  final parts = key.split('_');
+  final fuenteId = parts.sublist(0, parts.length - 1).join('_');
+  final periodoMes = parts.last;
+  return ref
+      .watch(sesionRepositoryProvider)
+      .watchSesionesRealizadasByFuenteAndMes(fuenteId, periodoMes);
+});
+
 /// Mes activo para el horario (por defecto el mes actual).
 final mesActivoProvider = StateProvider<DateTime>((ref) => DateTime.now());
 

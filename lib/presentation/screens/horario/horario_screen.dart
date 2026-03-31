@@ -5,6 +5,7 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../../domain/models/evento_calendario.dart';
+import '../../providers/theme_provider.dart';
 import 'widgets/dia_list.dart';
 import 'widgets/mes_calendar.dart';
 import 'widgets/semana_timeline.dart';
@@ -93,6 +94,7 @@ class _HorarioScreenState extends ConsumerState<HorarioScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = ref.watch(appLocalizationsProvider);
     return Scaffold(
       appBar: AppBar(
         title: Text(_tituloActual, style: AppTextStyles.titleSmall),
@@ -101,7 +103,7 @@ class _HorarioScreenState extends ConsumerState<HorarioScreen> {
           IconButton(
             icon: const Icon(Icons.today_outlined),
             onPressed: _irHoy,
-            tooltip: 'Hoy',
+            tooltip: l.hoy,
           ),
           IconButton(
             icon: const Icon(Icons.chevron_left),
@@ -121,22 +123,22 @@ class _HorarioScreenState extends ConsumerState<HorarioScreen> {
               style: SegmentedButton.styleFrom(
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              segments: const [
+              segments: [
                 ButtonSegment(
                   value: _VistaCalendario.dia,
-                  label: Text('Día'),
+                  label: Text(l.dia),
                 ),
                 ButtonSegment(
                   value: _VistaCalendario.semana,
-                  label: Text('Semana'),
+                  label: Text(l.semana),
                 ),
                 ButtonSegment(
                   value: _VistaCalendario.mes,
-                  label: Text('Mes'),
+                  label: Text(l.mes),
                 ),
                 ButtonSegment(
                   value: _VistaCalendario.anio,
-                  label: Text('Año'),
+                  label: Text(l.anio),
                 ),
               ],
               selected: {_vista},
@@ -148,7 +150,7 @@ class _HorarioScreenState extends ConsumerState<HorarioScreen> {
       body: _buildBody(),
       floatingActionButton: FloatingActionButton(
         onPressed: () => context.push(AppRoutes.sesionForm),
-        tooltip: 'Nueva sesión recurrente',
+        tooltip: l.nuevaSesionRecurrente,
         child: const Icon(Icons.add),
       ),
     );

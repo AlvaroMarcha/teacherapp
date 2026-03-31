@@ -6,6 +6,7 @@ import '../../../core/utils/date_utils.dart';
 import '../../providers/fuentes_provider.dart';
 import '../../providers/alumnos_provider.dart';
 import '../../providers/database_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../../domain/models/sesion_recurrente.dart';
 
 /// Formulario para crear o editar una sesión recurrente.
@@ -67,18 +68,19 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = ref.watch(appLocalizationsProvider);
     final fuentesAsync = ref.watch(fuentesProvider);
     final alumnosAsync = ref.watch(alumnosProvider);
     final isEdit = widget.existing != null;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-            isEdit ? 'Editar sesión recurrente' : 'Nueva sesión recurrente'),
+        title:
+            Text(isEdit ? l.editarSesionRecurrente : l.nuevaSesionRecurrente),
         actions: [
           TextButton(
             onPressed: _guardar,
-            child: const Text('Guardar'),
+            child: Text(l.guardar),
           ),
         ],
       ),
@@ -93,16 +95,16 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
             data: (alumnos) => ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                Text('Fuente de ingresos', style: AppTextStyles.labelMedium),
+                Text(l.fuenteIngreso, style: AppTextStyles.labelMedium),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
                   value: _fuenteId,
-                  decoration: const InputDecoration(labelText: 'Fuente'),
+                  decoration: InputDecoration(labelText: l.navFuentes),
                   items: fuentes
                       .map((f) =>
                           DropdownMenuItem(value: f.id, child: Text(f.nombre)))
                       .toList(),
-                  validator: (v) => v == null ? 'Selecciona una fuente' : null,
+                  validator: (v) => v == null ? l.seleccionaFuente : null,
                   onChanged: (v) => setState(() {
                     _fuenteId = v;
                     _alumnoId = null;
@@ -112,11 +114,10 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
                 if (_fuenteId != null) ...[
                   DropdownButtonFormField<String>(
                     value: _alumnoId,
-                    decoration:
-                        const InputDecoration(labelText: 'Alumno (opcional)'),
+                    decoration: InputDecoration(labelText: l.alumnoOpcional),
                     items: [
-                      const DropdownMenuItem(
-                          value: null, child: Text('Sin alumno específico')),
+                      DropdownMenuItem(
+                          value: null, child: Text(l.sinAlumnoEspecifico)),
                       ...alumnos.where((a) => a.fuenteId == _fuenteId).map(
                           (a) => DropdownMenuItem(
                               value: a.id, child: Text(a.nombre))),
@@ -133,9 +134,8 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: SwitchListTile(
-                    title: const Text('Clase única'),
-                    subtitle: const Text(
-                        'Solo ocurre una vez, en una fecha concreta'),
+                    title: Text(l.claseUnica),
+                    subtitle: Text(l.claseUnicaDesc),
                     value: _esPuntual,
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                     shape: RoundedRectangleBorder(
@@ -165,20 +165,20 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
                       if (d != null) setState(() => _fechaUnica = d);
                     },
                     child: InputDecorator(
-                      decoration: const InputDecoration(
-                        labelText: 'Fecha',
-                        prefixIcon: Icon(Icons.calendar_today_outlined),
-                        suffixIcon: Icon(Icons.chevron_right),
+                      decoration: InputDecoration(
+                        labelText: l.fecha,
+                        prefixIcon: const Icon(Icons.calendar_today_outlined),
+                        suffixIcon: const Icon(Icons.chevron_right),
                       ),
                       child: Text(
                         _fechaUnica != null
                             ? AppDateUtils.formatFullDate(_fechaUnica!)
-                            : 'Seleccionar',
+                            : l.seleccionar,
                       ),
                     ),
                   ),
                 ] else ...[
-                  Text('Días de la semana', style: AppTextStyles.labelMedium),
+                  Text(l.diasSemana, style: AppTextStyles.labelMedium),
                   const SizedBox(height: 8),
                   Wrap(
                     spacing: 8,
@@ -210,9 +210,9 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
                     if (t != null) setState(() => _horaInicio = t);
                   },
                   child: InputDecorator(
-                    decoration: const InputDecoration(
-                      labelText: 'Hora de inicio',
-                      prefixIcon: Icon(Icons.schedule_outlined),
+                    decoration: InputDecoration(
+                      labelText: l.horaInicio,
+                      prefixIcon: const Icon(Icons.schedule_outlined),
                     ),
                     child: Text(_formatTime(_horaInicio)),
                   ),
@@ -220,7 +220,7 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
                 const SizedBox(height: 12),
                 DropdownButtonFormField<double>(
                   value: _duracion,
-                  decoration: const InputDecoration(labelText: 'Duración'),
+                  decoration: InputDecoration(labelText: l.duracion),
                   items: [0.5, 0.75, 1.0, 1.5, 2.0]
                       .map((h) => DropdownMenuItem(
                             value: h,
@@ -254,21 +254,21 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
       '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
 
   Future<void> _guardar() async {
+    final l = ref.read(appLocalizationsProvider);
     if (!_formKey.currentState!.validate()) return;
     if (_fuenteId == null) return;
 
     if (_esPuntual) {
       if (_fechaUnica == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content: Text('Selecciona una fecha para la clase única')),
+          SnackBar(content: Text(l.seleccionaFechaUnica)),
         );
         return;
       }
     } else {
       if (_diasSemana.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Selecciona al menos un día')),
+          SnackBar(content: Text(l.seleccionaDia)),
         );
         return;
       }

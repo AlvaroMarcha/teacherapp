@@ -17,8 +17,9 @@ class TarifasScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = ref.watch(appLocalizationsProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Tarifas')),
+      appBar: AppBar(title: Text(l.tarifasTitle)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -33,9 +34,10 @@ class TarifasScreen extends ConsumerWidget {
   }
 }
 
-class _JerarquiaInfo extends StatelessWidget {
+class _JerarquiaInfo extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = ref.watch(appLocalizationsProvider);
     return Card(
       color: Theme.of(context).colorScheme.surfaceContainerHighest,
       elevation: 0,
@@ -44,11 +46,9 @@ class _JerarquiaInfo extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('¿Cómo funciona?', style: AppTextStyles.labelMedium),
+            Text(l.comoFunciona, style: AppTextStyles.labelMedium),
             const SizedBox(height: 8),
-            const Text('1️⃣  Tarifa del alumno (si tiene)'),
-            const Text('2️⃣  Tarifa de la fuente'),
-            const Text('3️⃣  Tu tarifa global (fallback)'),
+            Text(l.jerarquiaTarifas),
           ],
         ),
       ),
@@ -75,10 +75,11 @@ class _TarifaGlobalState extends ConsumerState<_TarifaGlobal> {
 
   @override
   Widget build(BuildContext context) {
+    final l = ref.watch(appLocalizationsProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Tarifa global (€/h)', style: AppTextStyles.titleSmall),
+        Text('${l.tarifaGlobal} (€/h)', style: AppTextStyles.titleSmall),
         const SizedBox(height: 8),
         Row(
           children: [
@@ -101,16 +102,16 @@ class _TarifaGlobalState extends ConsumerState<_TarifaGlobal> {
                     double.tryParse(_ctrl.text.trim().replaceAll(',', '.'));
                 if (v == null || v < 0) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Introduce un número válido')),
+                    SnackBar(content: Text(l.introduceNumeroValido)),
                   );
                   return;
                 }
                 ref.read(tarifaGlobalProvider.notifier).set(v);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Tarifa global guardada')),
+                  SnackBar(content: Text(l.tarifaGlobalGuardada)),
                 );
               },
-              child: const Text('Guardar'),
+              child: Text(l.guardar),
             ),
           ],
         ),
@@ -129,17 +130,18 @@ class _TarifasPorAlumno extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final alumnosAsync = ref.watch(alumnosProvider);
+    final l = ref.watch(appLocalizationsProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Tarifa por alumno', style: AppTextStyles.titleSmall),
+        Text(l.tarifaPorAlumno, style: AppTextStyles.titleSmall),
         const SizedBox(height: 8),
         alumnosAsync.when(
           loading: () => const CircularProgressIndicator(),
           error: (e, _) => Text('Error: $e'),
           data: (alumnos) {
             if (alumnos.isEmpty) {
-              return const Text('No hay alumnos registrados todavía.');
+              return const Text('—');
             }
             return Card(
               margin: EdgeInsets.zero,
@@ -152,7 +154,7 @@ class _TarifasPorAlumno extends ConsumerWidget {
                       trailing: Text(
                         alumnos[i].tarifaSesion > 0
                             ? '${CurrencyUtils.format(alumnos[i].tarifaSesion)}/h'
-                            : 'Tarifa global',
+                            : l.tarifaGlobal,
                         style: AppTextStyles.bodyMedium.copyWith(
                           color:
                               alumnos[i].tarifaSesion > 0 ? null : Colors.grey,
@@ -181,10 +183,11 @@ class _TarifasPorAlumno extends ConsumerWidget {
     double? tarifaActual,
   ) async {
     final ctrl = TextEditingController(text: tarifaActual?.toStringAsFixed(2));
+    final l = ref.read(appLocalizationsProvider);
     await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Tarifa de $nombre'),
+        title: Text('${l.tarifaDe} $nombre'),
         content: TextField(
           controller: ctrl,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -194,7 +197,7 @@ class _TarifasPorAlumno extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancelar'),
+            child: Text(l.cancelar),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -212,7 +215,7 @@ class _TarifasPorAlumno extends ConsumerWidget {
               }
               if (ctx.mounted) Navigator.of(ctx).pop();
             },
-            child: const Text('Guardar'),
+            child: Text(l.guardar),
           ),
         ],
       ),

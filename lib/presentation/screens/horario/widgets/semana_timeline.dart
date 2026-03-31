@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../domain/models/evento_calendario.dart';
 import '../../../providers/sesiones_provider.dart';
+import '../../../providers/theme_provider.dart';
 import 'evento_bloque.dart';
 
 /// Vista semanal tipo Google Calendar con timeline proporcional.
@@ -102,7 +103,7 @@ class SemanaTimeline extends ConsumerWidget {
   }
 }
 
-class _WeekHeader extends StatelessWidget {
+class _WeekHeader extends ConsumerWidget {
   const _WeekHeader({
     required this.dias,
     required this.selectedDay,
@@ -115,11 +116,11 @@ class _WeekHeader extends StatelessWidget {
   final void Function(DateTime) onDaySelected;
   final double timeAxisWidth;
 
-  static const _dayNames = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final today = DateTime.now();
+    final dayLabels =
+        ref.watch(appLocalizationsProvider).diasAbreviados.split(',');
     return Row(
       children: [
         SizedBox(width: timeAxisWidth),
@@ -140,7 +141,7 @@ class _WeekHeader extends StatelessWidget {
                 children: [
                   const SizedBox(height: 8),
                   Text(
-                    _dayNames[i],
+                    dayLabels[i],
                     style: AppTextStyles.labelSmall.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),

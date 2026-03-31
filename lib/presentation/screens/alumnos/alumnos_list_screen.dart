@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/utils/currency_utils.dart';
 import '../../providers/alumnos_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../../domain/models/alumno.dart';
 
 class AlumnosListScreen extends ConsumerWidget {
@@ -14,11 +14,12 @@ class AlumnosListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = ref.watch(appLocalizationsProvider);
     final alumnosAsync = ref.watch(alumnosProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppStrings.alumnosTitle),
+        title: Text(l.alumnosTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -42,7 +43,7 @@ class AlumnosListScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    AppStrings.sinAlumnos,
+                    l.sinAlumnos,
                     style: AppTextStyles.bodyMedium.copyWith(
                       color: Theme.of(context).colorScheme.onSurfaceVariant,
                     ),

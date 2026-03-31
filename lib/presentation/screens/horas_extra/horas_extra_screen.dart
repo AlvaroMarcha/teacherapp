@@ -9,7 +9,9 @@ import '../../../domain/models/hora_extra.dart';
 import '../../providers/alumnos_provider.dart';
 import '../../providers/fuentes_provider.dart';
 import '../../providers/horas_extra_provider.dart';
+import '../../providers/sesiones_provider.dart';
 import '../../providers/database_provider.dart';
+import '../../providers/theme_provider.dart';
 
 /// Pantalla de horas extra para una fuente concreta de tipo [FuenteTipo.empleo].
 ///
@@ -42,7 +44,7 @@ class HorasExtraScreen extends ConsumerWidget {
             body: Center(
               child: Padding(
                 padding: EdgeInsets.all(24),
-                child: Text('No hay fuente de empleo configurada.'),
+                child: Text('—'),
               ),
             ),
           );
@@ -63,14 +65,34 @@ class _HorasExtraBody extends ConsumerWidget {
     final color = fuente.flutterColor;
     final horasAsync = ref.watch(horasExtraByFuenteProvider(fuente.id));
     final configAsync = ref.watch(empleoConfigProvider(fuente.id));
+    final l = ref.watch(appLocalizationsProvider);
+
+    // Sesiones confirmadas del empleo este mes
+    final periodoMes = DateFormat('yyyy-MM').format(DateTime.now());
+    final sesionesAsync = ref.watch(
+      sesionesEmpleoMesProvider('${fuente.id}_$periodoMes'),
+    );
 
     return Scaffold(
-      appBar: AppBar(title: Text('Horas extra — ${fuente.nombre}')),
+      appBar: AppBar(title: Text('${l.horasExtra} — ${fuente.nombre}')),
       body: horasAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (entries) {
-          final totalMes = _totalMesActual(entries);
+          // Horas extra manuales (no auto) del mes actual
+          final manualExtrasMes = entries
+              .where(
+                (e) =>
+                    e.fecha.startsWith(periodoMes) &&
+                    !e.notas.startsWith('Auto'),
+              )
+              .fold<double>(0, (acc, e) => acc + e.horas);
+
+          // Horas trabajadas de sesiones confirmadas
+          final horasTrabajadas = sesionesAsync.valueOrNull
+                  ?.fold<double>(0, (acc, s) => acc + s.horas) ??
+              0;
+
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -80,6 +102,23 @@ class _HorasExtraBody extends ConsumerWidget {
                 error: (_, __) => const SizedBox.shrink(),
                 data: (config) {
                   if (config == null) return const SizedBox.shrink();
+
+                  // Semanas en el mes actual
+                  final now = DateTime.now();
+                  final lastDayOfMonth =
+                      DateTime(now.year, now.month + 1, 0).day;
+                  final semanasEnMes = lastDayOfMonth / 7;
+                  final horasContratadas = config.horasSemanales * semanasEnMes;
+
+                  // Horas extra = exceso sobre contrato + manuales
+                  final excesoSesiones = (horasTrabajadas - horasContratadas)
+                      .clamp(0, double.infinity);
+                  final totalExtra = excesoSesiones + manualExtrasMes;
+
+                  // Sueldo teórico = base + extras
+                  final sueldoEsperado =
+                      config.salarioBase + totalExtra * config.tarifaHoraExtra;
+
                   return Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
@@ -87,28 +126,39 @@ class _HorasExtraBody extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Configuración contrato',
+                            l.configuracionContrato,
                             style: AppTextStyles.titleSmall,
                           ),
                           const SizedBox(height: 12),
                           _InfoRow(
-                            label: 'Horas semanales contratadas',
+                            label: l.horasSemanalesContratadas,
                             value: '${config.horasSemanales}h',
                           ),
                           _InfoRow(
-                            label: 'Tarifa hora extra',
+                            label: l.tarifaHoraExtra,
                             value: CurrencyUtils.format(config.tarifaHoraExtra),
                           ),
+                          const Divider(height: 24),
                           _InfoRow(
-                            label: 'Este mes registradas',
-                            value: '${totalMes.toStringAsFixed(1)}h',
+                            label: l.horasTrabajadasMes,
+                            value: CurrencyUtils.format(sueldoEsperado),
                           ),
-                          if (totalMes > 0)
+                          _InfoRow(
+                            label: l.horasContratadasMes,
+                            value: '${horasContratadas.toStringAsFixed(1)}h',
+                          ),
+                          _InfoRow(
+                            label: l.horasExtraMes,
+                            value: '${totalExtra.toStringAsFixed(1)}h',
+                            highlight: totalExtra > 0,
+                          ),
+                          if (totalExtra > 0)
                             _InfoRow(
-                              label: 'Importe extra proyectado',
+                              label: l.extraACobrar,
                               value: CurrencyUtils.format(
-                                totalMes * config.tarifaHoraExtra,
+                                totalExtra * config.tarifaHoraExtra,
                               ),
+                              highlight: true,
                             ),
                         ],
                       ),
@@ -124,7 +174,7 @@ class _HorasExtraBody extends ConsumerWidget {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 32),
                     child: Text(
-                      'Sin registros aún.\nPulsa + para añadir horas extra.',
+                      l.sinRegistros,
                       textAlign: TextAlign.center,
                       style: AppTextStyles.bodyMedium.copyWith(
                         color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -133,7 +183,7 @@ class _HorasExtraBody extends ConsumerWidget {
                   ),
                 )
               else ...[
-                Text('Historial', style: AppTextStyles.titleSmall),
+                Text(l.historial, style: AppTextStyles.titleSmall),
                 const SizedBox(height: 8),
                 ...entries.map(
                   (e) => _HoraExtraItem(
@@ -144,18 +194,18 @@ class _HorasExtraBody extends ConsumerWidget {
                       final confirmed = await showDialog<bool>(
                         context: context,
                         builder: (_) => AlertDialog(
-                          title: const Text('Eliminar registro'),
-                          content: const Text(
-                            '¿Eliminar este registro de horas extra?',
+                          title: Text(l.eliminarRegistro),
+                          content: Text(
+                            l.confirmarEliminarHoraExtra,
                           ),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(context, false),
-                              child: const Text('Cancelar'),
+                              child: Text(l.cancelar),
                             ),
                             FilledButton(
                               onPressed: () => Navigator.pop(context, true),
-                              child: const Text('Eliminar'),
+                              child: Text(l.eliminar),
                             ),
                           ],
                         ),
@@ -181,13 +231,6 @@ class _HorasExtraBody extends ConsumerWidget {
     );
   }
 
-  double _totalMesActual(List<HoraExtra> entries) {
-    final periodoMes = DateFormat('yyyy-MM').format(DateTime.now());
-    return entries
-        .where((e) => e.fecha.startsWith(periodoMes))
-        .fold<double>(0, (acc, e) => acc + e.horas);
-  }
-
   Future<void> _showRegistrarDialog(
     BuildContext context,
     WidgetRef ref,
@@ -206,11 +249,12 @@ class _HorasExtraBody extends ConsumerWidget {
 
     if (!context.mounted) return;
 
+    final l = ref.read(appLocalizationsProvider);
     await showDialog<void>(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setStateDialog) => AlertDialog(
-          title: const Text('Registrar horas extra'),
+          title: Text(l.registrarHorasExtra),
           content: Form(
             key: formKey,
             child: Column(
@@ -230,9 +274,9 @@ class _HorasExtraBody extends ConsumerWidget {
                     }
                   },
                   child: InputDecorator(
-                    decoration: const InputDecoration(
-                      labelText: 'Fecha',
-                      suffixIcon: Icon(Icons.calendar_today_outlined),
+                    decoration: InputDecoration(
+                      labelText: l.fecha,
+                      suffixIcon: const Icon(Icons.calendar_today_outlined),
                     ),
                     child: Text(DateFormat('dd/MM/yyyy').format(fecha)),
                   ),
@@ -244,14 +288,14 @@ class _HorasExtraBody extends ConsumerWidget {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
-                  decoration: const InputDecoration(
-                    labelText: 'Horas extra',
+                  decoration: InputDecoration(
+                    labelText: l.horasExtra,
                     suffixText: 'h',
                   ),
                   validator: (v) {
                     final n = double.tryParse(v ?? '');
                     if (n == null || n <= 0) {
-                      return 'Introduce un número válido';
+                      return l.introduceNumeroValido;
                     }
                     return null;
                   },
@@ -261,13 +305,13 @@ class _HorasExtraBody extends ConsumerWidget {
                 if (alumnos.isNotEmpty)
                   DropdownButtonFormField<String?>(
                     value: selectedAlumnoId,
-                    decoration: const InputDecoration(
-                      labelText: 'Alumno (opcional)',
+                    decoration: InputDecoration(
+                      labelText: l.alumnoOpcional,
                     ),
                     items: [
-                      const DropdownMenuItem(
+                      DropdownMenuItem(
                         value: null,
-                        child: Text('Sin alumno'),
+                        child: Text(l.sinAlumno),
                       ),
                       ...alumnos.map(
                         (a) => DropdownMenuItem(
@@ -283,8 +327,8 @@ class _HorasExtraBody extends ConsumerWidget {
                 // Notas
                 TextFormField(
                   controller: notasCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Notas (opcional)',
+                  decoration: InputDecoration(
+                    labelText: l.notasOpcional,
                   ),
                   maxLines: 2,
                 ),
@@ -294,7 +338,7 @@ class _HorasExtraBody extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancelar'),
+              child: Text(l.cancelar),
             ),
             FilledButton(
               onPressed: () async {
@@ -312,7 +356,7 @@ class _HorasExtraBody extends ConsumerWidget {
                     .saveHoraExtra(entry);
                 if (ctx.mounted) Navigator.pop(ctx);
               },
-              child: const Text('Guardar'),
+              child: Text(l.guardar),
             ),
           ],
         ),
@@ -384,23 +428,35 @@ class _HoraExtraItem extends ConsumerWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.value});
+  const _InfoRow({
+    required this.label,
+    required this.value,
+    this.highlight = false,
+  });
 
   final String label;
   final String value;
+  final bool highlight;
 
   @override
   Widget build(BuildContext context) {
+    final highlightColor = Theme.of(context).colorScheme.primary;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: AppTextStyles.bodyMedium),
+          Text(
+            label,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: highlight ? highlightColor : null,
+            ),
+          ),
           Text(
             value,
             style: AppTextStyles.bodyMedium.copyWith(
               fontWeight: FontWeight.w600,
+              color: highlight ? highlightColor : null,
             ),
           ),
         ],

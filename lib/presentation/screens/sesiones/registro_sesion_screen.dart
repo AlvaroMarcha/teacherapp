@@ -43,17 +43,7 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
   bool _importeEditable = false;
   bool _esPuntual = true;
   final List<int> _diasSemana = [];
-  String _importeHelper = 'Introduce el importe de la sesión';
-
-  static const _dias = [
-    (1, 'L'),
-    (2, 'M'),
-    (3, 'X'),
-    (4, 'J'),
-    (5, 'V'),
-    (6, 'S'),
-    (7, 'D'),
-  ];
+  String? _importeHelper;
 
   @override
   void dispose() {
@@ -63,16 +53,17 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
 
   Future<void> _onAlumnoChanged(String? alumnoId) async {
     setState(() => _alumnoId = alumnoId);
+    final l = ref.read(appLocalizationsProvider);
     if (alumnoId == null) {
       // Sin alumno: intentar tarifa global como fallback
       final global = ref.read(tarifaGlobalProvider);
       if (global > 0) {
         _importeCtrl.text = (global * _horas).toStringAsFixed(2);
         setState(() => _importeHelper =
-            'Tarifa global (${global.toStringAsFixed(2)}€/h) · editable');
+            '${l.tarifaGlobalEditable} (${global.toStringAsFixed(2)}€/h)');
       } else {
         _importeCtrl.clear();
-        setState(() => _importeHelper = 'Introduce el importe de la sesión');
+        setState(() => _importeHelper = null);
       }
       return;
     }
@@ -83,17 +74,17 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
         final tarifa = alumno.tarifaSesion * _horas;
         _importeCtrl.text = tarifa.toStringAsFixed(2);
         setState(() => _importeHelper =
-            'Tarifa del alumno (${alumno.tarifaSesion.toStringAsFixed(2)}€/h) · editable');
+            '${l.tarifaAlumnoEditable} (${alumno.tarifaSesion.toStringAsFixed(2)}€/h)');
       } else {
         // Alumno sin tarifa propia: fallback a global
         final global = ref.read(tarifaGlobalProvider);
         if (global > 0) {
           _importeCtrl.text = (global * _horas).toStringAsFixed(2);
           setState(() => _importeHelper =
-              'Tarifa global (${global.toStringAsFixed(2)}€/h) · editable');
+              '${l.tarifaGlobalEditable} (${global.toStringAsFixed(2)}€/h)');
         } else {
           _importeCtrl.clear();
-          setState(() => _importeHelper = 'Introduce el importe de la sesión');
+          setState(() => _importeHelper = null);
         }
       }
     }
@@ -122,9 +113,11 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
   Widget build(BuildContext context) {
     final fuentesAsync = ref.watch(fuentesProvider);
     final alumnosAsync = ref.watch(alumnosProvider);
+    final l = ref.watch(appLocalizationsProvider);
+    final diasLabels = l.diasAbreviados.split(',');
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Registrar sesión')),
+      appBar: AppBar(title: Text(l.registrarSesion)),
       body: fuentesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
@@ -141,15 +134,16 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  Text('¿Qué sesión fue?', style: AppTextStyles.titleMedium),
+                  Text(l.queSesionFue, style: AppTextStyles.titleMedium),
                   const SizedBox(height: 16),
 
                   // Fuente
                   DropdownButtonFormField<String>(
                     value: _fuenteId,
-                    decoration: const InputDecoration(
-                      labelText: 'Fuente',
-                      prefixIcon: Icon(Icons.account_balance_wallet_outlined),
+                    decoration: InputDecoration(
+                      labelText: l.navFuentes,
+                      prefixIcon:
+                          const Icon(Icons.account_balance_wallet_outlined),
                     ),
                     items: fuentes
                         .map((f) => DropdownMenuItem(
@@ -157,8 +151,7 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
                               child: Text(f.nombre),
                             ))
                         .toList(),
-                    validator: (v) =>
-                        v == null ? 'Selecciona una fuente' : null,
+                    validator: (v) => v == null ? l.seleccionaFuente : null,
                     onChanged: (v) => setState(() {
                       _fuenteId = v;
                       _alumnoId = null;
@@ -171,14 +164,14 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
                   if (_fuenteId != null)
                     DropdownButtonFormField<String>(
                       value: _alumnoId,
-                      decoration: const InputDecoration(
-                        labelText: 'Alumno (opcional)',
-                        prefixIcon: Icon(Icons.person_outline),
+                      decoration: InputDecoration(
+                        labelText: l.alumnoOpcional,
+                        prefixIcon: const Icon(Icons.person_outline),
                       ),
                       items: [
-                        const DropdownMenuItem(
+                        DropdownMenuItem(
                           value: null,
-                          child: Text('Sin alumno específico'),
+                          child: Text(l.sinAlumnoEspecifico),
                         ),
                         ...alumnos
                             .where((a) => a.fuenteId == _fuenteId)
@@ -200,9 +193,8 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: SwitchListTile(
-                      title: const Text('Clase única'),
-                      subtitle: const Text(
-                          'Solo ocurre una vez, en una fecha concreta'),
+                      title: Text(l.claseUnica),
+                      subtitle: Text(l.claseUnicaDesc),
                       value: _esPuntual,
                       contentPadding:
                           const EdgeInsets.symmetric(horizontal: 16),
@@ -222,25 +214,25 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
                     GestureDetector(
                       onTap: _pickFecha,
                       child: InputDecorator(
-                        decoration: const InputDecoration(
-                          labelText: 'Fecha',
-                          prefixIcon: Icon(Icons.calendar_today_outlined),
-                          suffixIcon: Icon(Icons.chevron_right),
+                        decoration: InputDecoration(
+                          labelText: l.fecha,
+                          prefixIcon: const Icon(Icons.calendar_today_outlined),
+                          suffixIcon: const Icon(Icons.chevron_right),
                         ),
                         child: Text(AppDateUtils.formatFullDate(_fecha)),
                       ),
                     ),
                   ] else ...[
                     // Días de la semana
-                    Text('Días de la semana', style: AppTextStyles.labelMedium),
+                    Text(l.diasSemana, style: AppTextStyles.labelMedium),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
-                      children: _dias.map((d) {
-                        final (num, label) = d;
+                      children: List.generate(7, (i) {
+                        final num = i + 1;
                         final selected = _diasSemana.contains(num);
                         return FilterChip(
-                          label: Text(label),
+                          label: Text(diasLabels[i]),
                           selected: selected,
                           shape: const StadiumBorder(),
                           onSelected: (v) => setState(() {
@@ -251,7 +243,7 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
                             }
                           }),
                         );
-                      }).toList(),
+                      }),
                     ),
                   ],
                   const SizedBox(height: 12),
@@ -263,9 +255,9 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
                         child: GestureDetector(
                           onTap: () => _pickHora(isInicio: true),
                           child: InputDecorator(
-                            decoration: const InputDecoration(
-                              labelText: 'Inicio',
-                              prefixIcon: Icon(Icons.schedule_outlined),
+                            decoration: InputDecoration(
+                              labelText: l.horaInicio,
+                              prefixIcon: const Icon(Icons.schedule_outlined),
                             ),
                             child: Text(_formatTime(_horaInicio)),
                           ),
@@ -276,9 +268,9 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
                         child: GestureDetector(
                           onTap: () => _pickHora(isInicio: false),
                           child: InputDecorator(
-                            decoration: const InputDecoration(
-                              labelText: 'Fin',
-                              prefixIcon: Icon(Icons.schedule_outlined),
+                            decoration: InputDecoration(
+                              labelText: l.fin,
+                              prefixIcon: const Icon(Icons.schedule_outlined),
                             ),
                             child: Text(_formatTime(_horaFin)),
                           ),
@@ -291,9 +283,9 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
                   // Duración
                   DropdownButtonFormField<double>(
                     value: _horas,
-                    decoration: const InputDecoration(
-                      labelText: 'Duración',
-                      prefixIcon: Icon(Icons.access_time_rounded),
+                    decoration: InputDecoration(
+                      labelText: l.duracion,
+                      prefixIcon: const Icon(Icons.access_time_rounded),
                     ),
                     items: [0.5, 0.75, 1.0, 1.5, 2.0]
                         .map((h) => DropdownMenuItem(
@@ -304,10 +296,8 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
                                     : h == 0.75
                                         ? '45 min'
                                         : h == 1.5
-                                            ? '1h 30min'
-                                            : h == 2.0
-                                                ? '2 horas'
-                                                : '1 hora',
+                                            ? '1h 30 min'
+                                            : '${h.toInt()}h',
                               ),
                             ))
                         .toList(),
@@ -323,14 +313,14 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
                       controller: _importeCtrl,
                       enabled: _importeEditable,
                       decoration: InputDecoration(
-                        labelText: 'Importe (€)',
+                        labelText: l.importeEuro,
                         prefixIcon: const Icon(Icons.euro_rounded),
-                        helperText: _importeHelper,
+                        helperText: _importeHelper ?? l.introduceImporteSesion,
                         suffixIcon: _importeEditable
                             ? null
                             : IconButton(
                                 icon: const Icon(Icons.edit_outlined),
-                                tooltip: 'Editar importe',
+                                tooltip: l.editarImporte,
                                 onPressed: () =>
                                     setState(() => _importeEditable = true),
                               ),
@@ -339,10 +329,9 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
                           const TextInputType.numberWithOptions(decimal: true),
                       validator: (v) {
                         if (v == null || v.trim().isEmpty) {
-                          return 'Introduce el importe';
+                          return l.introduceImporte;
                         }
-                        if (double.tryParse(v) == null)
-                          return 'Número inválido';
+                        if (double.tryParse(v) == null) return l.numeroInvalido;
                         return null;
                       },
                     ),
@@ -352,21 +341,21 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
 
                     // Estado de cobro — SegmentedButton
                     Text(
-                      '¿Cuándo cobras?',
+                      l.cuandoCobras,
                       style: AppTextStyles.titleSmall,
                     ),
                     const SizedBox(height: 12),
                     SegmentedButton<bool>(
-                      segments: const [
+                      segments: [
                         ButtonSegment(
                           value: false,
-                          label: Text('Pendiente'),
-                          icon: Icon(Icons.schedule_outlined),
+                          label: Text(l.pendiente),
+                          icon: const Icon(Icons.schedule_outlined),
                         ),
                         ButtonSegment(
                           value: true,
-                          label: Text('Cobré ahora'),
-                          icon: Icon(Icons.payments_outlined),
+                          label: Text(l.cobreAhora),
+                          icon: const Icon(Icons.payments_outlined),
                         ),
                       ],
                       selected: {_cobradoAhora},
@@ -379,7 +368,7 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
                   FilledButton.icon(
                     onPressed: _fuenteId != null ? _confirmar : null,
                     icon: const Icon(Icons.check),
-                    label: const Text('Confirmar sesión'),
+                    label: Text(l.confirmarSesion),
                     style: FilledButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
@@ -444,9 +433,9 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
     if (!esEmpleo && !_formKey.currentState!.validate()) return;
 
     if (!_esPuntual && _diasSemana.isEmpty) {
+      final l = ref.read(appLocalizationsProvider);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Selecciona al menos un día de la semana')),
+        SnackBar(content: Text(l.seleccionaDia)),
       );
       return;
     }

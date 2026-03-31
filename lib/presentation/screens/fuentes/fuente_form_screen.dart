@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/constants/app_strings.dart';
 import '../../../domain/models/empleo_config.dart';
 import '../../../domain/models/fuente.dart';
 import '../../providers/database_provider.dart';
-import '../../providers/fuentes_provider.dart';
+import '../../providers/theme_provider.dart';
 
 class FuenteFormScreen extends ConsumerStatefulWidget {
   const FuenteFormScreen({super.key, this.fuenteId});
@@ -72,6 +71,7 @@ class _FuenteFormScreenState extends ConsumerState<FuenteFormScreen> {
   Future<void> _guardar() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
+    final l = ref.read(appLocalizationsProvider);
 
     final colorHex = _color.value
         .toRadixString(16)
@@ -106,7 +106,7 @@ class _FuenteFormScreenState extends ConsumerState<FuenteFormScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al guardar: $e')),
+          SnackBar(content: Text('${l.errorAlGuardar}: $e')),
         );
       }
     } finally {
@@ -117,25 +117,23 @@ class _FuenteFormScreenState extends ConsumerState<FuenteFormScreen> {
   // ── Eliminar ─────────────────────────────────────────────────────
 
   Future<void> _confirmarEliminar() async {
+    final l = ref.read(appLocalizationsProvider);
     final confirmar = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar fuente'),
-        content: const Text(
-          'Se eliminarán también todos los alumnos, sesiones y cobros '
-          'asociados a esta fuente. Esta acción no se puede deshacer.',
-        ),
+        title: Text(l.eliminarFuente),
+        content: Text(l.confirmarEliminarFuente),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: Text(l.cancelar),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: Theme.of(ctx).colorScheme.error,
             ),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Eliminar'),
+            child: Text(l.eliminar),
           ),
         ],
       ),
@@ -151,7 +149,7 @@ class _FuenteFormScreenState extends ConsumerState<FuenteFormScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al eliminar: $e')),
+          SnackBar(content: Text('${l.errorAlEliminar}: $e')),
         );
         setState(() => _loading = false);
       }
@@ -161,11 +159,12 @@ class _FuenteFormScreenState extends ConsumerState<FuenteFormScreen> {
   // ── Color picker ─────────────────────────────────────────────────
 
   Future<void> _mostrarColorPicker() async {
+    final l = ref.read(appLocalizationsProvider);
     Color tempColor = _color;
     await showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Elige un color'),
+        title: Text(l.eligeColor),
         content: SingleChildScrollView(
           child: ColorPicker(
             pickerColor: tempColor,
@@ -184,7 +183,7 @@ class _FuenteFormScreenState extends ConsumerState<FuenteFormScreen> {
               setState(() => _color = tempColor);
               Navigator.pop(ctx);
             },
-            child: const Text('Aceptar'),
+            child: const Text('OK'),
           ),
         ],
       ),
@@ -195,6 +194,7 @@ class _FuenteFormScreenState extends ConsumerState<FuenteFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = ref.watch(appLocalizationsProvider);
     // Cargar datos en el primer build si es edición
     if (!_dataLoaded) {
       _cargarDatos();
@@ -203,20 +203,20 @@ class _FuenteFormScreenState extends ConsumerState<FuenteFormScreen> {
     // Si estamos en edición, esperar a que carguen los datos
     if (_esEdicion && !_dataLoaded) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Editar fuente')),
+        appBar: AppBar(title: Text(l.editarFuente)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_esEdicion ? 'Editar fuente' : 'Nueva fuente'),
+        title: Text(_esEdicion ? l.editarFuente : l.nuevaFuente),
         actions: [
           if (_esEdicion)
             IconButton(
               icon: const Icon(Icons.delete_outline),
               color: Theme.of(context).colorScheme.error,
-              tooltip: 'Eliminar fuente',
+              tooltip: l.eliminarFuente,
               onPressed: _loading ? null : _confirmarEliminar,
             ),
         ],
@@ -229,38 +229,38 @@ class _FuenteFormScreenState extends ConsumerState<FuenteFormScreen> {
             // Nombre
             TextFormField(
               controller: _nombreCtrl,
-              decoration: const InputDecoration(
-                labelText: 'Nombre de la fuente',
+              decoration: InputDecoration(
+                labelText: l.nombreFuente,
                 prefixIcon: Icon(Icons.label_outline),
               ),
               textCapitalization: TextCapitalization.words,
               validator: (v) =>
-                  v == null || v.trim().isEmpty ? 'Nombre requerido' : null,
+                  v == null || v.trim().isEmpty ? l.nombreRequerido : null,
             ),
             const SizedBox(height: 20),
 
             // Tipo
             Text(
-              'Tipo de fuente',
+              l.tipoFuente,
               style: Theme.of(context).textTheme.labelMedium,
             ),
             const SizedBox(height: 8),
             SegmentedButton<FuenteTipo>(
-              segments: const [
+              segments: [
                 ButtonSegment(
                   value: FuenteTipo.empleo,
-                  label: Text('Empleo'),
-                  icon: Icon(Icons.work_outline),
+                  label: Text(l.empleo),
+                  icon: const Icon(Icons.work_outline),
                 ),
                 ButtonSegment(
                   value: FuenteTipo.academia,
-                  label: Text('Academia'),
-                  icon: Icon(Icons.school_outlined),
+                  label: Text(l.academia),
+                  icon: const Icon(Icons.school_outlined),
                 ),
                 ButtonSegment(
                   value: FuenteTipo.particular,
-                  label: Text('Particular'),
-                  icon: Icon(Icons.person_outline),
+                  label: Text(l.particular),
+                  icon: const Icon(Icons.person_outline),
                 ),
               ],
               selected: {_tipo},
@@ -270,7 +270,7 @@ class _FuenteFormScreenState extends ConsumerState<FuenteFormScreen> {
 
             // Color
             Text(
-              'Color identificativo',
+              l.colorIdentificativo,
               style: Theme.of(context).textTheme.labelMedium,
             ),
             const SizedBox(height: 8),
@@ -333,7 +333,7 @@ class _FuenteFormScreenState extends ConsumerState<FuenteFormScreen> {
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             : const Icon(Icons.save_outlined),
-        label: const Text('Guardar'),
+        label: Text(l.guardar),
       ),
     );
   }
@@ -341,7 +341,7 @@ class _FuenteFormScreenState extends ConsumerState<FuenteFormScreen> {
 
 // ── Sección empleoConfig ─────────────────────────────────────────────────────
 
-class _EmpleoConfigSection extends StatelessWidget {
+class _EmpleoConfigSection extends ConsumerWidget {
   const _EmpleoConfigSection({
     required this.salarioCtrl,
     required this.horasCtrl,
@@ -357,70 +357,71 @@ class _EmpleoConfigSection extends StatelessWidget {
   final ValueChanged<int> onDiaCobroChanged;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = ref.watch(appLocalizationsProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Divider(),
         const SizedBox(height: 8),
         Text(
-          'Configuración del empleo',
+          l.configuracionEmpleo,
           style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: 16),
         TextFormField(
           controller: salarioCtrl,
-          decoration: const InputDecoration(
-            labelText: 'Salario base mensual (€)',
-            prefixIcon: Icon(Icons.euro_rounded),
+          decoration: InputDecoration(
+            labelText: l.salarioBaseMensual,
+            prefixIcon: const Icon(Icons.euro_rounded),
           ),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           validator: (v) {
-            if (v == null || v.trim().isEmpty) return 'Requerido';
-            if (double.tryParse(v) == null) return 'Número inválido';
+            if (v == null || v.trim().isEmpty) return l.requerido;
+            if (double.tryParse(v) == null) return l.numeroInvalido;
             return null;
           },
         ),
         const SizedBox(height: 16),
         TextFormField(
           controller: horasCtrl,
-          decoration: const InputDecoration(
-            labelText: 'Horas semanales contratadas',
-            prefixIcon: Icon(Icons.access_time_rounded),
+          decoration: InputDecoration(
+            labelText: l.horasSemanalesContratadas,
+            prefixIcon: const Icon(Icons.access_time_rounded),
           ),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           validator: (v) {
-            if (v == null || v.trim().isEmpty) return 'Requerido';
-            if (double.tryParse(v) == null) return 'Número inválido';
+            if (v == null || v.trim().isEmpty) return l.requerido;
+            if (double.tryParse(v) == null) return l.numeroInvalido;
             return null;
           },
         ),
         const SizedBox(height: 16),
         TextFormField(
           controller: tarifaExtraCtrl,
-          decoration: const InputDecoration(
-            labelText: 'Tarifa hora extra (€/h)',
-            prefixIcon: Icon(Icons.add_circle_outline_rounded),
+          decoration: InputDecoration(
+            labelText: '${l.tarifaHoraExtra} (€/h)',
+            prefixIcon: const Icon(Icons.add_circle_outline_rounded),
           ),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           validator: (v) {
-            if (v == null || v.trim().isEmpty) return 'Requerido';
-            if (double.tryParse(v) == null) return 'Número inválido';
+            if (v == null || v.trim().isEmpty) return l.requerido;
+            if (double.tryParse(v) == null) return l.numeroInvalido;
             return null;
           },
         ),
         const SizedBox(height: 16),
         DropdownButtonFormField<int>(
           value: diaCobro,
-          decoration: const InputDecoration(
-            labelText: 'Día de cobro mensual',
-            prefixIcon: Icon(Icons.calendar_today_rounded),
+          decoration: InputDecoration(
+            labelText: l.diaCobro,
+            prefixIcon: const Icon(Icons.calendar_today_rounded),
           ),
           items: List.generate(
             28,
             (i) => DropdownMenuItem(
               value: i + 1,
-              child: Text('Día ${i + 1}'),
+              child: Text('${i + 1}'),
             ),
           ),
           onChanged: (v) {

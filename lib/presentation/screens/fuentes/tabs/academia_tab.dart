@@ -8,6 +8,7 @@ import '../../../../core/utils/currency_utils.dart';
 import '../../../providers/fuentes_provider.dart';
 import '../../../../domain/models/fuente.dart';
 import '../../../providers/alumnos_provider.dart';
+import '../../../providers/theme_provider.dart';
 
 /// Tab de academia (Angels): lista alumnos con horario y tarifa.
 class AcademiaTab extends ConsumerWidget {
@@ -16,6 +17,7 @@ class AcademiaTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final fuentesAsync = ref.watch(fuentesProvider);
+    final l = ref.watch(appLocalizationsProvider);
 
     return fuentesAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -24,7 +26,7 @@ class AcademiaTab extends ConsumerWidget {
         final academia =
             fuentes.where((f) => f.tipo.value == 'academia').toList();
         if (academia.isEmpty) {
-          return const Center(child: Text('No hay academia configurada'));
+          return Center(child: Text(l.noAcademiaConfigurada));
         }
         final fuente = academia.first;
         return Consumer(
@@ -54,16 +56,16 @@ class AcademiaTab extends ConsumerWidget {
                           '${AppRoutes.alumnos}/form?fuenteId=${fuente.id}',
                         ),
                         icon: const Icon(Icons.add, size: 18),
-                        label: const Text('Alumno'),
+                        label: Text(l.alumno),
                       ),
                     ],
                   ),
                   const SizedBox(height: 12),
                   if (alumnos.isEmpty)
-                    const Center(
+                    Center(
                       child: Padding(
                         padding: EdgeInsets.all(32),
-                        child: Text('Sin alumnos en esta academia'),
+                        child: Text(l.sinAlumnosAcademia),
                       ),
                     )
                   else
@@ -73,7 +75,7 @@ class AcademiaTab extends ConsumerWidget {
                         child: ListTile(
                           title: Text(a.nombre),
                           subtitle: Text(
-                            '${CurrencyUtils.formatCompact(a.tarifaSesion)}/sesión · ${a.duracionMinutos} min',
+                            '${CurrencyUtils.formatCompact(a.tarifaSesion)}${l.porSesionMin} \u00b7 ${a.duracionMinutos} min',
                             style: AppTextStyles.bodySmall,
                           ),
                           leading: CircleAvatar(

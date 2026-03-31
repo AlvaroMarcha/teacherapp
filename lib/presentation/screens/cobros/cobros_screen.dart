@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/currency_utils.dart';
 import '../../providers/cobros_provider.dart';
 import '../../providers/database_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../../domain/models/cobro.dart';
 
 class CobrosScreen extends ConsumerWidget {
@@ -16,9 +16,10 @@ class CobrosScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final pendientesAsync = ref.watch(cobrosPendientesProvider);
+    final l = ref.watch(appLocalizationsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.cobrosTitle)),
+      appBar: AppBar(title: Text(l.cobrosTitle)),
       body: pendientesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
@@ -35,7 +36,7 @@ class CobrosScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    '¡Todo cobrado!',
+                    l.todoCobrado,
                     style: AppTextStyles.titleMedium.copyWith(
                       color: AppColors.success,
                     ),
@@ -65,7 +66,7 @@ class CobrosScreen extends ConsumerWidget {
                   vertical: 10,
                 ),
                 child: Text(
-                  'Total pendiente: ${CurrencyUtils.formatCompact(totalPendiente)}',
+                  '${l.totalPendiente}: ${CurrencyUtils.formatCompact(totalPendiente)}',
                   style: AppTextStyles.titleSmall.copyWith(
                     color: AppColors.cobroPendiente,
                   ),
@@ -95,6 +96,7 @@ class _CobroTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final color = AppColors.forEstadoCobro(cobro.estado.value);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l = ref.watch(appLocalizationsProvider);
 
     return Slidable(
       endActionPane: ActionPane(
@@ -105,7 +107,7 @@ class _CobroTile extends ConsumerWidget {
             backgroundColor: AppColors.success,
             foregroundColor: Colors.white,
             icon: Icons.check,
-            label: 'Cobrado',
+            label: l.cobrado,
           ),
         ],
       ),

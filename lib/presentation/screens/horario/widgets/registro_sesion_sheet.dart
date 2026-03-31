@@ -86,6 +86,7 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
   Widget build(BuildContext context) {
     final evento = widget.evento;
     final color = evento.color;
+    final l = ref.watch(appLocalizationsProvider);
 
     return Padding(
       padding: EdgeInsets.only(
@@ -139,8 +140,8 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
           ),
           const SizedBox(height: 20),
 
-          if (_step == 0) _buildStepConfirmar(context, evento),
-          if (_step == 1) _buildStepImporte(context),
+          if (_step == 0) _buildStepConfirmar(context, evento, l),
+          if (_step == 1) _buildStepImporte(context, l),
         ],
       ),
     );
@@ -148,7 +149,7 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
 
   // ── Paso 1: ¿Se realizó la sesión? ───────────────────────────────
 
-  Widget _buildStepConfirmar(BuildContext context, EventoCalendario evento) {
+  Widget _buildStepConfirmar(BuildContext context, EventoCalendario evento, l) {
     final yaRegistrada = evento.estaConfirmada;
     final yaCancel = evento.esCancelada;
 
@@ -158,10 +159,9 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
           : AppColors.cobroCobrado.withValues(alpha: 0.12);
       final fgColor = yaCancel ? AppColors.error : AppColors.cobroCobrado;
       final icono = yaCancel ? Icons.cancel_outlined : Icons.check_circle;
-      final titulo = yaCancel ? 'Sesión cancelada' : 'Sesión realizada';
-      final subtitulo = yaCancel
-          ? 'Esta sesión fue marcada como no realizada.'
-          : 'Esta sesión ya está registrada como realizada.';
+      final titulo = yaCancel ? l.sesionCancelada : l.sesionRealizada;
+      final subtitulo =
+          yaCancel ? l.sesionCanceladaDesc : l.sesionRealizadaDesc;
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -200,7 +200,7 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
           const SizedBox(height: 16),
           OutlinedButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cerrar'),
+            child: Text(l.cerrar),
           ),
           const SizedBox(height: 8),
         ],
@@ -210,7 +210,7 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('¿Qué ocurrió con esta sesión?', style: AppTextStyles.labelMedium),
+        Text(l.queOcurrioSesion, style: AppTextStyles.labelMedium),
         const SizedBox(height: 12),
         FilledButton.icon(
           onPressed: () {
@@ -221,7 +221,7 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
             }
           },
           icon: const Icon(Icons.check),
-          label: const Text('Se realizó'),
+          label: Text(l.seRealizo),
           style: FilledButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 14),
           ),
@@ -230,7 +230,7 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
         OutlinedButton.icon(
           onPressed: _loading ? null : _marcarCancelada,
           icon: const Icon(Icons.cancel_outlined),
-          label: const Text('No se dio — marcar cancelada'),
+          label: Text(l.noSeDioMarcarCancelada),
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 14),
             foregroundColor: AppColors.error,
@@ -244,35 +244,35 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
 
   // ── Paso 2: Importe + cobro ───────────────────────────────────────
 
-  Widget _buildStepImporte(BuildContext context) {
+  Widget _buildStepImporte(BuildContext context, l) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text('Importe de la sesión', style: AppTextStyles.labelMedium),
+        Text(l.importeSesion, style: AppTextStyles.labelMedium),
         const SizedBox(height: 12),
         TextField(
           controller: _importeCtrl,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(
-            labelText: 'Importe (€)',
-            prefixIcon: Icon(Icons.euro_rounded),
+          decoration: InputDecoration(
+            labelText: l.importeEuro,
+            prefixIcon: const Icon(Icons.euro_rounded),
           ),
           autofocus: true,
         ),
         const SizedBox(height: 16),
-        Text('¿Cuándo cobras?', style: AppTextStyles.labelMedium),
+        Text(l.cuandoCobras, style: AppTextStyles.labelMedium),
         const SizedBox(height: 8),
         SegmentedButton<bool>(
-          segments: const [
+          segments: [
             ButtonSegment(
               value: false,
-              label: Text('Pendiente'),
-              icon: Icon(Icons.schedule_outlined),
+              label: Text(l.pendiente),
+              icon: const Icon(Icons.schedule_outlined),
             ),
             ButtonSegment(
               value: true,
-              label: Text('Cobré ahora'),
-              icon: Icon(Icons.payments_outlined),
+              label: Text(l.cobreAhora),
+              icon: const Icon(Icons.payments_outlined),
             ),
           ],
           selected: {_cobradoAhora},
@@ -291,7 +291,7 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
                   ),
                 )
               : const Icon(Icons.check),
-          label: const Text('Confirmar sesión'),
+          label: Text(l.confirmarSesion),
           style: FilledButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 14),
           ),
@@ -307,8 +307,9 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
     final importeText = _importeCtrl.text.trim();
     final importe = double.tryParse(importeText) ?? 0.0;
     if (importe <= 0) {
+      final l = ref.read(appLocalizationsProvider);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Introduce un importe válido')),
+        SnackBar(content: Text(l.introduceImporteValido)),
       );
       return;
     }
@@ -345,12 +346,13 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
 
     if (mounted) {
       Navigator.of(context).pop();
+      final l = ref.read(appLocalizationsProvider);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
             _cobradoAhora
-                ? 'Sesión confirmada y cobrada ${CurrencyUtils.formatCompact(importe)}'
-                : 'Sesión confirmada — cobro pendiente',
+                ? '${l.sesionConfirmadaCobrada} ${CurrencyUtils.formatCompact(importe)}'
+                : l.sesionConfirmadaPendiente,
           ),
         ),
       );
@@ -389,10 +391,11 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
 
     if (mounted) {
       Navigator.of(context).pop();
+      final l = ref.read(appLocalizationsProvider);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Sesión registrada — ${evento.duracionHoras.toStringAsFixed(1)} h añadidas',
+            '${l.sesionRegistradaHoras} (${evento.duracionHoras.toStringAsFixed(1)}h)',
           ),
         ),
       );
@@ -419,8 +422,9 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
 
     if (mounted) {
       Navigator.of(context).pop();
+      final l = ref.read(appLocalizationsProvider);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sesión marcada como cancelada')),
+        SnackBar(content: Text(l.sesionMarcadaCancelada)),
       );
     }
   }

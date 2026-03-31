@@ -154,6 +154,20 @@ class AppDatabase extends _$AppDatabase {
       (select(sesionesRealizadasTable)..where((t) => t.fecha.equals(fecha)))
           .watch();
 
+  Stream<List<SesionesRealizadasTableData>>
+      watchSesionesRealizadasByFuenteAndMes(
+    String fuenteId,
+    String periodoMes,
+  ) =>
+          (select(sesionesRealizadasTable)
+                ..where(
+                  (t) =>
+                      t.fuenteId.equals(fuenteId) &
+                      t.fecha.like('$periodoMes%') &
+                      t.estado.equals('confirmada'),
+                ))
+              .watch();
+
   Future<String> upsertSesionRealizada(
     SesionesRealizadasTableCompanion sesion,
   ) =>

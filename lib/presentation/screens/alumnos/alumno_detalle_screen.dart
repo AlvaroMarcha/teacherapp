@@ -9,6 +9,7 @@ import '../../providers/alumnos_provider.dart';
 import '../../providers/sesiones_provider.dart';
 import '../../providers/fuentes_provider.dart';
 import '../../providers/database_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../../core/extensions/datetime_extension.dart';
 import '../../../domain/models/alumno.dart';
 import '../../../domain/models/sesion_realizada.dart';
@@ -23,6 +24,7 @@ class AlumnoDetalleScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = ref.watch(appLocalizationsProvider);
     final alumnoAsync = ref.watch(alumnoByIdProvider(alumnoId));
     final periodoMes = DateTime.now().periodoMes;
     final sesionesAsync = ref.watch(sesionesRealizadasMesProvider(periodoMes));
@@ -34,7 +36,7 @@ class AlumnoDetalleScreen extends ConsumerWidget {
       data: (alumno) {
         if (alumno == null) {
           return const Scaffold(
-            body: Center(child: Text('Alumno no encontrado')),
+            body: Center(child: Text('')),
           );
         }
         return Scaffold(
@@ -66,7 +68,7 @@ class AlumnoDetalleScreen extends ConsumerWidget {
                             size: 20,
                             color: Theme.of(ctx).colorScheme.onSurface),
                         const SizedBox(width: 12),
-                        const Text('Traspasar'),
+                        Text(l.traspasar),
                       ],
                     ),
                   ),
@@ -79,7 +81,7 @@ class AlumnoDetalleScreen extends ConsumerWidget {
                             size: 20, color: Theme.of(ctx).colorScheme.error),
                         const SizedBox(width: 12),
                         Text(
-                          'Eliminar',
+                          l.eliminar,
                           style:
                               TextStyle(color: Theme.of(ctx).colorScheme.error),
                         ),
@@ -119,11 +121,11 @@ class AlumnoDetalleScreen extends ConsumerWidget {
                               style: AppTextStyles.titleMedium,
                             ),
                             Text(
-                              'Tarifa: ${CurrencyUtils.formatCompact(alumno.tarifaSesion)}/sesión',
+                              '${l.tarifas}: ${CurrencyUtils.formatCompact(alumno.tarifaSesion)}/${l.sesion}',
                               style: AppTextStyles.bodySmall,
                             ),
                             Text(
-                              'Duración: ${alumno.duracionMinutos} min',
+                              '${l.duracion}: ${alumno.duracionMinutos} min',
                               style: AppTextStyles.bodySmall,
                             ),
                           ],
@@ -136,7 +138,7 @@ class AlumnoDetalleScreen extends ConsumerWidget {
               const SizedBox(height: 16),
               // Notas
               if (alumno.notas.isNotEmpty) ...[
-                Text('Notas', style: AppTextStyles.titleSmall),
+                Text(l.notas, style: AppTextStyles.titleSmall),
                 const SizedBox(height: 8),
                 Card(
                   child: Padding(
@@ -147,7 +149,7 @@ class AlumnoDetalleScreen extends ConsumerWidget {
                 const SizedBox(height: 16),
               ],
               // Sesiones del mes
-              Text('Sesiones este mes', style: AppTextStyles.titleSmall),
+              Text(l.sesionesEsteMes, style: AppTextStyles.titleSmall),
               const SizedBox(height: 8),
               sesionesAsync.when(
                 loading: () => const LinearProgressIndicator(),
@@ -160,7 +162,7 @@ class AlumnoDetalleScreen extends ConsumerWidget {
                       child: Padding(
                         padding: const EdgeInsets.all(24),
                         child: Text(
-                          'Sin sesiones este mes',
+                          l.sinSesionesEsteMes,
                           style: AppTextStyles.bodySmall,
                         ),
                       ),
@@ -207,12 +209,13 @@ void _showTraspasoDialog(
   WidgetRef ref,
   Alumno alumno,
 ) {
+  final l = ref.read(appLocalizationsProvider);
   final fuentes = ref.read(fuentesProvider).valueOrNull ?? [];
   final disponibles = fuentes.where((f) => f.id != alumno.fuenteId).toList();
 
   if (disponibles.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('No hay otras fuentes disponibles')),
+      SnackBar(content: Text(l.noHayOtrasFuentes)),
     );
     return;
   }
@@ -223,15 +226,15 @@ void _showTraspasoDialog(
     context: context,
     builder: (ctx) => StatefulBuilder(
       builder: (ctx, setDialogState) => AlertDialog(
-        title: const Text('Traspasar alumno'),
+        title: Text(l.traspasarAlumno),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             DropdownButtonFormField<String>(
               value: seleccionada,
-              decoration: const InputDecoration(
-                labelText: 'Nueva fuente',
+              decoration: InputDecoration(
+                labelText: l.nuevaFuenteLabel,
                 prefixIcon: Icon(Icons.account_balance_wallet_outlined),
               ),
               items: disponibles
@@ -242,7 +245,7 @@ void _showTraspasoDialog(
             ),
             const SizedBox(height: 12),
             Text(
-              'Las sesiones anteriores mantendrán su fuente original.',
+              l.sesionesMantenidas,
               style: AppTextStyles.caption,
             ),
           ],
@@ -250,7 +253,7 @@ void _showTraspasoDialog(
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child: Text(l.cancelar),
           ),
           FilledButton(
             onPressed: () async {
@@ -264,12 +267,12 @@ void _showTraspasoDialog(
                       .nombre;
                   Navigator.pop(ctx);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Alumno traspasado a $nombre')),
+                    SnackBar(content: Text('${l.alumnoTraspasado} → $nombre')),
                   );
                 }
               }
             },
-            child: const Text('Traspasar'),
+            child: Text(l.traspasar),
           ),
         ],
       ),
@@ -282,17 +285,16 @@ void _showEliminarDialog(
   WidgetRef ref,
   Alumno alumno,
 ) {
+  final l = ref.read(appLocalizationsProvider);
   showDialog<void>(
     context: context,
     builder: (ctx) => AlertDialog(
-      title: const Text('Eliminar alumno'),
-      content: const Text(
-        '¿Eliminar este alumno? Las sesiones registradas se mantendrán.',
-      ),
+      title: Text(l.eliminarAlumno),
+      content: Text(l.confirmarEliminarAlumno),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx),
-          child: const Text('Cancelar'),
+          child: Text(l.cancelar),
         ),
         FilledButton(
           style: FilledButton.styleFrom(
@@ -306,7 +308,7 @@ void _showEliminarDialog(
               context.go(AppRoutes.alumnos);
             }
           },
-          child: const Text('Eliminar'),
+          child: Text(l.eliminar),
         ),
       ],
     ),

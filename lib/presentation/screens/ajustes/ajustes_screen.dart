@@ -13,47 +13,48 @@ class AjustesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
     final appLocale = ref.watch(localeProvider);
+    final l = ref.watch(appLocalizationsProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Ajustes')),
+      appBar: AppBar(title: Text(l.ajustesTitle)),
       body: ListView(
         children: [
           _Section(
-            title: 'Mi cuenta',
+            title: l.miCuenta,
             items: [
               _Item(
                 icon: Icons.person_outline,
-                label: 'Mi perfil',
-                subtitle: 'Nombre y datos personales',
+                label: l.miPerfil,
+                subtitle: l.nombreDatosPersonales,
                 onTap: () => context.push(AppRoutes.perfil),
               ),
             ],
           ),
           _Section(
-            title: 'Apariencia',
+            title: l.apariencia,
             items: const [],
             customContent: Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Tema', style: AppTextStyles.bodyMedium),
+                  Text(l.tema, style: AppTextStyles.bodyMedium),
                   const SizedBox(height: 12),
                   SegmentedButton<AppThemeMode>(
-                    segments: const [
+                    segments: [
                       ButtonSegment(
                         value: AppThemeMode.system,
-                        icon: Icon(Icons.brightness_auto_outlined),
-                        label: Text('Sistema'),
+                        icon: const Icon(Icons.brightness_auto_outlined),
+                        label: Text(l.sistema),
                       ),
                       ButtonSegment(
                         value: AppThemeMode.light,
-                        icon: Icon(Icons.light_mode_outlined),
-                        label: Text('Claro'),
+                        icon: const Icon(Icons.light_mode_outlined),
+                        label: Text(l.claro),
                       ),
                       ButtonSegment(
                         value: AppThemeMode.dark,
-                        icon: Icon(Icons.dark_mode_outlined),
-                        label: Text('Oscuro'),
+                        icon: const Icon(Icons.dark_mode_outlined),
+                        label: Text(l.oscuro),
                       ),
                     ],
                     selected: {themeMode},
@@ -72,14 +73,14 @@ class AjustesScreen extends ConsumerWidget {
             ),
           ),
           _Section(
-            title: 'Idioma',
+            title: l.idioma,
             items: const [],
             customContent: Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Idioma de la app', style: AppTextStyles.bodyMedium),
+                  Text(l.idiomaApp, style: AppTextStyles.bodyMedium),
                   const SizedBox(height: 12),
                   SegmentedButton<AppLocale>(
                     segments: const [
@@ -117,23 +118,23 @@ class AjustesScreen extends ConsumerWidget {
             ),
           ),
           _Section(
-            title: 'Tarifas y condiciones',
+            title: l.tarifasCondiciones,
             items: [
               _Item(
                 icon: Icons.euro_outlined,
-                label: 'Tarifas',
-                subtitle: 'Tarifa global y por fuente',
+                label: l.tarifas,
+                subtitle: l.tarifaGlobalPorFuente,
                 onTap: () => context.push(AppRoutes.tarifas),
               ),
             ],
           ),
           _Section(
-            title: 'Datos',
+            title: l.datos,
             items: [
               _Item(
                 icon: Icons.cloud_upload_outlined,
-                label: 'Sincronización',
-                subtitle: 'Próximamente — backup en la nube',
+                label: l.sincronizacion,
+                subtitle: l.proximamenteBackup,
                 enabled: false,
                 onTap: () {},
               ),
@@ -143,7 +144,7 @@ class AjustesScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
-              'Teacher Finance v1.0.0\nOffline-first — tus datos siempre contigo',
+              l.versionInfo,
               style: AppTextStyles.bodySmall,
               textAlign: TextAlign.center,
             ),

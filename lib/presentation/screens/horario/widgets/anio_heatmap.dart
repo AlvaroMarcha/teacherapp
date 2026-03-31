@@ -4,6 +4,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../providers/sesiones_provider.dart';
+import '../../../providers/theme_provider.dart';
 
 /// Vista anual: mapa de calor de densidad de sesiones (estilo GitHub contributions).
 ///
@@ -24,6 +25,7 @@ class AnioHeatmap extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final recurrentesAsync = ref.watch(sesionesRecurrentesProvider);
     final recurrentes = recurrentesAsync.valueOrNull ?? [];
+    final l = ref.watch(appLocalizationsProvider);
 
     // Construir mapa día → número de sesiones recurrentes esperadas
     final Map<String, int> densidad = {};
@@ -50,7 +52,7 @@ class AnioHeatmap extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
           child: Text(
-            'Actividad $anio',
+            '${l.actividad} $anio',
             style: AppTextStyles.titleSmall,
           ),
         ),
@@ -73,7 +75,7 @@ class AnioHeatmap extends ConsumerWidget {
   }
 }
 
-class _HeatmapGrid extends StatelessWidget {
+class _HeatmapGrid extends ConsumerWidget {
   const _HeatmapGrid({
     required this.anio,
     required this.densidad,
@@ -87,7 +89,8 @@ class _HeatmapGrid extends StatelessWidget {
   final double spacing;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = ref.watch(appLocalizationsProvider);
     final inicio = DateTime(anio, 1, 1);
     final fin = DateTime(anio, 12, 31);
     // Días en la semana del inicio (lunes=0)
@@ -119,7 +122,7 @@ class _HeatmapGrid extends StatelessWidget {
                 padding: EdgeInsets.only(bottom: spacing),
                 child: Tooltip(
                   message:
-                      '${AppDateUtils.formatShortDate(dia)}: $count sesión${count != 1 ? 'es' : ''}',
+                      '${AppDateUtils.formatShortDate(dia)}: $count ${count != 1 ? l.sesiones : l.sesion}',
                   child: Container(
                     width: cellSize,
                     height: cellSize,
@@ -146,12 +149,13 @@ class _HeatmapGrid extends StatelessWidget {
   }
 }
 
-class _Legend extends StatelessWidget {
+class _Legend extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = ref.watch(appLocalizationsProvider);
     return Row(
       children: [
-        Text('Menos', style: AppTextStyles.caption),
+        Text(l.menos, style: AppTextStyles.caption),
         const SizedBox(width: 4),
         ...[0, 1, 2, 3, 4].map((count) {
           final color = count == 0
@@ -168,7 +172,7 @@ class _Legend extends StatelessWidget {
           );
         }),
         const SizedBox(width: 4),
-        Text('Más', style: AppTextStyles.caption),
+        Text(l.mas, style: AppTextStyles.caption),
       ],
     );
   }

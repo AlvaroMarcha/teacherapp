@@ -5,6 +5,7 @@ import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/utils/currency_utils.dart';
 import '../../../providers/fuentes_provider.dart';
 import '../../../../domain/models/fuente.dart';
+import '../../../providers/theme_provider.dart';
 
 /// Tab de empleo fijo (Around): muestra salario base + horas + tarifa extra.
 class EmpleoTab extends ConsumerWidget {
@@ -13,6 +14,7 @@ class EmpleoTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final fuentesAsync = ref.watch(fuentesProvider);
+    final l = ref.watch(appLocalizationsProvider);
 
     return fuentesAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -20,8 +22,8 @@ class EmpleoTab extends ConsumerWidget {
       data: (fuentes) {
         final empleo = fuentes.where((f) => f.tipo.value == 'empleo').toList();
         if (empleo.isEmpty) {
-          return const Center(
-            child: Text('No hay fuente de empleo configurada'),
+          return Center(
+            child: Text(l.noEmpleoConfigurada),
           );
         }
         final fuente = empleo.first;
@@ -38,13 +40,13 @@ class EmpleoTab extends ConsumerWidget {
                   error: (e, _) => Text('Error: $e'),
                   data: (config) {
                     if (config == null) {
-                      return const Text('Sin configuración de empleo');
+                      return Text(l.sinConfiguracionEmpleo);
                     }
                     return Column(
                       children: [
                         _InfoTile(
                           icon: Icons.euro_rounded,
-                          label: 'Salario base',
+                          label: l.salarioBase,
                           value: CurrencyUtils.formatCompact(
                             config.salarioBase,
                           ),
@@ -52,21 +54,21 @@ class EmpleoTab extends ConsumerWidget {
                         ),
                         _InfoTile(
                           icon: Icons.access_time_rounded,
-                          label: 'Horas/semana contratadas',
+                          label: l.horasSemanalesContratadas,
                           value: '${config.horasSemanales.toStringAsFixed(0)}h',
                           color: AppColors.around,
                         ),
                         _InfoTile(
                           icon: Icons.add_circle_outline_rounded,
-                          label: 'Tarifa hora extra',
+                          label: l.tarifaHoraExtra,
                           value:
                               '${CurrencyUtils.formatCompact(config.tarifaHoraExtra)}/h',
                           color: AppColors.around,
                         ),
                         _InfoTile(
                           icon: Icons.calendar_today_rounded,
-                          label: 'Día de cobro',
-                          value: 'Día ${config.diaCobro} de cada mes',
+                          label: l.diaCobro,
+                          value: '${l.dia} ${config.diaCobro} ${l.deCadaMes}',
                           color: AppColors.around,
                         ),
                       ],

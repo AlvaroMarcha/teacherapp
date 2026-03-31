@@ -5,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../domain/models/evento_calendario.dart';
 import '../../../providers/sesiones_provider.dart';
+import '../../../providers/theme_provider.dart';
 import 'dia_list.dart';
 
 /// Vista de calendario en formato mes con marcadores multicolor por tipo de evento.
@@ -31,6 +32,8 @@ class MesCalendar extends ConsumerStatefulWidget {
 class _MesCalendarState extends ConsumerState<MesCalendar> {
   @override
   Widget build(BuildContext context) {
+    final locale = ref.watch(localeProvider);
+    final l = ref.watch(appLocalizationsProvider);
     return Column(
       children: [
         TableCalendar<EventoCalendario>(
@@ -39,7 +42,7 @@ class _MesCalendarState extends ConsumerState<MesCalendar> {
           focusedDay: widget.focusedDay,
           selectedDayPredicate: (day) => isSameDay(widget.selectedDay, day),
           calendarFormat: CalendarFormat.month,
-          availableCalendarFormats: const {CalendarFormat.month: 'Mes'},
+          availableCalendarFormats: {CalendarFormat.month: l.mes},
           onDaySelected: widget.onDaySelected,
           onPageChanged: widget.onPageChanged,
           eventLoader: (day) {
@@ -82,7 +85,7 @@ class _MesCalendarState extends ConsumerState<MesCalendar> {
             leftChevronIcon: const Icon(Icons.chevron_left),
             rightChevronIcon: const Icon(Icons.chevron_right),
           ),
-          locale: 'es_ES',
+          locale: locale.locale.toString(),
         ),
         const Divider(height: 1),
         Expanded(

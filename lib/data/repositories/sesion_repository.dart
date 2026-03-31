@@ -93,6 +93,14 @@ class SesionRepository {
           .watchSesionesRealizadasByFecha(fecha)
           .map((rows) => rows.map(_mapRealizada).toList());
 
+  Stream<List<SesionRealizada>> watchSesionesRealizadasByFuenteAndMes(
+    String fuenteId,
+    String periodoMes,
+  ) =>
+      _db
+          .watchSesionesRealizadasByFuenteAndMes(fuenteId, periodoMes)
+          .map((rows) => rows.map(_mapRealizada).toList());
+
   Future<String> saveSesionRealizada(SesionRealizada sesion) {
     final id = sesion.id.isEmpty ? _uuid.v4() : sesion.id;
     return _db.upsertSesionRealizada(

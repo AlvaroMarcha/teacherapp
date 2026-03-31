@@ -4,6 +4,7 @@ import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../../domain/models/evento_calendario.dart';
 import '../../../providers/sesiones_provider.dart';
+import '../../../providers/theme_provider.dart';
 import 'evento_bloque.dart';
 
 /// Lista cronológica de eventos de un día concreto.
@@ -21,6 +22,7 @@ class DiaList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final eventosAsync = ref.watch(eventosDelDiaProvider(dia));
+    final l = ref.watch(appLocalizationsProvider);
 
     return eventosAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -38,7 +40,7 @@ class DiaList extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Sin clases este día',
+                  l.sinClasesEsteDia,
                   style: AppTextStyles.bodyMedium.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),

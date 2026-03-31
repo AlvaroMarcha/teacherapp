@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/l10n/app_localizations.dart';
+
 const _kThemeModeKey = 'theme_mode';
 
 /// Modos de tema disponibles en la app.
@@ -103,3 +105,10 @@ class LocaleNotifier extends StateNotifier<AppLocale> {
 final localeProvider = StateNotifierProvider<LocaleNotifier, AppLocale>(
   (ref) => LocaleNotifier(),
 );
+
+// ── Traducciones según idioma activo ─────────────────────────────────────────
+
+final appLocalizationsProvider = Provider<AppLocalizations>((ref) {
+  final locale = ref.watch(localeProvider);
+  return AppLocalizations.of(locale);
+});

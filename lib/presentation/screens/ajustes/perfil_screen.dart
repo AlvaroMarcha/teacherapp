@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../providers/theme_provider.dart';
 
 /// Pantalla de perfil del usuario (nombre, moneda preferida).
 /// Los datos se persisten en shared_preferences (Sprint 2).
@@ -24,13 +25,14 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = ref.watch(appLocalizationsProvider);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mi perfil'),
+        title: Text(l.miPerfil),
         actions: [
           TextButton(
             onPressed: _guardando ? null : _guardar,
-            child: const Text('Guardar'),
+            child: Text(l.guardar),
           ),
         ],
       ),
@@ -58,23 +60,23 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
             ),
           ),
           const SizedBox(height: 24),
-          Text('Nombre', style: AppTextStyles.labelMedium),
+          Text(l.nombre, style: AppTextStyles.labelMedium),
           const SizedBox(height: 8),
           TextField(
             controller: _nombreCtrl,
             textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(
-              hintText: 'Tu nombre',
+            decoration: InputDecoration(
+              hintText: l.tuNombre,
             ),
           ),
           const SizedBox(height: 24),
-          Text('Preferencias', style: AppTextStyles.titleSmall),
+          Text(l.preferencias, style: AppTextStyles.titleSmall),
           const SizedBox(height: 8),
           ListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Moneda'),
+            title: Text(l.moneda),
             trailing: const Text('EUR €'),
-            subtitle: const Text('Más opciones próximamente'),
+            subtitle: Text(l.masOpcionesProximamente),
           ),
           const SizedBox(height: 32),
           if (_guardando) const LinearProgressIndicator(),
@@ -89,8 +91,9 @@ class _PerfilScreenState extends ConsumerState<PerfilScreen> {
     await Future.delayed(const Duration(milliseconds: 300));
     setState(() => _guardando = false);
     if (mounted) {
+      final l = ref.read(appLocalizationsProvider);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Perfil actualizado')),
+        SnackBar(content: Text(l.perfilActualizado)),
       );
     }
   }

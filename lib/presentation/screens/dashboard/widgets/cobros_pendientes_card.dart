@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/currency_utils.dart';
+import '../../../providers/theme_provider.dart';
 
-class CobrosPendientesCard extends StatelessWidget {
+class CobrosPendientesCard extends ConsumerWidget {
   const CobrosPendientesCard({
     super.key,
     required this.pendientes,
@@ -16,7 +18,8 @@ class CobrosPendientesCard extends StatelessWidget {
   final double totalPendiente;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l = ref.watch(appLocalizationsProvider);
     return Card(
       margin: const EdgeInsets.fromLTRB(16, 6, 16, 6),
       child: ListTile(
@@ -39,11 +42,11 @@ class CobrosPendientesCard extends StatelessWidget {
                 : Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
-        title: Text('Cobros pendientes', style: AppTextStyles.titleSmall),
+        title: Text(l.cobrosPendientes, style: AppTextStyles.titleSmall),
         subtitle: Text(
           pendientes == 0
-              ? 'Todo al día'
-              : '$pendientes cobro${pendientes != 1 ? 's' : ''} · ${CurrencyUtils.formatCompact(totalPendiente)}',
+              ? l.todoAlDia
+              : '$pendientes ${l.cobro}${pendientes != 1 ? 's' : ''} · ${CurrencyUtils.formatCompact(totalPendiente)}',
           style: AppTextStyles.bodySmall,
         ),
         trailing: Icon(

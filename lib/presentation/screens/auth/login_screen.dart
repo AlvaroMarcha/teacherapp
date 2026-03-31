@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/auth_service.dart';
+import '../../providers/theme_provider.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _userCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
@@ -62,7 +63,8 @@ class _LoginScreenState extends State<LoginScreen> {
         if (ok) {
           authNotifier.value = true;
         } else {
-          setState(() => _error = 'Usuario o contraseña incorrectos');
+          setState(() => _error =
+              ref.read(appLocalizationsProvider).credencialesIncorrectas);
         }
       }
     } finally {
@@ -71,22 +73,20 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _showRecovery() async {
+    final l = ref.read(appLocalizationsProvider);
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Acceder a credenciales'),
-        content: const Text(
-          'Se mostrarán tus credenciales guardadas. '
-          '¿Continuar?',
-        ),
+        title: Text(l.accederCredenciales),
+        content: Text(l.mostrarCredenciales),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+            child: Text(l.cancelar),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Ver'),
+            child: Text(l.ver),
           ),
         ],
       ),
@@ -98,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (creds.username == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No hay credenciales guardadas aún')),
+        SnackBar(content: Text(l.noHayCredenciales)),
       );
       return;
     }
@@ -115,6 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final l = ref.watch(appLocalizationsProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -142,14 +143,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'Teacher Finance',
+                    l.appName,
                     style: AppTextStyles.titleLarge,
                   ),
                   const SizedBox(height: 6),
                   Text(
                     _isFirstSetup
-                        ? 'Crea tus credenciales de acceso'
-                        : 'Accede a tu cuenta',
+                        ? l.loginSubtitleCreate
+                        : l.loginSubtitleAccess,
                     style: AppTextStyles.bodySmall,
                   ),
                   const SizedBox(height: 32),
@@ -157,15 +158,15 @@ class _LoginScreenState extends State<LoginScreen> {
                   // ── Usuario ──────────────────────────────────
                   TextFormField(
                     controller: _userCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Usuario',
-                      prefixIcon: Icon(Icons.person_outline),
+                    decoration: InputDecoration(
+                      labelText: l.usuario,
+                      prefixIcon: const Icon(Icons.person_outline),
                     ),
                     keyboardType: TextInputType.text,
                     textInputAction: TextInputAction.next,
                     autocorrect: false,
                     validator: (v) =>
-                        v == null || v.trim().isEmpty ? 'Requerido' : null,
+                        v == null || v.trim().isEmpty ? l.requerido : null,
                   ),
                   const SizedBox(height: 16),
 
@@ -173,7 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   TextFormField(
                     controller: _passCtrl,
                     decoration: InputDecoration(
-                      labelText: 'Contraseña',
+                      labelText: l.contrasena,
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
@@ -189,9 +190,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     textInputAction: TextInputAction.done,
                     onFieldSubmitted: (_) => _submit(),
                     validator: (v) {
-                      if (v == null || v.isEmpty) return 'Requerido';
+                      if (v == null || v.isEmpty) return l.requerido;
                       if (_isFirstSetup && v.length < 4) {
-                        return 'Mínimo 4 caracteres';
+                        return l.minCaracteres;
                       }
                       return null;
                     },
@@ -224,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 color: Colors.white,
                               ),
                             )
-                          : Text(_isFirstSetup ? 'Crear acceso' : 'Entrar'),
+                          : Text(_isFirstSetup ? l.crearAcceso : l.entrar),
                     ),
                   ),
 
@@ -233,7 +234,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 16),
                     TextButton(
                       onPressed: _showRecovery,
-                      child: const Text('¿Olvidaste tu contraseña?'),
+                      child: Text(l.olvidasteContrasena),
                     ),
                   ],
                 ],
@@ -248,7 +249,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
 // ── Dialog de credenciales guardadas ────────────────────────────────────────
 
-class _CredentialsDialog extends StatefulWidget {
+class _CredentialsDialog extends ConsumerStatefulWidget {
   const _CredentialsDialog({
     required this.username,
     required this.password,
@@ -258,24 +259,25 @@ class _CredentialsDialog extends StatefulWidget {
   final String password;
 
   @override
-  State<_CredentialsDialog> createState() => _CredentialsDialogState();
+  ConsumerState<_CredentialsDialog> createState() => _CredentialsDialogState();
 }
 
-class _CredentialsDialogState extends State<_CredentialsDialog> {
+class _CredentialsDialogState extends ConsumerState<_CredentialsDialog> {
   bool _showPassword = false;
 
   @override
   Widget build(BuildContext context) {
+    final l = ref.watch(appLocalizationsProvider);
     return AlertDialog(
-      title: const Text('Tus credenciales'),
+      title: Text(l.tusCredenciales),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _CredentialRow(label: 'Usuario', value: widget.username, mask: false),
+          _CredentialRow(label: l.usuario, value: widget.username, mask: false),
           const SizedBox(height: 12),
           _CredentialRow(
-            label: 'Contraseña',
+            label: l.contrasena,
             value: widget.password,
             mask: !_showPassword,
           ),
@@ -287,7 +289,8 @@ class _CredentialsDialogState extends State<_CredentialsDialog> {
                   : Icons.visibility_outlined,
               size: 18,
             ),
-            label: Text(_showPassword ? 'Ocultar' : 'Mostrar contraseña'),
+            label:
+                Text(_showPassword ? l.ocultarContrasena : l.mostrarContrasena),
             onPressed: () => setState(() => _showPassword = !_showPassword),
           ),
         ],
@@ -295,7 +298,7 @@ class _CredentialsDialogState extends State<_CredentialsDialog> {
       actions: [
         FilledButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cerrar'),
+          child: Text(l.cerrar),
         ),
       ],
     );

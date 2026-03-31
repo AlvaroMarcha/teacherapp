@@ -7,6 +7,7 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/utils/currency_utils.dart';
 import '../../providers/dashboard_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../../domain/models/fuente.dart';
 import 'widgets/resumen_mes_card.dart';
 import 'widgets/cobros_pendientes_card.dart';
@@ -17,15 +18,18 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = ref.watch(appLocalizationsProvider);
+    final locale = ref.watch(localeProvider);
     final dashAsync = ref.watch(dashboardProvider);
-    final mesActual = DateFormat('MMMM yyyy', 'es_ES').format(DateTime.now());
+    final mesActual = DateFormat('MMMM yyyy', locale.locale.toString())
+        .format(DateTime.now());
 
     return Scaffold(
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Inicio'),
+            Text(l.dashboardTitle),
             Text(
               mesActual,
               style: AppTextStyles.caption.copyWith(
@@ -66,7 +70,7 @@ class DashboardScreen extends ConsumerWidget {
               if (data.fuentesResumen.isNotEmpty) ...[
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                  child: Text('Por fuente', style: AppTextStyles.titleSmall),
+                  child: Text(l.porFuente, style: AppTextStyles.titleSmall),
                 ),
                 ...data.fuentesResumen.values.map(
                   (resumen) => _FuenteResumenTile(resumen: resumen),
@@ -80,7 +84,7 @@ class DashboardScreen extends ConsumerWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push(AppRoutes.registroSesion),
         icon: const Icon(Icons.add),
-        label: const Text('Registrar sesión'),
+        label: Text(l.registrarSesion),
       ),
     );
   }

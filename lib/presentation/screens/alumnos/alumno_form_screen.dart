@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
-import '../../../core/constants/app_strings.dart';
 import '../../../core/router/app_router.dart';
 import '../../providers/fuentes_provider.dart';
 import '../../providers/database_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../../domain/models/alumno.dart';
 import '../../../domain/models/fuente.dart';
 
@@ -59,12 +59,13 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = ref.watch(appLocalizationsProvider);
     final fuentesAsync = ref.watch(fuentesProvider);
     final esEdicion = widget.alumnoId != null;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(esEdicion ? 'Editar alumno' : AppStrings.alumnoNuevo),
+        title: Text(esEdicion ? l.editarAlumno : l.nuevoAlumno),
         actions: [
           if (esEdicion)
             IconButton(
@@ -84,20 +85,20 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
             children: [
               TextFormField(
                 controller: _nombreCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre del alumno',
-                  prefixIcon: Icon(Icons.person_outline),
+                decoration: InputDecoration(
+                  labelText: l.nombreAlumno,
+                  prefixIcon: const Icon(Icons.person_outline),
                 ),
                 validator: (v) =>
-                    v == null || v.trim().isEmpty ? 'Nombre requerido' : null,
+                    v == null || v.trim().isEmpty ? l.nombreRequerido : null,
                 textCapitalization: TextCapitalization.words,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
                 value: _fuenteIdSeleccionada,
-                decoration: const InputDecoration(
-                  labelText: 'Fuente de ingreso',
-                  prefixIcon: Icon(Icons.account_balance_wallet_outlined),
+                decoration: InputDecoration(
+                  labelText: l.fuenteIngreso,
+                  prefixIcon: const Icon(Icons.account_balance_wallet_outlined),
                 ),
                 items: fuentes
                     .map(
@@ -109,30 +110,30 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
                   setState(() => _fuenteIdSeleccionada = v);
                   if (v != null) _autoFillTarifaEmpleo(v, fuentes);
                 },
-                validator: (v) => v == null ? 'Selecciona una fuente' : null,
+                validator: (v) => v == null ? l.seleccionaFuente : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _tarifaCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Tarifa por hora (€/h)',
-                  prefixIcon: Icon(Icons.euro_rounded),
+                decoration: InputDecoration(
+                  labelText: l.tarifaPorHora,
+                  prefixIcon: const Icon(Icons.euro_rounded),
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
                 validator: (v) {
-                  if (v == null || v.isEmpty) return 'Tarifa requerida';
-                  if (double.tryParse(v) == null) return 'Número inválido';
+                  if (v == null || v.isEmpty) return l.tarifaRequerida;
+                  if (double.tryParse(v) == null) return l.numeroInvalido;
                   return null;
                 },
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<int>(
                 value: _duracionMinutos,
-                decoration: const InputDecoration(
-                  labelText: 'Duración por defecto',
-                  prefixIcon: Icon(Icons.timer_outlined),
+                decoration: InputDecoration(
+                  labelText: l.duracionDefecto,
+                  prefixIcon: const Icon(Icons.timer_outlined),
                 ),
                 items: [30, 45, 60, 90, 120]
                     .map(
@@ -146,17 +147,17 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _notasCtrl,
-                decoration: const InputDecoration(
-                  labelText: 'Notas (opcional)',
-                  prefixIcon: Icon(Icons.notes_outlined),
-                  hintText: 'Teléfono, observaciones...',
+                decoration: InputDecoration(
+                  labelText: l.notasOpcional,
+                  prefixIcon: const Icon(Icons.notes_outlined),
+                  hintText: l.telefonoObservaciones,
                 ),
                 maxLines: 3,
               ),
               const SizedBox(height: 32),
               FilledButton(
                 onPressed: _guardar,
-                child: Text(AppStrings.guardar),
+                child: Text(l.guardar),
               ),
             ],
           ),
@@ -195,17 +196,16 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
   }
 
   Future<void> _confirmarEliminar(BuildContext context) async {
+    final l = ref.read(appLocalizationsProvider);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: const Text('Eliminar alumno'),
-        content: const Text(
-          '¿Eliminar este alumno? Las sesiones registradas se mantendrán.',
-        ),
+        title: Text(l.eliminarAlumno),
+        content: Text(l.confirmarEliminarAlumno),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+            child: Text(l.cancelar),
           ),
           FilledButton(
             style: FilledButton.styleFrom(

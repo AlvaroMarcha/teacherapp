@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/utils/currency_utils.dart';
 import '../../../domain/models/fuente.dart';
 import '../../providers/alumnos_provider.dart';
 import '../../providers/fuentes_provider.dart';
+import '../../providers/theme_provider.dart';
 
 class FuentesScreen extends ConsumerStatefulWidget {
   const FuentesScreen({super.key});
@@ -51,14 +51,15 @@ class _FuentesScreenState extends ConsumerState<FuentesScreen>
   @override
   Widget build(BuildContext context) {
     final fuentesAsync = ref.watch(fuentesProvider);
+    final l = ref.watch(appLocalizationsProvider);
 
     return fuentesAsync.when(
       loading: () => Scaffold(
-        appBar: AppBar(title: const Text(AppStrings.fuentesTitle)),
+        appBar: AppBar(title: Text(l.fuentesTitle)),
         body: const Center(child: CircularProgressIndicator()),
       ),
       error: (e, _) => Scaffold(
-        appBar: AppBar(title: const Text(AppStrings.fuentesTitle)),
+        appBar: AppBar(title: Text(l.fuentesTitle)),
         body: Center(child: Text('Error: $e')),
       ),
       data: (fuentes) {
@@ -66,7 +67,7 @@ class _FuentesScreenState extends ConsumerState<FuentesScreen>
 
         if (fuentes.isEmpty) {
           return Scaffold(
-            appBar: AppBar(title: const Text(AppStrings.fuentesTitle)),
+            appBar: AppBar(title: Text(l.fuentesTitle)),
             body: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -78,12 +79,12 @@ class _FuentesScreenState extends ConsumerState<FuentesScreen>
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Sin fuentes de ingreso',
+                    l.sinFuentes,
                     style: AppTextStyles.titleMedium,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Crea una para empezar',
+                    l.creaUnaParaEmpezar,
                     style: AppTextStyles.bodyMedium,
                   ),
                 ],
@@ -98,7 +99,7 @@ class _FuentesScreenState extends ConsumerState<FuentesScreen>
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text(AppStrings.fuentesTitle),
+            title: Text(l.fuentesTitle),
             actions: [
               ListenableBuilder(
                 listenable: _tabController!,
@@ -106,7 +107,7 @@ class _FuentesScreenState extends ConsumerState<FuentesScreen>
                   final idx = _tabController!.index;
                   return IconButton(
                     icon: const Icon(Icons.edit_outlined),
-                    tooltip: 'Editar fuente',
+                    tooltip: l.editarFuente,
                     onPressed: () {
                       final id = fuentes[idx].id;
                       context.push('${AppRoutes.fuenteForm}?id=$id');
@@ -185,39 +186,40 @@ class _EmpleoContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = ref.watch(appLocalizationsProvider);
     final configAsync = ref.watch(empleoConfigProvider(fuente.id));
     return configAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('Error: $e')),
       data: (config) {
         if (config == null) {
-          return const Center(child: Text('Sin configuración de empleo'));
+          return const Center(child: Text(''));
         }
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
             _InfoTile(
               icon: Icons.euro_rounded,
-              label: 'Salario base',
+              label: l.salarioBase,
               value: CurrencyUtils.formatCompact(config.salarioBase),
               color: fuente.flutterColor,
             ),
             _InfoTile(
               icon: Icons.access_time_rounded,
-              label: 'Horas/semana contratadas',
+              label: l.horasSemanalesContratadas,
               value: '${config.horasSemanales.toStringAsFixed(0)}h',
               color: fuente.flutterColor,
             ),
             _InfoTile(
               icon: Icons.add_circle_outline_rounded,
-              label: 'Tarifa hora extra',
+              label: l.tarifaHoraExtra,
               value: '${CurrencyUtils.formatCompact(config.tarifaHoraExtra)}/h',
               color: fuente.flutterColor,
             ),
             _InfoTile(
               icon: Icons.calendar_today_rounded,
-              label: 'Día de cobro',
-              value: 'Día ${config.diaCobro} de cada mes',
+              label: l.diaCobro,
+              value: '${config.diaCobro} ${l.diaCadaMes}',
               color: fuente.flutterColor,
             ),
           ],
@@ -236,6 +238,7 @@ class _AlumnosContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l = ref.watch(appLocalizationsProvider);
     final alumnosAsync = ref.watch(alumnosByFuenteProvider(fuente.id));
     return alumnosAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -251,7 +254,7 @@ class _AlumnosContent extends ConsumerWidget {
                   '${AppRoutes.alumnos}/form?fuenteId=${fuente.id}',
                 ),
                 icon: const Icon(Icons.add, size: 18),
-                label: const Text('Añadir alumno'),
+                label: Text(l.anadirAlumno),
               ),
             ],
           ),
@@ -269,7 +272,7 @@ class _AlumnosContent extends ConsumerWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Sin alumnos en esta fuente',
+                      l.sinAlumnosEnFuente,
                       style: AppTextStyles.bodyMedium,
                     ),
                   ],
