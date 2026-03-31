@@ -7,6 +7,7 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/utils/currency_utils.dart';
 import '../../providers/dashboard_provider.dart';
+import '../../providers/notification_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../../domain/models/fuente.dart';
 import 'widgets/resumen_mes_card.dart';
@@ -22,6 +23,10 @@ class DashboardScreen extends ConsumerWidget {
     final l = ref.watch(appLocalizationsProvider);
     final locale = ref.watch(localeProvider);
     final dashAsync = ref.watch(dashboardProvider);
+
+    // Programar notificaciones de clase del día
+    ref.watch(scheduleNotificationsProvider);
+
     final mesActual = DateFormat('MMMM yyyy', locale.locale.toString())
         .format(DateTime.now());
 

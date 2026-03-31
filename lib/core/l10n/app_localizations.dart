@@ -294,6 +294,13 @@ class AppLocalizations {
 
     // ── Cobro detalle extra ──
     required this.maxLabel,
+
+    // ── Notificaciones ──
+    required this.notificaciones,
+    required this.recordatorioClases,
+    required this.minutosAntes,
+    required this.notificacionesActivadas,
+    required this.notificacionesDesactivadas,
   });
 
   // ── App ──
@@ -585,6 +592,13 @@ class AppLocalizations {
   // ── Cobro detalle extra ──
   final String maxLabel;
 
+  // ── Notificaciones ──
+  final String notificaciones;
+  final String recordatorioClases;
+  final String minutosAntes;
+  final String notificacionesActivadas;
+  final String notificacionesDesactivadas;
+
   // ── Factory ──
   factory AppLocalizations.of(AppLocale locale) => switch (locale) {
         AppLocale.es => _es,
@@ -846,6 +860,11 @@ class AppLocalizations {
     cuandoCobras: '¿Cuándo cobras?',
     olvidasteContrasena: '¿Olvidaste tu contraseña?',
     maxLabel: 'Máx.',
+    notificaciones: 'Notificaciones',
+    recordatorioClases: 'Recordatorio antes de cada clase',
+    minutosAntes: 'min antes',
+    notificacionesActivadas: 'Notificaciones activadas',
+    notificacionesDesactivadas: 'Notificaciones desactivadas',
   );
 
   // ═══════════════════════════════════════════════════════════════════
@@ -1102,6 +1121,11 @@ class AppLocalizations {
     cuandoCobras: 'When do you get paid?',
     olvidasteContrasena: 'Forgot your password?',
     maxLabel: 'Max.',
+    notificaciones: 'Notifications',
+    recordatorioClases: 'Reminder before each class',
+    minutosAntes: 'min before',
+    notificacionesActivadas: 'Notifications enabled',
+    notificacionesDesactivadas: 'Notifications disabled',
   );
 
   // ═══════════════════════════════════════════════════════════════════
@@ -1361,5 +1385,10 @@ class AppLocalizations {
     cuandoCobras: 'Quando incassi?',
     olvidasteContrasena: 'Password dimenticata?',
     maxLabel: 'Max.',
+    notificaciones: 'Notifiche',
+    recordatorioClases: 'Promemoria prima di ogni lezione',
+    minutosAntes: 'min prima',
+    notificacionesActivadas: 'Notifiche attivate',
+    notificacionesDesactivadas: 'Notifiche disattivate',
   );
 }

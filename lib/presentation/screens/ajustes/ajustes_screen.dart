@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/services/notification_service.dart';
+import '../../providers/notification_provider.dart';
 import '../../providers/theme_provider.dart';
 
 /// Hub de navegación hacia las sub-pantallas de ajustes.
@@ -13,6 +15,8 @@ class AjustesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
     final appLocale = ref.watch(localeProvider);
+    final notifEnabled = ref.watch(notifEnabledProvider);
+    final notifMinutes = ref.watch(notifMinutesProvider);
     final l = ref.watch(appLocalizationsProvider);
     return Scaffold(
       appBar: AppBar(title: Text(l.ajustesTitle)),
@@ -113,6 +117,65 @@ class AjustesScreen extends ConsumerWidget {
                     appLocale.label,
                     style: AppTextStyles.bodySmall,
                   ),
+                ],
+              ),
+            ),
+          ),
+          _Section(
+            title: l.notificaciones,
+            items: const [],
+            customContent: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SwitchListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(l.recordatorioClases,
+                        style: AppTextStyles.bodyMedium),
+                    value: notifEnabled,
+                    onChanged: (val) async {
+                      if (val) {
+                        final granted = await NotificationService.instance
+                            .requestPermission();
+                        if (!granted) return;
+                      }
+                      ref.read(notifEnabledProvider.notifier).set(val);
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(val
+                                ? l.notificacionesActivadas
+                                : l.notificacionesDesactivadas),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  if (notifEnabled) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Text(l.minutosAntes, style: AppTextStyles.bodyMedium),
+                        const Spacer(),
+                        DropdownButton<int>(
+                          value: notifMinutes,
+                          underline: const SizedBox.shrink(),
+                          items: const [5, 10, 15, 20, 30, 45, 60]
+                              .map((m) => DropdownMenuItem(
+                                    value: m,
+                                    child: Text('$m min'),
+                                  ))
+                              .toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              ref.read(notifMinutesProvider.notifier).set(val);
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
