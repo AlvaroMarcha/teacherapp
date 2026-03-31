@@ -279,6 +279,7 @@ class AppLocalizations {
     required this.menos,
     required this.mas,
     required this.sinClasesEsteDia,
+    required this.clasesDeHoy,
     required this.sesion,
     required this.sesiones,
     required this.diasAbreviados,
@@ -568,6 +569,7 @@ class AppLocalizations {
   final String menos;
   final String mas;
   final String sinClasesEsteDia;
+  final String clasesDeHoy;
   final String sesion;
   final String sesiones;
   final String diasAbreviados;
@@ -835,6 +837,7 @@ class AppLocalizations {
     menos: 'Menos',
     mas: 'Más',
     sinClasesEsteDia: 'Sin clases este día',
+    clasesDeHoy: 'Clases de hoy',
     sesion: 'sesión',
     sesiones: 'sesiones',
     diasAbreviados: 'L,M,X,J,V,S,D',
@@ -1090,6 +1093,7 @@ class AppLocalizations {
     menos: 'Less',
     mas: 'More',
     sinClasesEsteDia: 'No classes this day',
+    clasesDeHoy: 'Today\'s classes',
     sesion: 'session',
     sesiones: 'sessions',
     diasAbreviados: 'M,T,W,T,F,S,S',
@@ -1348,6 +1352,7 @@ class AppLocalizations {
     menos: 'Meno',
     mas: 'Più',
     sinClasesEsteDia: 'Nessuna lezione oggi',
+    clasesDeHoy: 'Lezioni di oggi',
     sesion: 'sessione',
     sesiones: 'sessioni',
     diasAbreviados: 'L,M,M,G,V,S,D',

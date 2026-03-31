@@ -11,6 +11,7 @@ import '../../providers/theme_provider.dart';
 import '../../../domain/models/fuente.dart';
 import 'widgets/resumen_mes_card.dart';
 import 'widgets/cobros_pendientes_card.dart';
+import 'widgets/clases_hoy_card.dart';
 import 'widgets/horas_semana_card.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -53,6 +54,7 @@ class DashboardScreen extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.symmetric(vertical: 8),
             children: [
+              const ClasesHoyCard(),
               ResumenMesCard(data: data),
               CobrosPendientesCard(
                 pendientes: data.cobrosPendientes,

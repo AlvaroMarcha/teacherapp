@@ -12,7 +12,6 @@ import '../../../domain/models/sesion_recurrente.dart';
 import '../../../domain/models/sesion_realizada.dart';
 import '../../../domain/models/cobro.dart';
 import '../../../domain/models/fuente.dart';
-import '../../../domain/models/hora_extra.dart';
 
 /// Pantalla de registro rápido de sesión (flujo de 3 toques).
 ///
@@ -459,8 +458,9 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
     );
     await ref.read(sesionRepositoryProvider).saveSesionRecurrente(recurrente);
 
-    // 2. Crear SesionRealizada solo para sesiones puntuales (ya ocurrió)
-    if (_esPuntual) {
+    // 2. Crear SesionRealizada solo para sesiones puntuales no-empleo (ya ocurrió)
+    //    Las sesiones de empleo se confirman manualmente desde el calendario.
+    if (_esPuntual && !esEmpleo) {
       final sesionId = _uuid.v4();
       final sesion = SesionRealizada(
         id: sesionId,
@@ -474,30 +474,17 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
       );
       await ref.read(sesionRepositoryProvider).saveSesionRealizada(sesion);
 
-      // 3. Flujo de cobro / horas extra según tipo de fuente
-      if (esEmpleo) {
-        final horaExtra = HoraExtra(
-          id: _uuid.v4(),
-          fuenteId: _fuenteId!,
-          fecha: fechaIso,
-          horas: _horas,
-          alumnoId: _alumnoId,
-          notas: 'Auto - registro manual',
-        );
-        await ref.read(horasExtraRepositoryProvider).saveHoraExtra(horaExtra);
-      } else {
-        final cobro = Cobro(
-          id: _uuid.v4(),
-          sesionId: sesionId,
-          alumnoId: _alumnoId,
-          fuenteId: _fuenteId!,
-          modoCobro: ModoCobro.sesion,
-          monto: tarifa,
-          estado: _cobradoAhora ? EstadoCobro.cobrado : EstadoCobro.pendiente,
-          fechaCobro: _cobradoAhora ? fechaIso : null,
-        );
-        await ref.read(cobroRepositoryProvider).saveCobro(cobro);
-      }
+      final cobro = Cobro(
+        id: _uuid.v4(),
+        sesionId: sesionId,
+        alumnoId: _alumnoId,
+        fuenteId: _fuenteId!,
+        modoCobro: ModoCobro.sesion,
+        monto: tarifa,
+        estado: _cobradoAhora ? EstadoCobro.cobrado : EstadoCobro.pendiente,
+        fechaCobro: _cobradoAhora ? fechaIso : null,
+      );
+      await ref.read(cobroRepositoryProvider).saveCobro(cobro);
     }
 
     if (mounted) context.pop();
