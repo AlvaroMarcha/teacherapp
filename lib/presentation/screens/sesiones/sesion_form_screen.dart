@@ -8,6 +8,9 @@ import '../../providers/alumnos_provider.dart';
 import '../../providers/database_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../../domain/models/sesion_recurrente.dart';
+import '../../../domain/models/sesion_realizada.dart';
+import '../../../domain/models/cobro.dart';
+import '../../../domain/models/fuente.dart';
 
 /// Formulario para crear o editar una sesión recurrente.
 /// Se usa al definir el horario semanal (ej: Blanca, lunes y miércoles 17h).
@@ -22,6 +25,7 @@ class SesionFormScreen extends ConsumerStatefulWidget {
 class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
   static const _uuid = Uuid();
   final _formKey = GlobalKey<FormState>();
+  final _importeCtrl = TextEditingController();
   String? _fuenteId;
   String? _alumnoId;
   final List<int> _diasSemana = [];
@@ -29,6 +33,7 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
   double _duracion = 1.0;
   bool _esPuntual = false;
   DateTime? _fechaUnica;
+  bool _cobradoAhora = false;
 
   // Labels de días lunes=1 ... domingo=7
   static const _dias = [
@@ -40,6 +45,12 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
     (6, 'S'),
     (7, 'D'),
   ];
+
+  @override
+  void dispose() {
+    _importeCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -92,158 +103,207 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
           data: (fuentes) => alumnosAsync.when(
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, _) => Center(child: Text('Error: $e')),
-            data: (alumnos) => ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                Text(l.fuenteIngreso, style: AppTextStyles.labelMedium),
-                const SizedBox(height: 8),
-                DropdownButtonFormField<String>(
-                  value: _fuenteId,
-                  decoration: InputDecoration(labelText: l.navFuentes),
-                  items: fuentes
-                      .map((f) =>
-                          DropdownMenuItem(value: f.id, child: Text(f.nombre)))
-                      .toList(),
-                  validator: (v) => v == null ? l.seleccionaFuente : null,
-                  onChanged: (v) => setState(() {
-                    _fuenteId = v;
-                    _alumnoId = null;
-                  }),
-                ),
-                const SizedBox(height: 12),
-                if (_fuenteId != null) ...[
+            data: (alumnos) {
+              final esEmpleo = _fuenteId != null &&
+                  fuentes.any(
+                      (f) => f.id == _fuenteId && f.tipo == FuenteTipo.empleo);
+
+              return ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  Text(l.fuenteIngreso, style: AppTextStyles.labelMedium),
+                  const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    value: _alumnoId,
-                    decoration: InputDecoration(labelText: l.alumnoOpcional),
-                    items: [
-                      DropdownMenuItem(
-                          value: null, child: Text(l.sinAlumnoEspecifico)),
-                      ...alumnos.where((a) => a.fuenteId == _fuenteId).map(
-                          (a) => DropdownMenuItem(
-                              value: a.id, child: Text(a.nombre))),
-                    ],
-                    onChanged: (v) => setState(() => _alumnoId = v),
-                  ),
-                  const SizedBox(height: 12),
-                ],
-                Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Theme.of(context).colorScheme.outline,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: SwitchListTile(
-                    title: Text(l.claseUnica),
-                    subtitle: Text(l.claseUnicaDesc),
-                    value: _esPuntual,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    value: _fuenteId,
+                    decoration: InputDecoration(labelText: l.navFuentes),
+                    items: fuentes
+                        .map((f) => DropdownMenuItem(
+                            value: f.id, child: Text(f.nombre)))
+                        .toList(),
+                    validator: (v) => v == null ? l.seleccionaFuente : null,
                     onChanged: (v) => setState(() {
-                      _esPuntual = v;
-                      if (v) {
-                        _diasSemana.clear();
-                        _fechaUnica ??= DateTime.now();
-                      } else {
-                        _fechaUnica = null;
-                      }
+                      _fuenteId = v;
+                      _alumnoId = null;
                     }),
                   ),
-                ),
-                const SizedBox(height: 12),
-                if (_esPuntual) ...[
+                  const SizedBox(height: 12),
+                  if (_fuenteId != null) ...[
+                    DropdownButtonFormField<String>(
+                      value: _alumnoId,
+                      decoration: InputDecoration(labelText: l.alumnoOpcional),
+                      items: [
+                        DropdownMenuItem(
+                            value: null, child: Text(l.sinAlumnoEspecifico)),
+                        ...alumnos.where((a) => a.fuenteId == _fuenteId).map(
+                            (a) => DropdownMenuItem(
+                                value: a.id, child: Text(a.nombre))),
+                      ],
+                      onChanged: (v) => setState(() => _alumnoId = v),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: SwitchListTile(
+                      title: Text(l.claseUnica),
+                      subtitle: Text(l.claseUnicaDesc),
+                      value: _esPuntual,
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      onChanged: (v) => setState(() {
+                        _esPuntual = v;
+                        if (v) {
+                          _diasSemana.clear();
+                          _fechaUnica ??= DateTime.now();
+                        } else {
+                          _fechaUnica = null;
+                        }
+                      }),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (_esPuntual) ...[
+                    GestureDetector(
+                      onTap: () async {
+                        final d = await showDatePicker(
+                          context: context,
+                          initialDate: _fechaUnica ?? DateTime.now(),
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime(2100),
+                        );
+                        if (d != null) setState(() => _fechaUnica = d);
+                      },
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: l.fecha,
+                          prefixIcon: const Icon(Icons.calendar_today_outlined),
+                          suffixIcon: const Icon(Icons.chevron_right),
+                        ),
+                        child: Text(
+                          _fechaUnica != null
+                              ? AppDateUtils.formatFullDate(_fechaUnica!)
+                              : l.seleccionar,
+                        ),
+                      ),
+                    ),
+                  ] else ...[
+                    Text(l.diasSemana, style: AppTextStyles.labelMedium),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: _dias.map((d) {
+                        final (num, label) = d;
+                        final selected = _diasSemana.contains(num);
+                        return FilterChip(
+                          label: Text(label),
+                          selected: selected,
+                          shape: const StadiumBorder(),
+                          onSelected: (v) => setState(() {
+                            if (v) {
+                              _diasSemana.add(num);
+                            } else {
+                              _diasSemana.remove(num);
+                            }
+                          }),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                  const SizedBox(height: 12),
                   GestureDetector(
                     onTap: () async {
-                      final d = await showDatePicker(
+                      final t = await showTimePicker(
                         context: context,
-                        initialDate: _fechaUnica ?? DateTime.now(),
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime(2100),
+                        initialTime: _horaInicio,
                       );
-                      if (d != null) setState(() => _fechaUnica = d);
+                      if (t != null) setState(() => _horaInicio = t);
                     },
                     child: InputDecorator(
                       decoration: InputDecoration(
-                        labelText: l.fecha,
-                        prefixIcon: const Icon(Icons.calendar_today_outlined),
-                        suffixIcon: const Icon(Icons.chevron_right),
+                        labelText: l.horaInicio,
+                        prefixIcon: const Icon(Icons.schedule_outlined),
                       ),
-                      child: Text(
-                        _fechaUnica != null
-                            ? AppDateUtils.formatFullDate(_fechaUnica!)
-                            : l.seleccionar,
-                      ),
+                      child: Text(_formatTime(_horaInicio)),
                     ),
                   ),
-                ] else ...[
-                  Text(l.diasSemana, style: AppTextStyles.labelMedium),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    children: _dias.map((d) {
-                      final (num, label) = d;
-                      final selected = _diasSemana.contains(num);
-                      return FilterChip(
-                        label: Text(label),
-                        selected: selected,
-                        shape: const StadiumBorder(),
-                        onSelected: (v) => setState(() {
-                          if (v) {
-                            _diasSemana.add(num);
-                          } else {
-                            _diasSemana.remove(num);
-                          }
-                        }),
-                      );
-                    }).toList(),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<double>(
+                    value: _duracion,
+                    decoration: InputDecoration(labelText: l.duracion),
+                    items: [0.5, 0.75, 1.0, 1.5, 2.0]
+                        .map((h) => DropdownMenuItem(
+                              value: h,
+                              child: Text(
+                                h == 0.5
+                                    ? '30 min'
+                                    : h == 0.75
+                                        ? '45 min'
+                                        : h == 1.5
+                                            ? '1h 30min'
+                                            : h == 2.0
+                                                ? '2 horas'
+                                                : '1 hora',
+                              ),
+                            ))
+                        .toList(),
+                    onChanged: (v) {
+                      if (v != null) setState(() => _duracion = v);
+                    },
                   ),
+                  const SizedBox(height: 12),
+
+                  // Campos de importe y cobro para sesiones no-empleo
+                  if (!esEmpleo) ...[
+                    const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _importeCtrl,
+                      decoration: InputDecoration(
+                        labelText: l.importeEuro,
+                        prefixIcon: const Icon(Icons.euro_rounded),
+                      ),
+                      keyboardType:
+                          const TextInputType.numberWithOptions(decimal: true),
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty)
+                          return l.introduceImporte;
+                        if (double.tryParse(v) == null) return l.numeroInvalido;
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    Text(l.cuandoCobras, style: AppTextStyles.titleSmall),
+                    const SizedBox(height: 12),
+                    SegmentedButton<bool>(
+                      segments: [
+                        ButtonSegment(
+                          value: false,
+                          label: Text(l.pendiente),
+                          icon: const Icon(Icons.schedule_outlined),
+                        ),
+                        ButtonSegment(
+                          value: true,
+                          label: Text(l.cobreAhora),
+                          icon: const Icon(Icons.payments_outlined),
+                        ),
+                      ],
+                      selected: {_cobradoAhora},
+                      onSelectionChanged: (s) =>
+                          setState(() => _cobradoAhora = s.first),
+                    ),
+                  ],
                 ],
-                const SizedBox(height: 12),
-                GestureDetector(
-                  onTap: () async {
-                    final t = await showTimePicker(
-                      context: context,
-                      initialTime: _horaInicio,
-                    );
-                    if (t != null) setState(() => _horaInicio = t);
-                  },
-                  child: InputDecorator(
-                    decoration: InputDecoration(
-                      labelText: l.horaInicio,
-                      prefixIcon: const Icon(Icons.schedule_outlined),
-                    ),
-                    child: Text(_formatTime(_horaInicio)),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<double>(
-                  value: _duracion,
-                  decoration: InputDecoration(labelText: l.duracion),
-                  items: [0.5, 0.75, 1.0, 1.5, 2.0]
-                      .map((h) => DropdownMenuItem(
-                            value: h,
-                            child: Text(
-                              h == 0.5
-                                  ? '30 min'
-                                  : h == 0.75
-                                      ? '45 min'
-                                      : h == 1.5
-                                          ? '1h 30min'
-                                          : h == 2.0
-                                              ? '2 horas'
-                                              : '1 hora',
-                            ),
-                          ))
-                      .toList(),
-                  onChanged: (v) {
-                    if (v != null) setState(() => _duracion = v);
-                  },
-                ),
-                const SizedBox(height: 12),
-              ],
-            ),
+              );
+            },
           ),
         ),
       ),
@@ -274,6 +334,11 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
       }
     }
 
+    // Detectar si es fuente empleo
+    final fuentes = ref.read(fuentesProvider).valueOrNull ?? [];
+    final esEmpleo =
+        fuentes.any((f) => f.id == _fuenteId && f.tipo == FuenteTipo.empleo);
+
     String fmt(int h, int m) =>
         '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}';
     final horaInicio = fmt(_horaInicio.hour, _horaInicio.minute);
@@ -290,8 +355,9 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
         ? [_fechaUnica!.weekday]
         : (List<int>.from(_diasSemana)..sort());
 
+    final recurrenteId = widget.existing?.id ?? _uuid.v4();
     final sesion = SesionRecurrente(
-      id: widget.existing?.id ?? _uuid.v4(),
+      id: recurrenteId,
       alumnoId: _alumnoId,
       fuenteId: _fuenteId!,
       diasSemana: diasFinales,
@@ -302,6 +368,35 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
     );
 
     await ref.read(sesionRepositoryProvider).saveSesionRecurrente(sesion);
+
+    // Si no es empleo, crear SesionRealizada + Cobro
+    if (!esEmpleo) {
+      final tarifa = double.tryParse(_importeCtrl.text) ?? 0.0;
+      final sesionId = _uuid.v4();
+      final realizada = SesionRealizada(
+        id: sesionId,
+        alumnoId: _alumnoId,
+        fuenteId: _fuenteId!,
+        sesionRecurrenteId: recurrenteId,
+        fecha: fechaBase,
+        horas: _duracion,
+        cobro: tarifa,
+        estado: EstadoSesion.confirmada,
+      );
+      await ref.read(sesionRepositoryProvider).saveSesionRealizada(realizada);
+
+      final cobro = Cobro(
+        id: _uuid.v4(),
+        sesionId: sesionId,
+        alumnoId: _alumnoId,
+        fuenteId: _fuenteId!,
+        modoCobro: ModoCobro.sesion,
+        monto: tarifa,
+        estado: _cobradoAhora ? EstadoCobro.cobrado : EstadoCobro.pendiente,
+        fechaCobro: _cobradoAhora ? fechaBase : null,
+      );
+      await ref.read(cobroRepositoryProvider).saveCobro(cobro);
+    }
 
     if (mounted) Navigator.of(context).pop();
   }

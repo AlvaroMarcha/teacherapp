@@ -306,7 +306,7 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
                   ),
                   const SizedBox(height: 12),
 
-                  // Importe y cobro (solo para fuentes no-empleo)
+                  // Importe y cobro (para sesiones no-empleo)
                   if (!esEmpleo) ...[
                     TextFormField(
                       controller: _importeCtrl,
@@ -458,9 +458,9 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
     );
     await ref.read(sesionRepositoryProvider).saveSesionRecurrente(recurrente);
 
-    // 2. Crear SesionRealizada solo para sesiones puntuales no-empleo (ya ocurrió)
+    // 2. Crear SesionRealizada + Cobro para sesiones no-empleo
     //    Las sesiones de empleo se confirman manualmente desde el calendario.
-    if (_esPuntual && !esEmpleo) {
+    if (!esEmpleo) {
       final sesionId = _uuid.v4();
       final sesion = SesionRealizada(
         id: sesionId,
