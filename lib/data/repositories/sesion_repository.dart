@@ -52,6 +52,11 @@ class SesionRepository {
     return rows.map(_mapRecurrente).toList();
   }
 
+  Future<SesionRecurrente?> getSesionRecurrenteById(String id) async {
+    final row = await _db.getSesionRecurrenteById(id);
+    return row == null ? null : _mapRecurrente(row);
+  }
+
   Future<String> saveSesionRecurrente(SesionRecurrente sesion) {
     final id = sesion.id.isEmpty ? _uuid.v4() : sesion.id;
     return _db.upsertSesionRecurrente(

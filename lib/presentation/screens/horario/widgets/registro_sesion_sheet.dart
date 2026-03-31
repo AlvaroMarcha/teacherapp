@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/currency_utils.dart';
 import '../../../../core/utils/date_utils.dart';
 import '../../../../domain/models/cobro.dart';
@@ -202,12 +204,31 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
             onPressed: () => Navigator.of(context).pop(),
             child: Text(l.cerrar),
           ),
-          const SizedBox(height: 8),
+          const Divider(height: 24),
           TextButton.icon(
             onPressed: () => _eliminarRegistro(context, evento),
-            icon: const Icon(Icons.delete_outline, size: 18),
+            icon: const Icon(Icons.undo_outlined, size: 18),
             label: Text(l.eliminarRegistro),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
+          ),
+          Row(
+            children: [
+              Expanded(
+                child: TextButton.icon(
+                  onPressed: () => _editarSesion(context, evento),
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  label: Text(l.editar),
+                ),
+              ),
+              Expanded(
+                child: TextButton.icon(
+                  onPressed: () => _eliminarSesionRecurrente(context, evento),
+                  icon: const Icon(Icons.delete_outline, size: 18),
+                  label: Text(l.eliminarSesion),
+                  style: TextButton.styleFrom(foregroundColor: AppColors.error),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
         ],
@@ -243,6 +264,26 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
             foregroundColor: AppColors.error,
             side: const BorderSide(color: AppColors.error),
           ),
+        ),
+        const Divider(height: 24),
+        Row(
+          children: [
+            Expanded(
+              child: TextButton.icon(
+                onPressed: () => _editarSesion(context, evento),
+                icon: const Icon(Icons.edit_outlined, size: 18),
+                label: Text(l.editar),
+              ),
+            ),
+            Expanded(
+              child: TextButton.icon(
+                onPressed: () => _eliminarSesionRecurrente(context, evento),
+                icon: const Icon(Icons.delete_outline, size: 18),
+                label: Text(l.eliminar),
+                style: TextButton.styleFrom(foregroundColor: AppColors.error),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
       ],
@@ -485,6 +526,66 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
       final l = ref.read(appLocalizationsProvider);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(l.sesionMarcadaCancelada)),
+      );
+    }
+  }
+
+  Future<void> _editarSesion(
+    BuildContext context,
+    EventoCalendario evento,
+  ) async {
+    final sesionRecId = evento.sesionRecurrenteId;
+    if (sesionRecId == null) return;
+
+    final sesion = await ref
+        .read(sesionRepositoryProvider)
+        .getSesionRecurrenteById(sesionRecId);
+    if (sesion == null || !mounted) return;
+
+    Navigator.of(context).pop();
+    if (mounted) {
+      context.push(AppRoutes.sesionForm, extra: sesion);
+    }
+  }
+
+  Future<void> _eliminarSesionRecurrente(
+    BuildContext context,
+    EventoCalendario evento,
+  ) async {
+    final sesionRecId = evento.sesionRecurrenteId;
+    if (sesionRecId == null) return;
+
+    final l = ref.read(appLocalizationsProvider);
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        title: Text(l.eliminarSesion),
+        content: Text(l.confirmarEliminarSesionCalendario),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx, false),
+            child: Text(l.cancelar),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogCtx, true),
+            child: Text(l.eliminar),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    await ref
+        .read(sesionRepositoryProvider)
+        .deleteSesionRecurrente(sesionRecId);
+
+    if (mounted) {
+      navigator.pop();
+      messenger.showSnackBar(
+        SnackBar(content: Text(l.sesionEliminada)),
       );
     }
   }

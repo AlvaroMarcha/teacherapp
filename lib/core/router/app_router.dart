@@ -13,6 +13,7 @@ import '../../presentation/screens/cobros/cobros_screen.dart';
 import '../../presentation/screens/cobros/cobro_detalle_screen.dart';
 import '../../presentation/screens/sesiones/registro_sesion_screen.dart';
 import '../../presentation/screens/sesiones/sesion_form_screen.dart';
+import '../../domain/models/sesion_recurrente.dart';
 import '../../presentation/screens/horas_extra/horas_extra_screen.dart';
 import '../../presentation/screens/ajustes/ajustes_screen.dart';
 import '../../presentation/screens/ajustes/tarifas_screen.dart';
@@ -150,7 +151,10 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: AppRoutes.sesionForm,
-      builder: (_, __) => const SesionFormScreen(),
+      builder: (context, state) {
+        final existing = state.extra as SesionRecurrente?;
+        return SesionFormScreen(existing: existing);
+      },
     ),
     GoRoute(
       path: AppRoutes.horasExtra,

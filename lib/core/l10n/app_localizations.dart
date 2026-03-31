@@ -212,6 +212,9 @@ class AppLocalizations {
     required this.confirmarEliminarHoraExtra,
     required this.confirmarEliminarSesion,
     required this.registroEliminado,
+    required this.eliminarSesion,
+    required this.confirmarEliminarSesionCalendario,
+    required this.sesionEliminada,
 
     // ── Ajustes ──
     required this.ajustesTitle,
@@ -498,6 +501,9 @@ class AppLocalizations {
   final String confirmarEliminarHoraExtra;
   final String confirmarEliminarSesion;
   final String registroEliminado;
+  final String eliminarSesion;
+  final String confirmarEliminarSesionCalendario;
+  final String sesionEliminada;
 
   // ── Ajustes ──
   final String ajustesTitle;
@@ -771,6 +777,10 @@ class AppLocalizations {
     confirmarEliminarSesion:
         '¿Eliminar esta sesión registrada? Se borrarán también los cobros o horas extra vinculados.',
     registroEliminado: 'Registro eliminado',
+    eliminarSesion: 'Eliminar sesión',
+    confirmarEliminarSesionCalendario:
+        '¿Eliminar esta sesión del calendario? Se eliminará permanentemente.',
+    sesionEliminada: 'Sesión eliminada',
     ajustesTitle: 'Ajustes',
     miCuenta: 'Mi cuenta',
     miPerfil: 'Mi perfil',
@@ -1022,6 +1032,10 @@ class AppLocalizations {
     confirmarEliminarSesion:
         'Delete this registered session? Linked charges or overtime entries will also be removed.',
     registroEliminado: 'Record deleted',
+    eliminarSesion: 'Delete session',
+    confirmarEliminarSesionCalendario:
+        'Delete this session from the calendar? It will be permanently removed.',
+    sesionEliminada: 'Session deleted',
     ajustesTitle: 'Settings',
     miCuenta: 'My account',
     miPerfil: 'My profile',
@@ -1276,6 +1290,10 @@ class AppLocalizations {
     confirmarEliminarSesion:
         'Eliminare questa sessione registrata? Verranno rimossi anche gli addebiti o gli straordinari collegati.',
     registroEliminado: 'Registro eliminato',
+    eliminarSesion: 'Elimina sessione',
+    confirmarEliminarSesionCalendario:
+        'Eliminare questa sessione dal calendario? Verrà rimossa permanentemente.',
+    sesionEliminada: 'Sessione eliminata',
     ajustesTitle: 'Impostazioni',
     miCuenta: 'Il mio account',
     miPerfil: 'Il mio profilo',

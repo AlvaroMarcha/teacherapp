@@ -125,6 +125,10 @@ class AppDatabase extends _$AppDatabase {
   Future<List<SesionesRecurrentesTableData>> getSesionesRecurrentes() =>
       select(sesionesRecurrentesTable).get();
 
+  Future<SesionesRecurrentesTableData?> getSesionRecurrenteById(String id) =>
+      (select(sesionesRecurrentesTable)..where((t) => t.id.equals(id)))
+          .getSingleOrNull();
+
   Future<String> upsertSesionRecurrente(
     SesionesRecurrentesTableCompanion sesion,
   ) =>
