@@ -51,6 +51,15 @@ jobs:
           find lib -name "*.g.dart" -type f || echo "No se encontraron archivos .g.dart"
         continue-on-error: true
       
+      - name: Instalar CocoaPods
+        run: |
+          cd ios
+          pod install
+        continue-on-error: true
+      
+      - name: Limpiar build anterior
+        run: flutter clean
+      
       - name: Compilar iOS (sin firma)
         run: |
           flutter build ios --release --no-codesign --verbose
