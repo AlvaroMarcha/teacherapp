@@ -5,6 +5,7 @@ on:
   workflow_dispatch: # Permite ejecutar manualmente desde GitHub
   push:
     branches:
+      - master
       - main
       - develop
     paths-ignore:
