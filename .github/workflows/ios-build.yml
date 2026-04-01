@@ -18,6 +18,8 @@ jobs:
   build-ios:
     name: Compilar App iOS
     runs-on: macos-latest # Runner de macOS de GitHub
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     
     steps:
       - name: Checkout código
@@ -33,18 +35,26 @@ jobs:
       - name: Verificar versión de Flutter
         run: flutter --version
       
-      - name: Habilitar Flutter para iOS
-        run: flutter config --enable-ios
-      
       - name: Instalar dependencias
         run: flutter pub get
       
-      - name: Generar código (build_runner)
-        run: dart run build_runner build --delete-conflicting-outputs
+      # Generar archivos con build_runner (necesario para Drift y Riverpod)
+      - name: Generar código con build_runner
+        run: |
+          echo "Ejecutando build_runner..."
+          dart run build_runner build --delete-conflicting-outputs --verbose
+        continue-on-error: false
+      
+      - name: Verificar archivos generados
+        run: |
+          echo "Archivos .g.dart generados:"
+          find lib -name "*.g.dart" -type f || echo "No se encontraron archivos .g.dart"
         continue-on-error: true
       
       - name: Compilar iOS (sin firma)
-        run: flutter build ios --release --no-codesign
+        run: |
+          flutter build ios --release --no-codesign --verbose
+        continue-on-error: false
       
       - name: Crear IPA (sin firma)
         run: |
