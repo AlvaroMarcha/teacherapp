@@ -89,11 +89,11 @@ class NotificationService {
     required String body,
   }) async {
     const androidDetails = AndroidNotificationDetails(
-      'backup',
+      'backup_v2',
       'Copia de seguridad',
       channelDescription: 'Notificaciones de copia de seguridad automática',
-      importance: Importance.defaultImportance,
-      priority: Priority.defaultPriority,
+      importance: Importance.high,
+      priority: Priority.high,
     );
     const details = NotificationDetails(android: androidDetails);
     await _plugin.show(

@@ -697,6 +697,16 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
   Future<void> _toggleSchedule(bool enabled) async {
     final l = ref.read(appLocalizationsProvider);
     if (enabled) {
+      // 1. Solicitar permiso de notificaciones (Android 13+)
+      final granted = await NotificationService.instance.requestPermission();
+      if (!granted && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content:
+                  Text('Se necesitan notificaciones para avisar del backup')),
+        );
+      }
+
       final time = ref.read(backupScheduleTimeProvider);
       final type = ref.read(backupScheduleTypeProvider);
       await ScheduledBackupService.enable(
@@ -705,10 +715,34 @@ class _BackupSectionState extends ConsumerState<_BackupSection> {
         type: type,
       );
       ref.read(backupScheduleEnabledProvider.notifier).state = true;
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l.copiaActivada)),
+
+      // 2. Ejecutar backup de prueba inmediato
+      try {
+        final backupService = ref.read(backupServiceProvider);
+        if (type == 'drive') {
+          final driveService = ref.read(driveBackupServiceProvider);
+          await driveService.uploadBackup();
+        } else {
+          await backupService.createAutoBackup();
+        }
+        ref.invalidate(lastAutoBackupProvider);
+        // Mostrar notificación del sistema
+        await NotificationService.instance.showInstant(
+          id: 9999,
+          title: l.primeraCopiaPrueba,
+          body: type == 'drive' ? 'Google Drive' : 'Local',
         );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l.primeraCopiaPrueba)),
+          );
+        }
+      } catch (_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l.copiaErrorBackup)),
+          );
+        }
       }
     } else {
       await ScheduledBackupService.disable();

@@ -8,6 +8,7 @@ import 'drive_backup_service.dart';
 
 const _taskName = 'scheduled_backup';
 const _taskUniqueName = 'teacher_finance_daily_backup';
+const _taskOneOffName = 'teacher_finance_next_backup';
 
 // SharedPreferences keys
 const kBackupScheduleEnabled = 'backup_schedule_enabled';
@@ -51,7 +52,9 @@ void backupCallbackDispatcher() {
       await _showBackupNotification(type == 'drive' ? 'Google Drive' : 'Local');
 
       return true;
-    } catch (_) {
+    } catch (e) {
+      // Notificar error al usuario
+      await _showErrorNotification(e.toString());
       return false;
     }
   });
@@ -65,17 +68,40 @@ Future<void> _showBackupNotification(String type) async {
   await plugin.initialize(settings: settings);
 
   const androidDetails = AndroidNotificationDetails(
-    'backup',
+    'backup_v2',
     'Copia de seguridad',
     channelDescription: 'Notificaciones de copia de seguridad automática',
-    importance: Importance.defaultImportance,
-    priority: Priority.defaultPriority,
+    importance: Importance.high,
+    priority: Priority.high,
   );
   const details = NotificationDetails(android: androidDetails);
   await plugin.show(
     id: 9999,
     title: 'Copia de seguridad completada',
     body: 'Backup $type realizado correctamente',
+    notificationDetails: details,
+  );
+}
+
+/// Notificación de error desde el isolate de background.
+Future<void> _showErrorNotification(String error) async {
+  const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+  const settings = InitializationSettings(android: androidSettings);
+  final plugin = FlutterLocalNotificationsPlugin();
+  await plugin.initialize(settings: settings);
+
+  const androidDetails = AndroidNotificationDetails(
+    'backup_v2',
+    'Copia de seguridad',
+    channelDescription: 'Notificaciones de copia de seguridad automática',
+    importance: Importance.high,
+    priority: Priority.high,
+  );
+  const details = NotificationDetails(android: androidDetails);
+  await plugin.show(
+    id: 9998,
+    title: 'Error en copia de seguridad',
+    body: 'No se pudo completar el backup: $error',
     notificationDetails: details,
   );
 }
@@ -108,15 +134,28 @@ class ScheduledBackupService {
     }
     final initialDelay = nextRun.difference(now);
 
+    final constraints = Constraints(
+      networkType:
+          type == 'drive' ? NetworkType.connected : NetworkType.notRequired,
+    );
+
+    // 1. Tarea one-shot para la próxima ejecución (más fiable que
+    //    depender solo del initialDelay de la periódica).
+    await Workmanager().registerOneOffTask(
+      _taskOneOffName,
+      _taskName,
+      initialDelay: initialDelay,
+      constraints: constraints,
+      existingWorkPolicy: ExistingWorkPolicy.replace,
+    );
+
+    // 2. Tarea periódica para las ejecuciones diarias siguientes.
     await Workmanager().registerPeriodicTask(
       _taskUniqueName,
       _taskName,
       frequency: const Duration(hours: 24),
-      initialDelay: initialDelay,
-      constraints: Constraints(
-        networkType:
-            type == 'drive' ? NetworkType.connected : NetworkType.notRequired,
-      ),
+      initialDelay: initialDelay + const Duration(hours: 24),
+      constraints: constraints,
       existingWorkPolicy: ExistingPeriodicWorkPolicy.replace,
     );
   }
@@ -126,6 +165,7 @@ class ScheduledBackupService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(kBackupScheduleEnabled, false);
     await Workmanager().cancelByUniqueName(_taskUniqueName);
+    await Workmanager().cancelByUniqueName(_taskOneOffName);
   }
 
   // ── Lectura de preferencias ──

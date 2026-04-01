@@ -262,6 +262,8 @@ class AppLocalizations {
     required this.ultimaCopiaAuto,
     required this.copiaActivada,
     required this.copiaDesactivada,
+    required this.copiaErrorBackup,
+    required this.primeraCopiaPrueba,
     required this.driveNecesitaConexion,
     required this.ubicacionCopia,
     required this.rutaCopiada,
@@ -592,6 +594,8 @@ class AppLocalizations {
   final String ultimaCopiaAuto;
   final String copiaActivada;
   final String copiaDesactivada;
+  final String copiaErrorBackup;
+  final String primeraCopiaPrueba;
   final String driveNecesitaConexion;
   final String ubicacionCopia;
   final String rutaCopiada;
@@ -912,6 +916,8 @@ class AppLocalizations {
     ultimaCopiaAuto: 'Última copia automática',
     copiaActivada: 'Copia automática activada',
     copiaDesactivada: 'Copia automática desactivada',
+    copiaErrorBackup: 'Error al realizar la copia de seguridad',
+    primeraCopiaPrueba: 'Primera copia de prueba realizada',
     driveNecesitaConexion: 'Conecta tu cuenta de Google Drive primero',
     ubicacionCopia: 'Ubicación de la copia',
     rutaCopiada: 'Ruta copiada al portapapeles',
@@ -1207,6 +1213,8 @@ class AppLocalizations {
     ultimaCopiaAuto: 'Last automatic backup',
     copiaActivada: 'Automatic backup enabled',
     copiaDesactivada: 'Automatic backup disabled',
+    copiaErrorBackup: 'Backup failed',
+    primeraCopiaPrueba: 'First test backup completed',
     driveNecesitaConexion: 'Connect your Google Drive account first',
     ubicacionCopia: 'Backup location',
     rutaCopiada: 'Path copied to clipboard',
@@ -1507,6 +1515,8 @@ class AppLocalizations {
     ultimaCopiaAuto: 'Ultimo backup automatico',
     copiaActivada: 'Backup automatico attivato',
     copiaDesactivada: 'Backup automatico disattivato',
+    copiaErrorBackup: 'Errore durante il backup',
+    primeraCopiaPrueba: 'Primo backup di prova completato',
     driveNecesitaConexion: 'Collega prima il tuo account Google Drive',
     ubicacionCopia: 'Posizione del backup',
     rutaCopiada: 'Percorso copiato negli appunti',

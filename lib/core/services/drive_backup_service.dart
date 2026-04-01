@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, TargetPlatform;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:http/http.dart' as http;
@@ -26,8 +28,13 @@ class DriveBackupService {
   static const _backupFileName = 'teacher_finance_backup.db';
   static const _backupMimeType = 'application/x-sqlite3';
 
+  /// En iOS se necesita pasar el CLIENT_ID explícitamente.
+  static const _iosClientId =
+      '816337557559-f3suc44vt0gfbcnoat2am56gu8oniu8j.apps.googleusercontent.com';
+
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: [drive.DriveApi.driveFileScope],
+    clientId: defaultTargetPlatform == TargetPlatform.iOS ? _iosClientId : null,
   );
 
   final BackupService _backupService;
