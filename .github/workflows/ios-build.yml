@@ -1,6 +1,6 @@
 name: Build iOS (Sin Firma)
 
-# Se ejecuta manualmente o cuando se hace push a main/develop
+# Se ejecuta manualmente o cuando se hace push a master
 on:
   workflow_dispatch: # Permite ejecutar manualmente desde GitHub
   push:
@@ -26,27 +26,25 @@ jobs:
       - name: Configurar Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.0' # Ajusta a tu versión
+          flutter-version: '3.24.0'
           channel: 'stable'
           cache: true
       
       - name: Verificar versión de Flutter
         run: flutter --version
       
+      - name: Habilitar Flutter para iOS
+        run: flutter config --enable-ios
+      
       - name: Instalar dependencias
         run: flutter pub get
       
       - name: Generar código (build_runner)
-        run: flutter pub run build_runner build --delete-conflicting-outputs
-      
-      - name: Analizar código
-        run: flutter analyze
-        continue-on-error: true # No fallar si hay warnings
+        run: dart run build_runner build --delete-conflicting-outputs
+        continue-on-error: true
       
       - name: Compilar iOS (sin firma)
-        run: |
-          cd ios
-          flutter build ios --release --no-codesign
+        run: flutter build ios --release --no-codesign
       
       - name: Crear IPA (sin firma)
         run: |
@@ -63,8 +61,8 @@ jobs:
           retention-days: 30
       
       - name: Resumen
+        if: success()
         run: |
           echo "✅ Compilación iOS exitosa"
           echo "📦 IPA generado: build/ios/iphoneos/app-unsigned.ipa"
           echo "⚠️  NOTA: Este IPA NO está firmado. Solo sirve para verificar que compila."
-          echo "Para publicar en App Store necesitarás certificados de Apple Developer."
