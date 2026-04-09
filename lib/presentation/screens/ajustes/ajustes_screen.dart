@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/backup_service.dart';
+import '../../../core/services/cobro_auto_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/scheduled_backup_service.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../providers/backup_provider.dart';
+import '../../providers/cobros_provider.dart';
 import '../../providers/database_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/theme_provider.dart';
@@ -201,6 +204,11 @@ class AjustesScreen extends ConsumerWidget {
             title: l.datos,
             items: const [],
             customContent: _BackupSection(),
+          ),
+          _Section(
+            title: 'Cobros automáticos',
+            items: const [],
+            customContent: _CobroAutoSection(),
           ),
           const SizedBox(height: 32),
           Padding(
@@ -880,6 +888,189 @@ class _ActionTile extends StatelessWidget {
       title: Text(label),
       subtitle: subtitle.isNotEmpty ? Text(subtitle) : null,
       onTap: busy ? null : onTap,
+    );
+  }
+}
+
+// ── Cobro Auto Section ───────────────────────────────────────────────────────
+
+class _CobroAutoSection extends ConsumerStatefulWidget {
+  const _CobroAutoSection();
+
+  @override
+  ConsumerState<_CobroAutoSection> createState() => _CobroAutoSectionState();
+}
+
+class _CobroAutoSectionState extends ConsumerState<_CobroAutoSection> {
+  int _diasFuturos = 30;
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadConfig();
+  }
+
+  Future<void> _loadConfig() async {
+    final prefs = await SharedPreferences.getInstance();
+    final dias = prefs.getInt(kCobroAutoDiasFuturos) ?? 30;
+    if (mounted) {
+      setState(() => _diasFuturos = dias);
+    }
+  }
+
+  Future<void> _saveDiasFuturos(int dias) async {
+    if (dias < 0 || dias > 365) return;
+
+    setState(() => _isSaving = true);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(kCobroAutoDiasFuturos, dias);
+
+    // Regenerar cobros con la nueva configuración
+    final db = ref.read(databaseProvider);
+    await CobroAutoService.regenerarCobrosFuturos(db);
+    ref.invalidate(cobrosProvider);
+
+    setState(() {
+      _diasFuturos = dias;
+      _isSaving = false;
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Cobros actualizados'),
+          duration: Duration(seconds: 1),
+        ),
+      );
+    }
+  }
+
+  void _incrementar() => _saveDiasFuturos(_diasFuturos + 1);
+  void _decrementar() => _saveDiasFuturos(_diasFuturos - 1);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Card(
+        elevation: 0,
+        color: isDark ? Colors.grey[900] : Colors.grey[50],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.auto_awesome,
+                    size: 20,
+                    color: theme.colorScheme.primary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Genera automáticamente cobros pendientes para sesiones recurrentes.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color:
+                            theme.textTheme.bodySmall?.color?.withOpacity(0.8),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Días futuros',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Genera cobros hasta $_diasFuturos días adelante',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontSize: 12,
+                            color: theme.textTheme.bodySmall?.color
+                                ?.withOpacity(0.6),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: theme.colorScheme.outline.withOpacity(0.2),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.remove),
+                          onPressed: _isSaving || _diasFuturos <= 0
+                              ? null
+                              : _decrementar,
+                          iconSize: 20,
+                          padding: const EdgeInsets.all(8),
+                          constraints: const BoxConstraints(),
+                        ),
+                        Container(
+                          width: 60,
+                          alignment: Alignment.center,
+                          child: _isSaving
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(
+                                  _diasFuturos.toString(),
+                                  style: theme.textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.add),
+                          onPressed: _isSaving || _diasFuturos >= 365
+                              ? null
+                              : _incrementar,
+                          iconSize: 20,
+                          padding: const EdgeInsets.all(8),
+                          constraints: const BoxConstraints(),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

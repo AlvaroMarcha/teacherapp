@@ -2,13 +2,18 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:workmanager/workmanager.dart';
 import 'backup_service.dart';
+import 'cobro_auto_service.dart';
 import 'drive_backup_service.dart';
+import '../../data/local/database.dart';
 
-// ── Constantes ───────────────────────────────────────────────────────────────
+// ── Constantes ───────────────────────────────────────────────────────────────────
 
 const _taskName = 'scheduled_backup';
 const _taskUniqueName = 'teacher_finance_daily_backup';
 const _taskOneOffName = 'teacher_finance_next_backup';
+
+const _cobroAutoTaskName = 'cobro_auto_gen';
+const _cobroAutoUniqueName = 'teacher_finance_cobro_auto';
 
 // SharedPreferences keys
 const kBackupScheduleEnabled = 'backup_schedule_enabled';
@@ -22,6 +27,19 @@ const kLastAutoBackupDate = 'last_auto_backup_date';
 @pragma('vm:entry-point')
 void backupCallbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
+    // ── Tarea: auto-generación de cobros pendientes ──
+    if (task == _cobroAutoTaskName) {
+      try {
+        final db = AppDatabase();
+        await CobroAutoService.generarCobrosPendientes(db);
+        await db.close();
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
+    // ── Tarea: backup programado ──
     if (task != _taskName) return false;
 
     try {
@@ -109,9 +127,19 @@ Future<void> _showErrorNotification(String error) async {
 // ── Servicio de programación ─────────────────────────────────────────────────
 
 class ScheduledBackupService {
-  /// Inicializa Workmanager. Llamar una vez en main().
+  /// Inicializa Workmanager y registra tareas automáticas.
   static Future<void> init() async {
     await Workmanager().initialize(backupCallbackDispatcher);
+
+    // Registrar tarea diaria de auto-generación de cobros (cada 24h)
+    await Workmanager().registerPeriodicTask(
+      _cobroAutoUniqueName,
+      _cobroAutoTaskName,
+      frequency: const Duration(hours: 24),
+      initialDelay: const Duration(minutes: 5),
+      constraints: Constraints(networkType: NetworkType.notRequired),
+      existingWorkPolicy: ExistingPeriodicWorkPolicy.keep,
+    );
   }
 
   /// Activa (o actualiza) la programación diaria.

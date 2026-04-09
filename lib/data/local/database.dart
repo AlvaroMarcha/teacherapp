@@ -112,6 +112,8 @@ class AppDatabase extends _$AppDatabase {
   Stream<List<AlumnosTableData>> watchAllAlumnos() =>
       select(alumnosTable).watch();
 
+  Future<List<AlumnosTableData>> getAllAlumnos() => select(alumnosTable).get();
+
   Stream<List<AlumnosTableData>> watchAlumnosByFuente(String fuenteId) =>
       (select(alumnosTable)..where((t) => t.fuenteId.equals(fuenteId))).watch();
 
@@ -204,12 +206,104 @@ class AppDatabase extends _$AppDatabase {
   Future<int> deleteSesionRealizada(String id) =>
       (delete(sesionesRealizadasTable)..where((t) => t.id.equals(id))).go();
 
+  /// Elimina SesionesRealizadas pendientes futuras de una sesión recurrente
+  /// y sus Cobros asociados. Usado al editar una sesión recurrente para
+  /// regenerar cobros con los nuevos parámetros.
+  Future<int> deleteSesionesRealizadasPendientesFuturas(
+    String sesionRecurrenteId,
+    String fechaDesde,
+  ) async {
+    return await transaction(() async {
+      // 1. Obtener SesionesRealizadas pendientes futuras
+      final sesiones = await (select(sesionesRealizadasTable)
+            ..where(
+              (t) =>
+                  t.sesionRecurrenteId.equals(sesionRecurrenteId) &
+                  t.estado.equals('pendiente') &
+                  t.fecha.isBiggerOrEqualValue(fechaDesde),
+            ))
+          .get();
+
+      if (sesiones.isEmpty) return 0;
+
+      // 2. Eliminar Cobros asociados
+      final sesionIds = sesiones.map((s) => s.id).toList();
+      await (delete(cobrosTable)..where((t) => t.sesionId.isIn(sesionIds)))
+          .go();
+
+      // 3. Eliminar SesionesRealizadas
+      return await (delete(sesionesRealizadasTable)
+            ..where(
+              (t) =>
+                  t.sesionRecurrenteId.equals(sesionRecurrenteId) &
+                  t.estado.equals('pendiente') &
+                  t.fecha.isBiggerOrEqualValue(fechaDesde),
+            ))
+          .go();
+    });
+  }
+
+  /// Elimina TODAS las SesionesRealizadas pendientes futuras (de cualquier
+  /// sesión recurrente) y sus Cobros asociados. Usado al cambiar la
+  /// configuración de días futuros en Ajustes.
+  Future<int> deleteAllSesionesRealizadasPendientesFuturas(
+    String fechaDesde,
+  ) async {
+    return await transaction(() async {
+      final sesiones = await (select(sesionesRealizadasTable)
+            ..where(
+              (t) =>
+                  t.sesionRecurrenteId.isNotNull() &
+                  t.estado.equals('pendiente') &
+                  t.fecha.isBiggerOrEqualValue(fechaDesde),
+            ))
+          .get();
+
+      if (sesiones.isEmpty) return 0;
+
+      final sesionIds = sesiones.map((s) => s.id).toList();
+      await (delete(cobrosTable)..where((t) => t.sesionId.isIn(sesionIds)))
+          .go();
+
+      return await (delete(sesionesRealizadasTable)
+            ..where(
+              (t) =>
+                  t.sesionRecurrenteId.isNotNull() &
+                  t.estado.equals('pendiente') &
+                  t.fecha.isBiggerOrEqualValue(fechaDesde),
+            ))
+          .go();
+    });
+  }
+
   Future<List<SesionesRealizadasTableData>>
       getSesionesRealizadasBySesionRecurrenteId(
     String sesionRecurrenteId,
   ) =>
           (select(sesionesRealizadasTable)
                 ..where((t) => t.sesionRecurrenteId.equals(sesionRecurrenteId)))
+              .get();
+
+  /// Busca si ya existe una SesionRealizada para un recurrenteId + fecha.
+  Future<SesionesRealizadasTableData?> getSesionRealizadaByRecurrenteAndFecha(
+    String recurrenteId,
+    String fecha,
+  ) =>
+      (select(sesionesRealizadasTable)
+            ..where(
+              (t) =>
+                  t.sesionRecurrenteId.equals(recurrenteId) &
+                  t.fecha.equals(fecha),
+            ))
+          .getSingleOrNull();
+
+  /// Obtiene sesiones recurrentes activas (no archivadas, no puntuales).
+  Future<List<SesionesRecurrentesTableData>>
+      getSesionesRecurrentesActivasRecurrentes() =>
+          (select(sesionesRecurrentesTable)
+                ..where(
+                  (t) => t.activa.equals(true) & t.esPuntual.equals(false),
+                ))
               .get();
 
   Future<int> deleteSesionesRealizadasBySesionRecurrenteId(

@@ -11,6 +11,7 @@ import '../../providers/cobros_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../providers/horas_extra_provider.dart';
 import '../../providers/sesiones_provider.dart';
+import '../../../core/services/cobro_auto_service.dart';
 import '../../../domain/models/sesion_recurrente.dart';
 import '../../../domain/models/sesion_realizada.dart';
 import '../../../domain/models/cobro.dart';
@@ -422,7 +423,7 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
     final recurrenteId = widget.existing?.id ?? _uuid.v4();
     final fechaFinStr = (!_esPuntual && _fechaFin != null)
         ? _fechaFin!.toIso8601String().substring(0, 10)
-        : widget.existing?.fechaFin;
+        : null;
 
     final sesion = SesionRecurrente(
       id: recurrenteId,
@@ -438,6 +439,27 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
     );
 
     await ref.read(sesionRepositoryProvider).saveSesionRecurrente(sesion);
+
+    // Para recurrentes no puntuales: regenerar cobros pendientes
+    if (!_esPuntual && !esEmpleo) {
+      final db = ref.read(databaseProvider);
+
+      // Si es edición, eliminar cobros pendientes futuros antes de regenerar
+      if (widget.existing != null) {
+        final hoy = DateTime.now();
+        final fechaHoy =
+            '${hoy.year}-${hoy.month.toString().padLeft(2, '0')}-${hoy.day.toString().padLeft(2, '0')}';
+        await db.deleteSesionesRealizadasPendientesFuturas(
+          recurrenteId,
+          fechaHoy,
+        );
+      }
+
+      // Regenerar cobros
+      await CobroAutoService.generarCobrosPendientes(db);
+      ref.invalidate(cobrosProvider);
+      ref.invalidate(sesionesRecurrentesProvider);
+    }
 
     // Crear SesionRealizada + Cobro/HoraExtra solo para sesiones puntuales
     if (_esPuntual) {
