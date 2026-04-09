@@ -4,6 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../domain/models/empleo_config.dart';
 import '../../../domain/models/fuente.dart';
+import '../../providers/alumnos_provider.dart';
+import '../../providers/cobros_provider.dart';
+import '../../providers/dashboard_provider.dart';
+import '../../providers/fuentes_provider.dart';
 import '../../providers/database_provider.dart';
 import '../../providers/theme_provider.dart';
 
@@ -100,6 +104,13 @@ class _FuenteFormScreenState extends ConsumerState<FuenteFormScreen> {
             diaCobro: _diaCobro,
           ),
         );
+        ref.invalidate(empleoConfigProvider(id));
+      }
+
+      ref.invalidate(fuentesProvider);
+      ref.invalidate(dashboardProvider);
+      if (widget.fuenteId != null) {
+        ref.invalidate(fuenteByIdProvider(widget.fuenteId!));
       }
 
       if (mounted) context.pop();
@@ -145,6 +156,11 @@ class _FuenteFormScreenState extends ConsumerState<FuenteFormScreen> {
       await ref
           .read(fuenteRepositoryProvider)
           .deleteFuenteCascade(widget.fuenteId!);
+      ref.invalidate(fuentesProvider);
+      ref.invalidate(alumnosProvider);
+      ref.invalidate(alumnosByFuenteProvider);
+      ref.invalidate(dashboardProvider);
+      ref.invalidate(cobrosPendientesProvider);
       if (mounted) context.pop();
     } catch (e) {
       if (mounted) {

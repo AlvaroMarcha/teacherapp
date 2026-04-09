@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/router/app_router.dart';
+import '../../providers/alumnos_provider.dart';
+import '../../providers/cobros_provider.dart';
+import '../../providers/dashboard_provider.dart';
 import '../../providers/fuentes_provider.dart';
 import '../../providers/database_provider.dart';
 import '../../providers/theme_provider.dart';
@@ -189,10 +192,16 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
       duracionMinutos: _duracionMinutos,
       notas: _notasCtrl.text.trim(),
     );
-    ref
-        .read(alumnoRepositoryProvider)
-        .saveAlumno(alumno)
-        .then((_) => context.pop());
+    ref.read(alumnoRepositoryProvider).saveAlumno(alumno).then((_) {
+      ref.invalidate(alumnosProvider);
+      ref.invalidate(alumnosByFuenteProvider);
+      if (widget.alumnoId != null) {
+        ref.invalidate(alumnoByIdProvider(widget.alumnoId!));
+      }
+      ref.invalidate(dashboardProvider);
+      ref.invalidate(cobrosPendientesProvider);
+      if (mounted) context.pop();
+    });
   }
 
   Future<void> _confirmarEliminar(BuildContext context) async {
@@ -220,6 +229,10 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
     );
     if (confirmed == true && mounted) {
       await ref.read(alumnoRepositoryProvider).deleteAlumno(widget.alumnoId!);
+      ref.invalidate(alumnosProvider);
+      ref.invalidate(alumnosByFuenteProvider);
+      ref.invalidate(dashboardProvider);
+      ref.invalidate(cobrosPendientesProvider);
       if (mounted) context.go(AppRoutes.alumnos);
     }
   }

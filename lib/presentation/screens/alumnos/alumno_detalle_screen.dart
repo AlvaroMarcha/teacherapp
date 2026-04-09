@@ -6,6 +6,8 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/currency_utils.dart';
 import '../../../core/router/app_router.dart';
 import '../../providers/alumnos_provider.dart';
+import '../../providers/cobros_provider.dart';
+import '../../providers/dashboard_provider.dart';
 import '../../providers/sesiones_provider.dart';
 import '../../providers/fuentes_provider.dart';
 import '../../providers/database_provider.dart';
@@ -261,6 +263,10 @@ void _showTraspasoDialog(
                 await ref.read(alumnoRepositoryProvider).saveAlumno(
                       alumno.copyWith(fuenteId: seleccionada!),
                     );
+                ref.invalidate(alumnosProvider);
+                ref.invalidate(alumnosByFuenteProvider);
+                ref.invalidate(alumnoByIdProvider(alumno.id));
+                ref.invalidate(dashboardProvider);
                 if (ctx.mounted) {
                   final nombre = disponibles
                       .firstWhere((f) => f.id == seleccionada)
@@ -303,6 +309,10 @@ void _showEliminarDialog(
           ),
           onPressed: () async {
             await ref.read(alumnoRepositoryProvider).deleteAlumno(alumno.id);
+            ref.invalidate(alumnosProvider);
+            ref.invalidate(alumnosByFuenteProvider);
+            ref.invalidate(dashboardProvider);
+            ref.invalidate(cobrosPendientesProvider);
             if (ctx.mounted) {
               Navigator.pop(ctx);
               context.go(AppRoutes.alumnos);
