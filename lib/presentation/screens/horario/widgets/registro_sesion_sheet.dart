@@ -745,17 +745,99 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
     BuildContext context,
     EventoCalendario evento,
   ) async {
-    final sesionId = evento.sesionRealizadaId;
-    if (sesionId == null) return;
-
     setState(() => _loading = true);
 
     final l = ref.read(appLocalizationsProvider);
     final navigator = Navigator.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    final fechaIso = AppDateUtils.formatIso(widget.dia);
 
     try {
-      // Caso 1: Sesión de empleo - solo actualizar estado a confirmada + crear HoraExtra
+      var sesionId = evento.sesionRealizadaId;
+
+      // Si no existe SesionRealizada, crearla primero
+      if (sesionId == null) {
+        sesionId = _uuid.v4();
+
+        if (evento.fuenteTipo == FuenteTipo.empleo) {
+          // Empleo: crear SesionRealizada + HoraExtra
+          final sesion = SesionRealizada(
+            id: sesionId,
+            alumnoId: evento.alumnoId,
+            fuenteId: evento.fuenteId,
+            sesionRecurrenteId: evento.sesionRecurrenteId,
+            fecha: fechaIso,
+            horas: evento.duracionHoras,
+            cobro: 0,
+            estado: EstadoSesion.confirmada,
+          );
+          await ref.read(sesionRepositoryProvider).saveSesionRealizada(sesion);
+
+          final horaExtra = HoraExtra(
+            id: _uuid.v4(),
+            fuenteId: evento.fuenteId,
+            fecha: fechaIso,
+            horas: evento.duracionHoras,
+            alumnoId: evento.alumnoId,
+            notas: 'Auto - calendario',
+          );
+          await ref.read(horasExtraRepositoryProvider).saveHoraExtra(horaExtra);
+
+          ref.invalidate(dashboardProvider);
+          ref.invalidate(horasExtraProvider);
+          ref.invalidate(sesionesRealizadasFechaProvider);
+
+          if (mounted) {
+            navigator.pop();
+            messenger.showSnackBar(
+              SnackBar(content: Text(l.sesionMarcadaRealizada)),
+            );
+          }
+          return;
+        } else {
+          // Particular/academia: crear SesionRealizada + Cobro
+          final importe = evento.cobro ?? 0.0;
+          final sesion = SesionRealizada(
+            id: sesionId,
+            alumnoId: evento.alumnoId,
+            fuenteId: evento.fuenteId,
+            sesionRecurrenteId: evento.sesionRecurrenteId,
+            fecha: fechaIso,
+            horas: evento.duracionHoras,
+            cobro: importe,
+            estado: EstadoSesion.confirmada,
+          );
+          await ref.read(sesionRepositoryProvider).saveSesionRealizada(sesion);
+
+          final cobro = Cobro(
+            id: _uuid.v4(),
+            sesionId: sesionId,
+            alumnoId: evento.alumnoId,
+            fuenteId: evento.fuenteId,
+            modoCobro: ModoCobro.sesion,
+            monto: importe,
+            estado: EstadoCobro.cobrado,
+            fechaCobro: fechaIso,
+          );
+          await ref.read(cobroRepositoryProvider).saveCobro(cobro);
+
+          ref.invalidate(cobrosProvider);
+          ref.invalidate(dashboardProvider);
+          ref.invalidate(sesionesRealizadasFechaProvider);
+
+          if (mounted) {
+            navigator.pop();
+            messenger.showSnackBar(
+              SnackBar(content: Text(l.marcarCobrado)),
+            );
+          }
+          return;
+        }
+      }
+
+      // ── Ya existe SesionRealizada ──
+
+      // Caso 1: Sesión de empleo - actualizar estado a confirmada + crear HoraExtra
       if (evento.fuenteTipo == FuenteTipo.empleo) {
         final sesion = await ref
             .read(sesionRepositoryProvider)
@@ -774,7 +856,6 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
             );
 
         // Crear HoraExtra si no existe ya
-        final fechaIso = AppDateUtils.formatIso(widget.dia);
         final horaExtra = HoraExtra(
           id: _uuid.v4(),
           fuenteId: evento.fuenteId,
@@ -785,7 +866,6 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
         );
         await ref.read(horasExtraRepositoryProvider).saveHoraExtra(horaExtra);
 
-        // Invalidar providers para actualizar UI
         ref.invalidate(dashboardProvider);
         ref.invalidate(horasExtraProvider);
         ref.invalidate(sesionesRealizadasFechaProvider);
@@ -804,18 +884,39 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
           await ref.read(cobroRepositoryProvider).getCobroBySesionId(sesionId);
 
       if (cobro == null) {
-        if (mounted) {
-          messenger.showSnackBar(
-            SnackBar(content: Text(l.cobroNoEncontrado)),
-          );
+        // Si no existe cobro, crearlo ahora con el importe de la sesión
+        final sesion = await ref
+            .read(sesionRepositoryProvider)
+            .getSesionRealizadaById(sesionId);
+
+        if (sesion == null) {
+          if (mounted) {
+            messenger.showSnackBar(
+              const SnackBar(content: Text('Sesión no encontrada')),
+            );
+          }
+          return;
         }
-        return;
+
+        final nuevoCobro = Cobro(
+          id: _uuid.v4(),
+          sesionId: sesionId,
+          alumnoId: evento.alumnoId,
+          fuenteId: evento.fuenteId,
+          modoCobro: ModoCobro.sesion,
+          monto: sesion.cobro,
+          estado: EstadoCobro.cobrado,
+          fechaCobro: fechaIso,
+        );
+        await ref.read(cobroRepositoryProvider).saveCobro(nuevoCobro);
+
+        await ref.read(sesionRepositoryProvider).saveSesionRealizada(
+              sesion.copyWith(estado: EstadoSesion.confirmada),
+            );
+      } else {
+        await ref.read(cobroRepositoryProvider).marcarCobrado(cobro.id);
       }
 
-      // Marcar como cobrado (esto también actualiza la sesión)
-      await ref.read(cobroRepositoryProvider).marcarCobrado(cobro.id);
-
-      // Invalidar providers para actualizar UI
       ref.invalidate(cobrosProvider);
       ref.invalidate(dashboardProvider);
       ref.invalidate(sesionesRealizadasFechaProvider);
