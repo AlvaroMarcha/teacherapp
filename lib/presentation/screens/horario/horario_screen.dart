@@ -142,7 +142,15 @@ class _HorarioScreenState extends ConsumerState<HorarioScreen> {
                 ),
               ],
               selected: {_vista},
-              onSelectionChanged: (v) => setState(() => _vista = v.first),
+              onSelectionChanged: (v) => setState(() {
+                final nuevaVista = v.first;
+                // Al cambiar a vista año, resetear al año actual
+                if (nuevaVista == _VistaCalendario.anio &&
+                    _vista != _VistaCalendario.anio) {
+                  _focusedDay = DateTime.now();
+                }
+                _vista = nuevaVista;
+              }),
             ),
           ),
         ),
