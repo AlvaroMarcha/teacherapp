@@ -60,19 +60,34 @@ class _CompactContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Una sola línea: hora + título truncado. Sin Row/Spacer que desborde.
+    // Una sola línea: punto color + hora + título truncado
     final icon = evento.esCancelada
         ? '✕ '
         : evento.estaConfirmada
             ? '✓ '
-            : evento.estaPendiente
-                ? '⏰ '
-                : '';
-    return Text(
-      '$icon${evento.horaInicio} ${evento.titulo}',
-      style: AppTextStyles.labelSmall.copyWith(color: color, fontSize: 9.5),
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
+            : '';
+
+    return Row(
+      children: [
+        Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(
+            color: evento.fuenteColor,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 4),
+        Expanded(
+          child: Text(
+            '$icon${evento.horaInicio} ${evento.titulo}',
+            style:
+                AppTextStyles.labelSmall.copyWith(color: color, fontSize: 9.5),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -90,6 +105,16 @@ class _FullContent extends StatelessWidget {
       children: [
         Row(
           children: [
+            // Indicador de fuente (punto de color de la fuente)
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: evento.fuenteColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 6),
             Text(
               '${evento.horaInicio} – ${evento.horaFin}',
               style: AppTextStyles.labelSmall.copyWith(color: color),
@@ -97,8 +122,6 @@ class _FullContent extends StatelessWidget {
             const Spacer(),
             if (evento.esCancelada)
               Icon(Icons.cancel_outlined, size: 14, color: color)
-            else if (evento.estaPendiente)
-              Icon(Icons.schedule_outlined, size: 14, color: color)
             else if (evento.estaConfirmada)
               Icon(Icons.check_circle_outline, size: 14, color: color),
           ],
@@ -112,13 +135,6 @@ class _FullContent extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        if (evento.fuenteNombre != null && evento.fuenteNombre != evento.titulo)
-          Text(
-            evento.fuenteNombre!,
-            style: AppTextStyles.caption,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
         if (evento.cobro != null) ...[
           const SizedBox(height: 2),
           Text(

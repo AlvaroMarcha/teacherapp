@@ -134,7 +134,36 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(evento.titulo, style: AppTextStyles.titleMedium),
+                    Row(
+                      children: [
+                        // Punto de color de la fuente
+                        Container(
+                          width: 10,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: evento.fuenteColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(evento.titulo,
+                              style: AppTextStyles.titleMedium),
+                        ),
+                      ],
+                    ),
+                    if (evento.fuenteNombre != null &&
+                        evento.fuenteNombre != evento.titulo) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        evento.fuenteNombre!,
+                        style: AppTextStyles.caption.copyWith(
+                          color: evento.fuenteColor,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 2),
                     Text(
                       '${evento.horaInicio} – ${evento.horaFin} · ${AppDateUtils.formatFullDate(widget.dia)}',
                       style: AppTextStyles.caption,
@@ -440,6 +469,7 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
     // Invalidar providers para actualizar toda la app
     ref.invalidate(cobrosProvider);
     ref.invalidate(dashboardProvider);
+    ref.invalidate(sesionesRealizadasFechaProvider);
 
     if (mounted) {
       Navigator.of(context).pop();
@@ -502,6 +532,7 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
     // Invalidar provider de horas extra para actualizar dashboard
     ref.invalidate(horasExtraProvider);
     ref.invalidate(dashboardProvider);
+    ref.invalidate(sesionesRealizadasFechaProvider);
 
     if (mounted) {
       Navigator.of(context).pop();
@@ -567,6 +598,7 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
     ref.invalidate(cobrosProvider);
     ref.invalidate(dashboardProvider);
     ref.invalidate(horasExtraProvider);
+    ref.invalidate(sesionesRealizadasFechaProvider);
 
     if (mounted) {
       navigator.pop();
@@ -594,8 +626,9 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
     );
     await ref.read(sesionRepositoryProvider).saveSesionRealizada(sesion);
 
-    // No hay cobro ni horas que actualizar, pero invalidamos por si acaso
-    // (la UI del calendario se actualiza automáticamente por el stream)
+    // Invalidar providers para actualizar UI del calendario
+    ref.invalidate(sesionesRealizadasFechaProvider);
+    ref.invalidate(dashboardProvider);
 
     if (mounted) {
       Navigator.of(context).pop();
@@ -678,6 +711,8 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
     ref.invalidate(cobrosProvider);
     ref.invalidate(dashboardProvider);
     ref.invalidate(horasExtraProvider);
+    ref.invalidate(sesionesRecurrentesProvider);
+    ref.invalidate(sesionesRealizadasFechaProvider);
 
     if (mounted) {
       navigator.pop();
@@ -701,16 +736,35 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
     final messenger = ScaffoldMessenger.of(context);
 
     try {
-      // Caso 1: Sesión de empleo - solo actualizar estado a confirmada
+      // Caso 1: Sesión de empleo - solo actualizar estado a confirmada + crear HoraExtra
       if (evento.fuenteTipo == FuenteTipo.empleo) {
         final sesion = await ref
             .read(sesionRepositoryProvider)
             .getSesionRealizadaById(sesionId);
-        if (sesion != null) {
-          await ref.read(sesionRepositoryProvider).saveSesionRealizada(
-                sesion.copyWith(estado: EstadoSesion.confirmada),
-              );
+        if (sesion == null) {
+          if (mounted) {
+            messenger.showSnackBar(
+              const SnackBar(content: Text('Sesión no encontrada')),
+            );
+          }
+          return;
         }
+
+        await ref.read(sesionRepositoryProvider).saveSesionRealizada(
+              sesion.copyWith(estado: EstadoSesion.confirmada),
+            );
+
+        // Crear HoraExtra si no existe ya
+        final fechaIso = AppDateUtils.formatIso(widget.dia);
+        final horaExtra = HoraExtra(
+          id: _uuid.v4(),
+          fuenteId: evento.fuenteId,
+          fecha: fechaIso,
+          horas: evento.duracionHoras,
+          alumnoId: evento.alumnoId,
+          notas: 'Auto - calendario',
+        );
+        await ref.read(horasExtraRepositoryProvider).saveHoraExtra(horaExtra);
 
         // Invalidar providers para actualizar UI
         ref.invalidate(dashboardProvider);
@@ -751,6 +805,12 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
         navigator.pop();
         messenger.showSnackBar(
           SnackBar(content: Text(l.marcarCobrado)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        messenger.showSnackBar(
+          SnackBar(content: Text('Error: $e')),
         );
       }
     } finally {

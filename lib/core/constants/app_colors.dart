@@ -41,7 +41,7 @@ class AppColors {
   // ── Tipos de sesión (calendario) ────────────────────────────────
   static const Color sesionRecurrente = Color(0xFF2563EB); // Azul
   static const Color sesionParticular = Color(0xFF16A34A); // Verde
-  static const Color sesionUnica = Color(0xFF9333EA); // Morado
+  static const Color sesionUnica = Color(0xFF16A34A); // Verde
   static const Color sesionCancelada = Color(0xFFDC2626); // Rojo
 
   // ── Estado de cobros ────────────────────────────────────────────

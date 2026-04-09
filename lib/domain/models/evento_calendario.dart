@@ -27,6 +27,7 @@ class EventoCalendario {
   const EventoCalendario({
     required this.tipo,
     required this.color,
+    required this.fuenteColor,
     required this.horaInicio,
     required this.horaFin,
     required this.titulo,
@@ -43,6 +44,9 @@ class EventoCalendario {
 
   final TipoEvento tipo;
   final Color color;
+
+  /// Color de la fuente (para indicador visual).
+  final Color fuenteColor;
 
   /// "HH:mm"
   final String horaInicio;
@@ -92,6 +96,7 @@ class EventoCalendario {
     Fuente fuente, {
     SesionRealizada? realizada,
     String? alumnoNombre,
+    double? tarifaAlumno,
   }) {
     final estadoSesion = realizada?.estado;
     final esCancelada = estadoSesion == EstadoSesion.cancelada;
@@ -143,9 +148,13 @@ class EventoCalendario {
 
     final titulo = alumnoNombre ?? fuente.nombre;
 
+    // Cobro: prioridad a sesión realizada, fallback a tarifa del alumno
+    final cobro = realizada?.cobro ?? tarifaAlumno;
+
     return EventoCalendario(
       tipo: tipo,
       color: color,
+      fuenteColor: fuente.flutterColor,
       horaInicio: sesion.horaInicio,
       horaFin: sesion.horaFin,
       titulo: titulo,
@@ -156,7 +165,7 @@ class EventoCalendario {
       sesionRealizadaId: realizada?.id,
       alumnoId: sesion.alumnoId,
       alumnoNombre: alumnoNombre,
-      cobro: realizada?.cobro,
+      cobro: cobro,
       estadoSesion: realizada?.estado,
     );
   }
@@ -165,6 +174,7 @@ class EventoCalendario {
       EventoCalendario(
         tipo: tipo ?? this.tipo,
         color: color ?? this.color,
+        fuenteColor: fuenteColor,
         horaInicio: horaInicio,
         horaFin: horaFin,
         titulo: titulo,

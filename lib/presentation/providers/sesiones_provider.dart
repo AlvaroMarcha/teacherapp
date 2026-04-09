@@ -70,8 +70,8 @@ final eventosDelDiaProvider =
 
   // Mapa: fuenteId → Fuente
   final fuentesMap = {for (final f in fuentes) f.id: f};
-  // Mapa: alumnoId → nombre
-  final alumnosMap = {for (final a in alumnos) a.id: a.nombre};
+  // Mapa: alumnoId → Alumno completo
+  final alumnosMap = {for (final a in alumnos) a.id: a};
 
   final weekday = dia.weekday;
   final eventos = <EventoCalendario>[];
@@ -101,14 +101,16 @@ final eventosDelDiaProvider =
     }
 
     final realizada = realizadasMap[sesion.id];
-    final alumnoNombre =
-        sesion.alumnoId != null ? alumnosMap[sesion.alumnoId] : null;
+    final alumno = sesion.alumnoId != null ? alumnosMap[sesion.alumnoId] : null;
+    final alumnoNombre = alumno?.nombre;
+    final tarifaAlumno = alumno?.tarifaSesion;
 
     eventos.add(EventoCalendario.fromRecurrente(
       sesion,
       fuente,
       realizada: realizada,
       alumnoNombre: alumnoNombre,
+      tarifaAlumno: tarifaAlumno,
     ));
   }
 
