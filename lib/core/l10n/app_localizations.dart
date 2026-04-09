@@ -99,6 +99,8 @@ class AppLocalizations {
 
     // ── Alumnos ──
     required this.alumnosTitle,
+    required this.buscar,
+    required this.sinResultados,
     required this.nuevoAlumno,
     required this.editarAlumno,
     required this.sinAlumnos,
@@ -447,6 +449,8 @@ class AppLocalizations {
 
   // ── Alumnos ──
   final String alumnosTitle;
+  final String buscar;
+  final String sinResultados;
   final String nuevoAlumno;
   final String editarAlumno;
   final String sinAlumnos;
@@ -789,6 +793,8 @@ class AppLocalizations {
     diaCadaMes: 'de cada mes',
     configuracionContrato: 'Configuración contrato',
     alumnosTitle: 'Alumnos',
+    buscar: 'Buscar',
+    sinResultados: 'Sin resultados',
     nuevoAlumno: 'Nuevo alumno',
     editarAlumno: 'Editar alumno',
     sinAlumnos: 'Aún no tienes alumnos registrados',
@@ -1106,6 +1112,8 @@ class AppLocalizations {
     diaCadaMes: 'of each month',
     configuracionContrato: 'Contract details',
     alumnosTitle: 'Students',
+    buscar: 'Search',
+    sinResultados: 'No results',
     nuevoAlumno: 'New student',
     editarAlumno: 'Edit student',
     sinAlumnos: 'No students registered yet',
@@ -1420,6 +1428,8 @@ class AppLocalizations {
     diaCadaMes: 'di ogni mese',
     configuracionContrato: 'Dettagli contratto',
     alumnosTitle: 'Studenti',
+    buscar: 'Cerca',
+    sinResultados: 'Nessun risultato',
     nuevoAlumno: 'Nuovo studente',
     editarAlumno: 'Modifica studente',
     sinAlumnos: 'Nessuno studente registrato',

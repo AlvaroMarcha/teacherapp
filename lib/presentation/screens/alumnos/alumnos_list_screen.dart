@@ -9,28 +9,94 @@ import '../../providers/alumnos_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../../domain/models/alumno.dart';
 
-class AlumnosListScreen extends ConsumerWidget {
+class AlumnosListScreen extends ConsumerStatefulWidget {
   const AlumnosListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AlumnosListScreen> createState() => _AlumnosListScreenState();
+}
+
+class _AlumnosListScreenState extends ConsumerState<AlumnosListScreen> {
+  bool _searching = false;
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _startSearch() {
+    setState(() {
+      _searching = true;
+    });
+  }
+
+  void _stopSearch() {
+    setState(() {
+      _searching = false;
+      _searchQuery = '';
+      _searchController.clear();
+    });
+  }
+
+  List<Alumno> _filterAlumnos(List<Alumno> alumnos) {
+    if (_searchQuery.isEmpty) return alumnos;
+
+    final query = _searchQuery.toLowerCase();
+    return alumnos.where((alumno) {
+      return alumno.nombre.toLowerCase().contains(query);
+    }).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l = ref.watch(appLocalizationsProvider);
     final alumnosAsync = ref.watch(alumnosProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l.alumnosTitle),
+        title: _searching
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  hintText: '${l.buscar}...',
+                  border: InputBorder.none,
+                  hintStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
+              )
+            : Text(l.alumnosTitle),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {}, // TODO: búsqueda
-          ),
+          if (_searching)
+            IconButton(
+              icon: const Icon(Icons.clear),
+              onPressed: _stopSearch,
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.search),
+              onPressed: _startSearch,
+            ),
         ],
       ),
       body: alumnosAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (alumnos) {
+          final filteredAlumnos = _filterAlumnos(alumnos);
+
           if (alumnos.isEmpty) {
             return Center(
               child: Column(
@@ -52,10 +118,33 @@ class AlumnosListScreen extends ConsumerWidget {
               ),
             );
           }
+
+          if (filteredAlumnos.isEmpty && _searchQuery.isNotEmpty) {
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.search_off,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    l.sinResultados,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
           return ListView.builder(
             padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: alumnos.length,
-            itemBuilder: (_, i) => _AlumnoTile(alumno: alumnos[i]),
+            itemCount: filteredAlumnos.length,
+            itemBuilder: (_, i) => _AlumnoTile(alumno: filteredAlumnos[i]),
           );
         },
       ),
