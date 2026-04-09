@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/extensions/datetime_extension.dart';
 import '../../domain/models/cobro.dart';
 import '../../domain/models/fuente.dart';
+import '../../domain/models/sesion_realizada.dart';
 import 'cobros_provider.dart';
 import 'sesiones_provider.dart';
 import 'fuentes_provider.dart';
@@ -89,14 +90,20 @@ final dashboardProvider = Provider<AsyncValue<DashboardData>>((ref) {
               0,
               (a, c) => a + c.montoPendiente,
             );
-            final totalHoras = sesiones.fold<double>(0, (a, s) => a + s.horas);
+            final totalHoras = sesiones
+                .where((s) => s.estado == EstadoSesion.confirmada)
+                .fold<double>(0, (a, s) => a + s.horas);
 
             // Resumen por fuente
             final resumenMap = <String, FuenteResumen>{};
             for (final fuente in fuentes) {
               final fCobrosMes =
                   cobrosMes.where((c) => c.fuenteId == fuente.id);
-              final fSesiones = sesiones.where((s) => s.fuenteId == fuente.id);
+              final fSesiones = sesiones.where(
+                (s) =>
+                    s.fuenteId == fuente.id &&
+                    s.estado == EstadoSesion.confirmada,
+              );
               resumenMap[fuente.id] = FuenteResumen(
                 fuente: fuente,
                 ingresado: fCobrosMes

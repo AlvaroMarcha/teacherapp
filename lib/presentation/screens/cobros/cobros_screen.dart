@@ -421,6 +421,8 @@ class _CobroTile extends ConsumerWidget {
 
   void _marcarCobrado(WidgetRef ref) async {
     await ref.read(cobroRepositoryProvider).marcarCobrado(cobro.id);
+    ref.invalidate(cobrosPendientesProvider);
+    ref.invalidate(cobrosProvider);
     ref.invalidate(dashboardProvider);
     ref.invalidate(sesionesRealizadasFechaProvider);
   }

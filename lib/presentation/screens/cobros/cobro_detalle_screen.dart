@@ -254,6 +254,8 @@ class CobroDetalleScreen extends ConsumerWidget {
                     await ref
                         .read(cobroRepositoryProvider)
                         .marcarCobrado(cobroId);
+                    ref.invalidate(cobrosPendientesProvider);
+                    ref.invalidate(cobrosProvider);
                     ref.invalidate(dashboardProvider);
                     ref.invalidate(sesionesRealizadasFechaProvider);
                     if (context.mounted) context.pop();
@@ -332,6 +334,8 @@ class CobroDetalleScreen extends ConsumerWidget {
     await ref.read(cobroRepositoryProvider).marcarParcial(cobroId, monto);
     // Invalidate para que el watch se actualice
     ref.invalidate(cobroByIdProvider(cobroId));
+    ref.invalidate(cobrosPendientesProvider);
+    ref.invalidate(cobrosProvider);
     ref.invalidate(dashboardProvider);
     ref.invalidate(sesionesRealizadasFechaProvider);
   }

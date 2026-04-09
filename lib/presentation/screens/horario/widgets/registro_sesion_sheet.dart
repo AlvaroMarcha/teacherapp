@@ -742,84 +742,105 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
     try {
       var sesionId = evento.sesionRealizadaId;
 
-      // Si no existe SesionRealizada, crearla primero
+      // Si no existe SesionRealizada, buscar por recurrente+fecha antes de crear
       if (sesionId == null) {
-        sesionId = _uuid.v4();
+        // Verificar si ya existe una sesión para este recurrente+fecha
+        final existing = evento.sesionRecurrenteId != null
+            ? await ref
+                .read(databaseProvider)
+                .getSesionRealizadaByRecurrenteAndFecha(
+                  evento.sesionRecurrenteId!,
+                  fechaIso,
+                )
+            : null;
 
-        if (evento.fuenteTipo == FuenteTipo.empleo) {
-          // Empleo: crear SesionRealizada + HoraExtra
-          final sesion = SesionRealizada(
-            id: sesionId,
-            alumnoId: evento.alumnoId,
-            fuenteId: evento.fuenteId,
-            sesionRecurrenteId: evento.sesionRecurrenteId,
-            fecha: fechaIso,
-            horas: evento.duracionHoras,
-            cobro: 0,
-            estado: EstadoSesion.confirmada,
-          );
-          await ref.read(sesionRepositoryProvider).saveSesionRealizada(sesion);
-
-          final horaExtra = HoraExtra(
-            id: _uuid.v4(),
-            fuenteId: evento.fuenteId,
-            fecha: fechaIso,
-            horas: evento.duracionHoras,
-            alumnoId: evento.alumnoId,
-            notas: 'Auto - calendario',
-          );
-          await ref.read(horasExtraRepositoryProvider).saveHoraExtra(horaExtra);
-
-          ref.invalidate(dashboardProvider);
-          ref.invalidate(horasExtraProvider);
-          ref.invalidate(sesionesRealizadasFechaProvider);
-
-          if (mounted) {
-            navigator.pop();
-            messenger.showSnackBar(
-              SnackBar(content: Text(l.sesionMarcadaRealizada)),
-            );
-          }
-          return;
+        if (existing != null) {
+          // Ya existe: usar la existente en vez de crear duplicado
+          sesionId = existing.id;
         } else {
-          // Particular/academia: crear SesionRealizada + Cobro
-          final importe = evento.cobro ?? 0.0;
-          final sesion = SesionRealizada(
-            id: sesionId,
-            alumnoId: evento.alumnoId,
-            fuenteId: evento.fuenteId,
-            sesionRecurrenteId: evento.sesionRecurrenteId,
-            fecha: fechaIso,
-            horas: evento.duracionHoras,
-            cobro: importe,
-            estado: EstadoSesion.confirmada,
-          );
-          await ref.read(sesionRepositoryProvider).saveSesionRealizada(sesion);
+          sesionId = _uuid.v4();
 
-          final cobro = Cobro(
-            id: _uuid.v4(),
-            sesionId: sesionId,
-            alumnoId: evento.alumnoId,
-            fuenteId: evento.fuenteId,
-            modoCobro: ModoCobro.sesion,
-            monto: importe,
-            estado: EstadoCobro.cobrado,
-            fechaCobro: fechaIso,
-          );
-          await ref.read(cobroRepositoryProvider).saveCobro(cobro);
-
-          ref.invalidate(cobrosProvider);
-          ref.invalidate(dashboardProvider);
-          ref.invalidate(sesionesRealizadasFechaProvider);
-
-          if (mounted) {
-            navigator.pop();
-            messenger.showSnackBar(
-              SnackBar(content: Text(l.marcarCobrado)),
+          if (evento.fuenteTipo == FuenteTipo.empleo) {
+            // Empleo: crear SesionRealizada + HoraExtra
+            final sesion = SesionRealizada(
+              id: sesionId,
+              alumnoId: evento.alumnoId,
+              fuenteId: evento.fuenteId,
+              sesionRecurrenteId: evento.sesionRecurrenteId,
+              fecha: fechaIso,
+              horas: evento.duracionHoras,
+              cobro: 0,
+              estado: EstadoSesion.confirmada,
             );
+            await ref
+                .read(sesionRepositoryProvider)
+                .saveSesionRealizada(sesion);
+
+            final horaExtra = HoraExtra(
+              id: _uuid.v4(),
+              fuenteId: evento.fuenteId,
+              fecha: fechaIso,
+              horas: evento.duracionHoras,
+              alumnoId: evento.alumnoId,
+              notas: 'Auto - calendario',
+            );
+            await ref
+                .read(horasExtraRepositoryProvider)
+                .saveHoraExtra(horaExtra);
+
+            ref.invalidate(dashboardProvider);
+            ref.invalidate(horasExtraProvider);
+            ref.invalidate(sesionesRealizadasFechaProvider);
+
+            if (mounted) {
+              navigator.pop();
+              messenger.showSnackBar(
+                SnackBar(content: Text(l.sesionMarcadaRealizada)),
+              );
+            }
+            return;
+          } else {
+            // Particular/academia: crear SesionRealizada + Cobro
+            final importe = evento.cobro ?? 0.0;
+            final sesion = SesionRealizada(
+              id: sesionId,
+              alumnoId: evento.alumnoId,
+              fuenteId: evento.fuenteId,
+              sesionRecurrenteId: evento.sesionRecurrenteId,
+              fecha: fechaIso,
+              horas: evento.duracionHoras,
+              cobro: importe,
+              estado: EstadoSesion.confirmada,
+            );
+            await ref
+                .read(sesionRepositoryProvider)
+                .saveSesionRealizada(sesion);
+
+            final cobro = Cobro(
+              id: _uuid.v4(),
+              sesionId: sesionId,
+              alumnoId: evento.alumnoId,
+              fuenteId: evento.fuenteId,
+              modoCobro: ModoCobro.sesion,
+              monto: importe,
+              estado: EstadoCobro.cobrado,
+              fechaCobro: fechaIso,
+            );
+            await ref.read(cobroRepositoryProvider).saveCobro(cobro);
+
+            ref.invalidate(cobrosProvider);
+            ref.invalidate(dashboardProvider);
+            ref.invalidate(sesionesRealizadasFechaProvider);
+
+            if (mounted) {
+              navigator.pop();
+              messenger.showSnackBar(
+                SnackBar(content: Text(l.marcarCobrado)),
+              );
+            }
+            return;
           }
-          return;
-        }
+        } // close else (no existing session)
       }
 
       // ── Ya existe SesionRealizada ──
@@ -904,6 +925,7 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
         await ref.read(cobroRepositoryProvider).marcarCobrado(cobro.id);
       }
 
+      ref.invalidate(cobrosPendientesProvider);
       ref.invalidate(cobrosProvider);
       ref.invalidate(dashboardProvider);
       ref.invalidate(sesionesRealizadasFechaProvider);
