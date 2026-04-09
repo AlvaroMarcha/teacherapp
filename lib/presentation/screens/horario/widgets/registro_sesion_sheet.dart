@@ -605,6 +605,7 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
 
     // IMPORTANTE: Invalidar providers para forzar actualización en toda la app
     ref.invalidate(cobrosProvider);
+    ref.invalidate(cobrosPendientesProvider);
     ref.invalidate(dashboardProvider);
     ref.invalidate(horasExtraProvider);
     ref.invalidate(sesionesRealizadasFechaProvider);
@@ -696,18 +697,24 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
     );
     if (confirmed != true || !mounted) return;
 
-    // 1. Desvincular sesiones realizadas (conserva historial de cobros/horas)
+    // 1. Eliminar sesiones realizadas pendientes y sus cobros
+    await ref
+        .read(sesionRepositoryProvider)
+        .deleteSesionesRealizadasPendientesByRecurrente(sesionRecId);
+
+    // 2. Desvincular sesiones confirmadas (conserva historial)
     await ref
         .read(sesionRepositoryProvider)
         .desvincularSesionesRealizadas(sesionRecId);
 
-    // 2. Eliminar la sesión recurrente
+    // 3. Eliminar la sesión recurrente
     await ref
         .read(sesionRepositoryProvider)
         .deleteSesionRecurrente(sesionRecId);
 
-    // 5. IMPORTANTE: Invalidar providers para forzar actualización en toda la app
+    // 4. Invalidar providers para forzar actualización en toda la app
     ref.invalidate(cobrosProvider);
+    ref.invalidate(cobrosPendientesProvider);
     ref.invalidate(dashboardProvider);
     ref.invalidate(horasExtraProvider);
     ref.invalidate(sesionesRecurrentesProvider);

@@ -150,14 +150,59 @@ class AppDatabase extends _$AppDatabase {
       (delete(sesionesRecurrentesTable)..where((t) => t.id.equals(id))).go();
 
   /// Desvincula sesiones realizadas de su recurrente (pone sesionRecurrenteId = null).
+  /// Solo desvincula las que NO están pendientes (conserva historial).
+  /// Las pendientes se eliminan con [deleteSesionesRealizadasPendientesByRecurrente].
   Future<int> desvincularSesionesRealizadas(String sesionRecurrenteId) =>
       (update(sesionesRealizadasTable)
-            ..where((t) => t.sesionRecurrenteId.equals(sesionRecurrenteId)))
+            ..where(
+              (t) =>
+                  t.sesionRecurrenteId.equals(sesionRecurrenteId) &
+                  t.estado.equals('pendiente').not(),
+            ))
           .write(
         const SesionesRealizadasTableCompanion(
           sesionRecurrenteId: Value(null),
         ),
       );
+
+  /// Elimina TODAS las SesionesRealizadas pendientes de una sesión recurrente
+  /// y sus Cobros pendientes asociados. Usado al eliminar una sesión recurrente.
+  Future<int> deleteSesionesRealizadasPendientesByRecurrente(
+    String sesionRecurrenteId,
+  ) async {
+    return await transaction(() async {
+      // 1. Buscar sesiones pendientes vinculadas a esta recurrente
+      final sesiones = await (select(sesionesRealizadasTable)
+            ..where(
+              (t) =>
+                  t.sesionRecurrenteId.equals(sesionRecurrenteId) &
+                  t.estado.equals('pendiente'),
+            ))
+          .get();
+
+      print('🔍 deletePendientesByRecurrente: id=$sesionRecurrenteId, '
+          'found=${sesiones.length} pendientes');
+
+      if (sesiones.isEmpty) return 0;
+
+      // 2. Eliminar Cobros asociados a esas sesiones
+      final sesionIds = sesiones.map((s) => s.id).toList();
+      final cobrosDeleted = await (delete(cobrosTable)
+            ..where((t) => t.sesionId.isIn(sesionIds)))
+          .go();
+
+      print('🗑️ deletePendientesByRecurrente: deleted $cobrosDeleted cobros');
+
+      // 3. Eliminar las SesionesRealizadas pendientes
+      final sesionesDeleted = await (delete(sesionesRealizadasTable)
+            ..where((t) => t.id.isIn(sesionIds)))
+          .go();
+
+      print(
+          '🗑️ deletePendientesByRecurrente: deleted $sesionesDeleted sesiones');
+      return sesionesDeleted;
+    });
+  }
 
   // ── Queries — Sesiones Realizadas ────────────────────────────────
 

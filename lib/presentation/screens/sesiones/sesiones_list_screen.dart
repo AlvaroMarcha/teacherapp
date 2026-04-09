@@ -194,15 +194,27 @@ class _SesionesListScreenState extends ConsumerState<SesionesListScreen> {
     );
     if (confirmed != true) return;
 
-    // Desvincular realizadas y eliminar recurrente
+    print('🚨 ELIMINANDO sesión recurrente: ${sesion.id}');
+
+    // Eliminar pendientes (sesiones + cobros) y desvincular confirmadas
+    print('🔄 Paso 1: deleteSesionesRealizadasPendientesByRecurrente...');
+    await ref
+        .read(sesionRepositoryProvider)
+        .deleteSesionesRealizadasPendientesByRecurrente(sesion.id);
+
+    print('🔄 Paso 2: desvincularSesionesRealizadas...');
     await ref
         .read(sesionRepositoryProvider)
         .desvincularSesionesRealizadas(sesion.id);
+
+    print('🔄 Paso 3: deleteSesionRecurrente...');
     await ref.read(sesionRepositoryProvider).deleteSesionRecurrente(sesion.id);
 
+    print('✅ Sesión recurrente eliminada, invalidando providers...');
     ref.invalidate(sesionesRecurrentesProvider);
     ref.invalidate(sesionesRealizadasFechaProvider);
     ref.invalidate(cobrosProvider);
+    ref.invalidate(cobrosPendientesProvider);
     ref.invalidate(dashboardProvider);
     ref.invalidate(horasExtraProvider);
 

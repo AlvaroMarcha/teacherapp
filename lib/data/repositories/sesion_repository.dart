@@ -80,10 +80,21 @@ class SesionRepository {
   Future<int> deleteSesionRecurrente(String id) =>
       _db.deleteSesionRecurrente(id);
 
-  /// Desvincula sesiones realizadas (pone sesionRecurrenteId = null)
+  /// Desvincula sesiones realizadas NO pendientes (pone sesionRecurrenteId = null)
   /// para conservar historial al eliminar la recurrente.
   Future<int> desvincularSesionesRealizadas(String sesionRecurrenteId) =>
       _db.desvincularSesionesRealizadas(sesionRecurrenteId);
+
+  /// Elimina sesiones realizadas pendientes y sus cobros asociados
+  /// al eliminar una sesión recurrente.
+  Future<int> deleteSesionesRealizadasPendientesByRecurrente(
+    String sesionRecurrenteId,
+  ) {
+    print(
+        '📦 REPOSITORY: deleteSesionesRealizadasPendientesByRecurrente llamado con id=$sesionRecurrenteId');
+    return _db
+        .deleteSesionesRealizadasPendientesByRecurrente(sesionRecurrenteId);
+  }
 
   Future<int> deleteSesionRealizada(String id) => _db.deleteSesionRealizada(id);
 
