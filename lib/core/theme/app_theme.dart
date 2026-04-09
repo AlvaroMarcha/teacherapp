@@ -59,6 +59,7 @@ class AppTheme {
         // ── Card ─────────────────────────────────────────────────
         cardTheme: CardThemeData(
           elevation: 0,
+          clipBehavior: Clip.antiAlias,
           color: AppColors.surface,
           surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(
@@ -252,6 +253,7 @@ class AppTheme {
         // ── Card ─────────────────────────────────────────────────
         cardTheme: CardThemeData(
           elevation: 0,
+          clipBehavior: Clip.antiAlias,
           color: AppColors.surfaceDark,
           surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(
@@ -446,6 +448,7 @@ class AppTheme {
         // ── Card ─────────────────────────────────────────────────
         cardTheme: CardThemeData(
           elevation: 0,
+          clipBehavior: Clip.antiAlias,
           color: AppColors.surfacePastel,
           surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(
