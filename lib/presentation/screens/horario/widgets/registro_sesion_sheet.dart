@@ -152,8 +152,7 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
                         ),
                       ],
                     ),
-                    if (evento.fuenteNombre != null &&
-                        evento.fuenteNombre != evento.titulo) ...[
+                    if (evento.fuenteNombre != null) ...[
                       const SizedBox(height: 2),
                       Text(
                         evento.fuenteNombre!,
@@ -171,6 +170,16 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
                   ],
                 ),
               ),
+              if (evento.cobro != null) ...[
+                const SizedBox(width: 12),
+                Text(
+                  CurrencyUtils.formatCompact(evento.cobro!),
+                  style: AppTextStyles.titleLarge.copyWith(
+                    color: color,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 20),
@@ -692,9 +701,19 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
         .read(sesionRepositoryProvider)
         .getSesionesRealizadasBySesionRecurrenteId(sesionRecId);
 
-    // 2. Eliminar cobros de cada sesión realizada
+    // 2. Eliminar HoraExtra y Cobros de cada sesión realizada según tipo de fuente
     for (final sesion in sesionesRealizadas) {
-      await ref.read(cobroRepositoryProvider).deleteCobroBySesionId(sesion.id);
+      if (evento.fuenteTipo == FuenteTipo.empleo) {
+        // Para empleos: eliminar HoraExtra asociadas
+        await ref
+            .read(databaseProvider)
+            .deleteHoraExtraByFechaAndFuente(sesion.fecha, sesion.fuenteId);
+      } else {
+        // Para particulares/academia: eliminar cobros
+        await ref
+            .read(cobroRepositoryProvider)
+            .deleteCobroBySesionId(sesion.id);
+      }
     }
 
     // 3. Eliminar las sesiones realizadas

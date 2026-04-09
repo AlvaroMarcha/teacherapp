@@ -135,6 +135,18 @@ class _FullContent extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
+        if (evento.fuenteNombre != null) ...[
+          const SizedBox(height: 2),
+          Text(
+            evento.fuenteNombre!,
+            style: AppTextStyles.caption.copyWith(
+              color: evento.fuenteColor,
+              fontWeight: FontWeight.w500,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
         if (evento.cobro != null) ...[
           const SizedBox(height: 2),
           Text(

@@ -104,7 +104,7 @@ class _FuenteResumenTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = AppColors.forFuenteTipo(resumen.fuente.tipo.value);
+    final color = resumen.fuente.flutterColor;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
