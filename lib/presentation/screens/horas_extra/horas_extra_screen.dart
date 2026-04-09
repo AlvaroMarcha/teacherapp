@@ -80,13 +80,9 @@ class _HorasExtraBody extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
         data: (entries) {
-          // Horas extra manuales (no auto) del mes actual
-          final manualExtrasMes = entries
-              .where(
-                (e) =>
-                    e.fecha.startsWith(periodoMes) &&
-                    !e.notas.startsWith('Auto'),
-              )
+          // Todas las horas extra del mes (incluyendo auto-generadas)
+          final horasExtrasMes = entries
+              .where((e) => e.fecha.startsWith(periodoMes))
               .fold<double>(0, (acc, e) => acc + e.horas);
 
           // Horas trabajadas de sesiones confirmadas
@@ -111,10 +107,8 @@ class _HorasExtraBody extends ConsumerWidget {
                   final semanasEnMes = lastDayOfMonth / 7;
                   final horasContratadas = config.horasSemanales * semanasEnMes;
 
-                  // Horas extra = exceso sobre contrato + manuales
-                  final excesoSesiones = (horasTrabajadas - horasContratadas)
-                      .clamp(0, double.infinity);
-                  final totalExtra = excesoSesiones + manualExtrasMes;
+                  // Horas extra = horas extra registradas
+                  final totalExtra = horasExtrasMes;
 
                   // Sueldo teórico = base + extras
                   final sueldoEsperado =
