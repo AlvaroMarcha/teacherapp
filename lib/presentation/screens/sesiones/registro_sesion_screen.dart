@@ -10,10 +10,12 @@ import '../../providers/database_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/cobros_provider.dart';
 import '../../providers/dashboard_provider.dart';
+import '../../providers/horas_extra_provider.dart';
 import '../../../domain/models/sesion_recurrente.dart';
 import '../../../domain/models/sesion_realizada.dart';
 import '../../../domain/models/cobro.dart';
 import '../../../domain/models/fuente.dart';
+import '../../../domain/models/hora_extra.dart';
 
 /// Pantalla de registro rápido de sesión (flujo de 3 toques).
 ///
@@ -450,38 +452,81 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
     );
     await ref.read(sesionRepositoryProvider).saveSesionRecurrente(recurrente);
 
-    // 2. Crear SesionRealizada + Cobro para sesiones no-empleo
-    //    Las sesiones de empleo se confirman manualmente desde el calendario.
-    if (!esEmpleo) {
+    // 2. Crear SesionRealizada + Cobro/HoraExtra solo para sesiones puntuales
+    //    Las sesiones recurrentes se confirman manualmente desde el calendario.
+    if (_esPuntual) {
       final sesionId = _uuid.v4();
-      final sesion = SesionRealizada(
-        id: sesionId,
-        alumnoId: _alumnoId,
-        fuenteId: _fuenteId!,
-        sesionRecurrenteId: recurrenteId,
-        fecha: fechaIso,
-        horas: _horas,
-        cobro: tarifa,
-        estado:
-            _cobradoAhora ? EstadoSesion.confirmada : EstadoSesion.pendiente,
-      );
-      await ref.read(sesionRepositoryProvider).saveSesionRealizada(sesion);
 
-      final cobro = Cobro(
-        id: _uuid.v4(),
-        sesionId: sesionId,
-        alumnoId: _alumnoId,
-        fuenteId: _fuenteId!,
-        modoCobro: ModoCobro.sesion,
-        monto: tarifa,
-        estado: _cobradoAhora ? EstadoCobro.cobrado : EstadoCobro.pendiente,
-        fechaCobro: _cobradoAhora ? fechaIso : null,
-      );
-      await ref.read(cobroRepositoryProvider).saveCobro(cobro);
+      if (esEmpleo) {
+        // Para sesiones de empleo: determinar estado según si la hora de fin ya pasó
+        final fechaHoraFin = DateTime(
+          _fecha.year,
+          _fecha.month,
+          _fecha.day,
+          _horaFin.hour,
+          _horaFin.minute,
+        );
+        final yaTermino = DateTime.now().isAfter(fechaHoraFin);
 
-      // Invalidar providers para actualizar toda la app
-      ref.invalidate(cobrosProvider);
-      ref.invalidate(dashboardProvider);
+        final sesion = SesionRealizada(
+          id: sesionId,
+          alumnoId: _alumnoId,
+          fuenteId: _fuenteId!,
+          sesionRecurrenteId: recurrenteId,
+          fecha: fechaIso,
+          horas: _horas,
+          cobro: 0,
+          estado: yaTermino ? EstadoSesion.confirmada : EstadoSesion.pendiente,
+        );
+        await ref.read(sesionRepositoryProvider).saveSesionRealizada(sesion);
+
+        // Crear HoraExtra solo si la sesión ya terminó
+        if (yaTermino) {
+          final horaExtra = HoraExtra(
+            id: _uuid.v4(),
+            fuenteId: _fuenteId!,
+            fecha: fechaIso,
+            horas: _horas,
+            alumnoId: _alumnoId,
+            notas: 'Auto - calendario',
+          );
+          await ref.read(horasExtraRepositoryProvider).saveHoraExtra(horaExtra);
+        }
+
+        // Invalidar providers para actualizar toda la app
+        ref.invalidate(horasExtraProvider);
+        ref.invalidate(dashboardProvider);
+      } else {
+        // Para sesiones no-empleo: crear SesionRealizada + Cobro
+        final sesion = SesionRealizada(
+          id: sesionId,
+          alumnoId: _alumnoId,
+          fuenteId: _fuenteId!,
+          sesionRecurrenteId: recurrenteId,
+          fecha: fechaIso,
+          horas: _horas,
+          cobro: tarifa,
+          estado:
+              _cobradoAhora ? EstadoSesion.confirmada : EstadoSesion.pendiente,
+        );
+        await ref.read(sesionRepositoryProvider).saveSesionRealizada(sesion);
+
+        final cobro = Cobro(
+          id: _uuid.v4(),
+          sesionId: sesionId,
+          alumnoId: _alumnoId,
+          fuenteId: _fuenteId!,
+          modoCobro: ModoCobro.sesion,
+          monto: tarifa,
+          estado: _cobradoAhora ? EstadoCobro.cobrado : EstadoCobro.pendiente,
+          fechaCobro: _cobradoAhora ? fechaIso : null,
+        );
+        await ref.read(cobroRepositoryProvider).saveCobro(cobro);
+
+        // Invalidar providers para actualizar toda la app
+        ref.invalidate(cobrosProvider);
+        ref.invalidate(dashboardProvider);
+      }
     }
 
     if (mounted) context.pop();

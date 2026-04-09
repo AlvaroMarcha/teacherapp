@@ -462,6 +462,17 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
     final fechaIso = AppDateUtils.formatIso(widget.dia);
     final evento = widget.evento;
 
+    // Determinar si la sesión ya terminó comparando con la hora actual
+    final horaFinParts = evento.horaFin.split(':');
+    final fechaHoraFin = DateTime(
+      widget.dia.year,
+      widget.dia.month,
+      widget.dia.day,
+      int.parse(horaFinParts[0]),
+      int.parse(horaFinParts[1]),
+    );
+    final yaTermino = DateTime.now().isAfter(fechaHoraFin);
+
     // Guardar SesionRealizada (sin cobro económico)
     final sesion = SesionRealizada(
       id: _uuid.v4(),
@@ -471,20 +482,22 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
       fecha: fechaIso,
       horas: evento.duracionHoras,
       cobro: 0,
-      estado: EstadoSesion.confirmada,
+      estado: yaTermino ? EstadoSesion.confirmada : EstadoSesion.pendiente,
     );
     await ref.read(sesionRepositoryProvider).saveSesionRealizada(sesion);
 
-    // Crear HoraExtra automáticamente
-    final horaExtra = HoraExtra(
-      id: _uuid.v4(),
-      fuenteId: evento.fuenteId,
-      fecha: fechaIso,
-      horas: evento.duracionHoras,
-      alumnoId: evento.alumnoId,
-      notas: 'Auto - calendario',
-    );
-    await ref.read(horasExtraRepositoryProvider).saveHoraExtra(horaExtra);
+    // Crear HoraExtra solo si la sesión ya terminó
+    if (yaTermino) {
+      final horaExtra = HoraExtra(
+        id: _uuid.v4(),
+        fuenteId: evento.fuenteId,
+        fecha: fechaIso,
+        horas: evento.duracionHoras,
+        alumnoId: evento.alumnoId,
+        notas: 'Auto - calendario',
+      );
+      await ref.read(horasExtraRepositoryProvider).saveHoraExtra(horaExtra);
+    }
 
     // Invalidar provider de horas extra para actualizar dashboard
     ref.invalidate(horasExtraProvider);
@@ -496,7 +509,9 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '${l.sesionRegistradaHoras} (${evento.duracionHoras.toStringAsFixed(1)}h)',
+            yaTermino
+                ? '${l.sesionRegistradaHoras} (${evento.duracionHoras.toStringAsFixed(1)}h)'
+                : 'Sesión registrada como pendiente - se marcará como realizada al finalizar',
           ),
         ),
       );

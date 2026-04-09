@@ -9,10 +9,12 @@ import '../../providers/database_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/cobros_provider.dart';
 import '../../providers/dashboard_provider.dart';
+import '../../providers/horas_extra_provider.dart';
 import '../../../domain/models/sesion_recurrente.dart';
 import '../../../domain/models/sesion_realizada.dart';
 import '../../../domain/models/cobro.dart';
 import '../../../domain/models/fuente.dart';
+import '../../../domain/models/hora_extra.dart';
 
 /// Formulario para crear o editar una sesión recurrente.
 /// Se usa al definir el horario semanal (ej: Blanca, lunes y miércoles 17h).
@@ -75,6 +77,20 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
       _esPuntual = e.esPuntual;
       if (e.esPuntual && e.fechaInicio.isNotEmpty) {
         _fechaUnica = DateTime.tryParse(e.fechaInicio);
+      }
+      // Cargar tarifa del alumno si existe
+      if (e.alumnoId != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          final alumnos = ref.read(alumnosProvider).valueOrNull ?? [];
+          try {
+            final alumno = alumnos.firstWhere((a) => a.id == e.alumnoId);
+            if (alumno.tarifaSesion > 0) {
+              _importeCtrl.text = alumno.tarifaSesion.toStringAsFixed(2);
+            }
+          } catch (_) {
+            // Alumno no encontrado, ignorar
+          }
+        });
       }
     }
   }
@@ -140,7 +156,17 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
                             (a) => DropdownMenuItem(
                                 value: a.id, child: Text(a.nombre))),
                       ],
-                      onChanged: (v) => setState(() => _alumnoId = v),
+                      onChanged: (v) {
+                        setState(() => _alumnoId = v);
+                        // Cargar tarifa del alumno seleccionado
+                        if (v != null) {
+                          final alumno = alumnos.firstWhere((a) => a.id == v);
+                          if (alumno.tarifaSesion > 0) {
+                            _importeCtrl.text =
+                                alumno.tarifaSesion.toStringAsFixed(2);
+                          }
+                        }
+                      },
                     ),
                     const SizedBox(height: 12),
                   ],
@@ -371,38 +397,82 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
 
     await ref.read(sesionRepositoryProvider).saveSesionRecurrente(sesion);
 
-    // Si no es empleo, crear SesionRealizada + Cobro
-    if (!esEmpleo) {
-      final tarifa = double.tryParse(_importeCtrl.text) ?? 0.0;
+    // Crear SesionRealizada + Cobro/HoraExtra solo para sesiones puntuales
+    if (_esPuntual) {
       final sesionId = _uuid.v4();
-      final realizada = SesionRealizada(
-        id: sesionId,
-        alumnoId: _alumnoId,
-        fuenteId: _fuenteId!,
-        sesionRecurrenteId: recurrenteId,
-        fecha: fechaBase,
-        horas: _duracion,
-        cobro: tarifa,
-        estado:
-            _cobradoAhora ? EstadoSesion.confirmada : EstadoSesion.pendiente,
-      );
-      await ref.read(sesionRepositoryProvider).saveSesionRealizada(realizada);
 
-      final cobro = Cobro(
-        id: _uuid.v4(),
-        sesionId: sesionId,
-        alumnoId: _alumnoId,
-        fuenteId: _fuenteId!,
-        modoCobro: ModoCobro.sesion,
-        monto: tarifa,
-        estado: _cobradoAhora ? EstadoCobro.cobrado : EstadoCobro.pendiente,
-        fechaCobro: _cobradoAhora ? fechaBase : null,
-      );
-      await ref.read(cobroRepositoryProvider).saveCobro(cobro);
+      if (esEmpleo) {
+        // Para sesiones de empleo: determinar estado según si la hora de fin ya pasó
+        final finParts = horaFin.split(':');
+        final fechaHoraFin = DateTime(
+          _fechaUnica!.year,
+          _fechaUnica!.month,
+          _fechaUnica!.day,
+          int.parse(finParts[0]),
+          int.parse(finParts[1]),
+        );
+        final yaTermino = DateTime.now().isAfter(fechaHoraFin);
 
-      // Invalidar providers para actualizar toda la app
-      ref.invalidate(cobrosProvider);
-      ref.invalidate(dashboardProvider);
+        final realizada = SesionRealizada(
+          id: sesionId,
+          alumnoId: _alumnoId,
+          fuenteId: _fuenteId!,
+          sesionRecurrenteId: recurrenteId,
+          fecha: fechaBase,
+          horas: _duracion,
+          cobro: 0,
+          estado: yaTermino ? EstadoSesion.confirmada : EstadoSesion.pendiente,
+        );
+        await ref.read(sesionRepositoryProvider).saveSesionRealizada(realizada);
+
+        // Crear HoraExtra solo si la sesión ya terminó
+        if (yaTermino) {
+          final horaExtra = HoraExtra(
+            id: _uuid.v4(),
+            fuenteId: _fuenteId!,
+            fecha: fechaBase,
+            horas: _duracion,
+            alumnoId: _alumnoId,
+            notas: 'Auto - calendario',
+          );
+          await ref.read(horasExtraRepositoryProvider).saveHoraExtra(horaExtra);
+        }
+
+        // Invalidar providers para actualizar toda la app
+        ref.invalidate(horasExtraProvider);
+        ref.invalidate(dashboardProvider);
+      } else {
+        // Para sesiones no-empleo: crear SesionRealizada + Cobro
+        final tarifa = double.tryParse(_importeCtrl.text) ?? 0.0;
+        final realizada = SesionRealizada(
+          id: sesionId,
+          alumnoId: _alumnoId,
+          fuenteId: _fuenteId!,
+          sesionRecurrenteId: recurrenteId,
+          fecha: fechaBase,
+          horas: _duracion,
+          cobro: tarifa,
+          estado:
+              _cobradoAhora ? EstadoSesion.confirmada : EstadoSesion.pendiente,
+        );
+        await ref.read(sesionRepositoryProvider).saveSesionRealizada(realizada);
+
+        final cobro = Cobro(
+          id: _uuid.v4(),
+          sesionId: sesionId,
+          alumnoId: _alumnoId,
+          fuenteId: _fuenteId!,
+          modoCobro: ModoCobro.sesion,
+          monto: tarifa,
+          estado: _cobradoAhora ? EstadoCobro.cobrado : EstadoCobro.pendiente,
+          fechaCobro: _cobradoAhora ? fechaBase : null,
+        );
+        await ref.read(cobroRepositoryProvider).saveCobro(cobro);
+
+        // Invalidar providers para actualizar toda la app
+        ref.invalidate(cobrosProvider);
+        ref.invalidate(dashboardProvider);
+      }
     }
 
     if (mounted) Navigator.of(context).pop();
