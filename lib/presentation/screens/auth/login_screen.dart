@@ -132,8 +132,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     borderRadius: BorderRadius.circular(24),
                     child: Image.asset(
                       'assets/images/logo-laura.png',
-                      width: 120,
-                      height: 120,
+                      width: 200,
+                      height: 200,
                     ),
                   ),
                   const SizedBox(height: 24),
