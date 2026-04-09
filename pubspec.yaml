@@ -91,15 +91,15 @@ flutter_launcher_icons:
   adaptive_icon_foreground: "assets/images/logo-laura.png"
 
 flutter_native_splash:
-  color: "#FFFFFF"
-  image: "assets/images/logo-laura.png"
+  color: "#FFF0F3"
+  image: "assets/images/logo-splash.png"
   fullscreen: false
   android_gravity: center
   ios_content_mode: center
   android_12:
-    color: "#FFFFFF"
-    image: "assets/images/logo-laura.png"
-    icon_background_color: "#FFFFFF"
+    color: "#FFF0F3"
+    image: "assets/images/logo-splash.png"
+    icon_background_color: "#FFF0F3"
 
 flutter:
   uses-material-design: true
