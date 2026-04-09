@@ -113,6 +113,11 @@ class _HorarioScreenState extends ConsumerState<HorarioScreen> {
             icon: const Icon(Icons.chevron_right),
             onPressed: _irSiguiente,
           ),
+          IconButton(
+            icon: const Icon(Icons.tune_outlined),
+            onPressed: () => context.push(AppRoutes.sesionesGestion),
+            tooltip: l.gestionSesiones,
+          ),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),

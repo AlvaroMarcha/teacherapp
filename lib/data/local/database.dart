@@ -38,7 +38,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.connection);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -66,6 +66,14 @@ class AppDatabase extends _$AppDatabase {
               await m.addColumn(
                 sesionesRealizadasTable,
                 sesionesRealizadasTable.sesionRecurrenteId,
+              );
+            } catch (_) {}
+          }
+          if (from < 5) {
+            try {
+              await m.addColumn(
+                sesionesRecurrentesTable,
+                sesionesRecurrentesTable.activa,
               );
             } catch (_) {}
           }
@@ -138,6 +146,16 @@ class AppDatabase extends _$AppDatabase {
 
   Future<int> deleteSesionRecurrente(String id) =>
       (delete(sesionesRecurrentesTable)..where((t) => t.id.equals(id))).go();
+
+  /// Desvincula sesiones realizadas de su recurrente (pone sesionRecurrenteId = null).
+  Future<int> desvincularSesionesRealizadas(String sesionRecurrenteId) =>
+      (update(sesionesRealizadasTable)
+            ..where((t) => t.sesionRecurrenteId.equals(sesionRecurrenteId)))
+          .write(
+        const SesionesRealizadasTableCompanion(
+          sesionRecurrenteId: Value(null),
+        ),
+      );
 
   // ── Queries — Sesiones Realizadas ────────────────────────────────
 

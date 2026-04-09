@@ -696,32 +696,12 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
     );
     if (confirmed != true || !mounted) return;
 
-    // 1. Obtener todas las sesiones realizadas asociadas
-    final sesionesRealizadas = await ref
-        .read(sesionRepositoryProvider)
-        .getSesionesRealizadasBySesionRecurrenteId(sesionRecId);
-
-    // 2. Eliminar HoraExtra y Cobros de cada sesión realizada según tipo de fuente
-    for (final sesion in sesionesRealizadas) {
-      if (evento.fuenteTipo == FuenteTipo.empleo) {
-        // Para empleos: eliminar HoraExtra asociadas
-        await ref
-            .read(databaseProvider)
-            .deleteHoraExtraByFechaAndFuente(sesion.fecha, sesion.fuenteId);
-      } else {
-        // Para particulares/academia: eliminar cobros
-        await ref
-            .read(cobroRepositoryProvider)
-            .deleteCobroBySesionId(sesion.id);
-      }
-    }
-
-    // 3. Eliminar las sesiones realizadas
+    // 1. Desvincular sesiones realizadas (conserva historial de cobros/horas)
     await ref
         .read(sesionRepositoryProvider)
-        .deleteSesionesRealizadasBySesionRecurrenteId(sesionRecId);
+        .desvincularSesionesRealizadas(sesionRecId);
 
-    // 4. Eliminar la sesión recurrente
+    // 2. Eliminar la sesión recurrente
     await ref
         .read(sesionRepositoryProvider)
         .deleteSesionRecurrente(sesionRecId);

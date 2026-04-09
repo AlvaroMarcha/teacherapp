@@ -221,6 +221,18 @@ class AppLocalizations {
     required this.confirmarEliminarSesionCalendario,
     required this.sesionEliminada,
 
+    // ── Gestión sesiones recurrentes ──
+    required this.fechaFin,
+    required this.sinFechaFin,
+    required this.gestionSesiones,
+    required this.sesionesActivas,
+    required this.sesionesArchivadas,
+    required this.archivarSesion,
+    required this.activarSesion,
+    required this.confirmarArchivar,
+    required this.sesionArchivada,
+    required this.sesionActivada,
+
     // ── Ajustes ──
     required this.ajustesTitle,
     required this.miCuenta,
@@ -557,6 +569,18 @@ class AppLocalizations {
   final String confirmarEliminarSesionCalendario;
   final String sesionEliminada;
 
+  // ── Gestión sesiones recurrentes ──
+  final String fechaFin;
+  final String sinFechaFin;
+  final String gestionSesiones;
+  final String sesionesActivas;
+  final String sesionesArchivadas;
+  final String archivarSesion;
+  final String activarSesion;
+  final String confirmarArchivar;
+  final String sesionArchivada;
+  final String sesionActivada;
+
   // ── Ajustes ──
   final String ajustesTitle;
   final String miCuenta;
@@ -881,6 +905,17 @@ class AppLocalizations {
     confirmarEliminarSesionCalendario:
         '¿Eliminar esta sesión del calendario? Se eliminará permanentemente.',
     sesionEliminada: 'Sesión eliminada',
+    fechaFin: 'Fecha de fin',
+    sinFechaFin: 'Sin fecha de fin (indefinida)',
+    gestionSesiones: 'Gestión de sesiones',
+    sesionesActivas: 'Activas',
+    sesionesArchivadas: 'Archivadas',
+    archivarSesion: 'Archivar sesión',
+    activarSesion: 'Activar sesión',
+    confirmarArchivar:
+        '¿Archivar esta sesión? Dejará de aparecer en el calendario pero se conservará el historial.',
+    sesionArchivada: 'Sesión archivada',
+    sesionActivada: 'Sesión activada',
     ajustesTitle: 'Ajustes',
     miCuenta: 'Mi cuenta',
     miPerfil: 'Mi perfil',
@@ -1186,6 +1221,17 @@ class AppLocalizations {
     confirmarEliminarSesionCalendario:
         'Delete this session from the calendar? It will be permanently removed.',
     sesionEliminada: 'Session deleted',
+    fechaFin: 'End date',
+    sinFechaFin: 'No end date (indefinite)',
+    gestionSesiones: 'Session management',
+    sesionesActivas: 'Active',
+    sesionesArchivadas: 'Archived',
+    archivarSesion: 'Archive session',
+    activarSesion: 'Activate session',
+    confirmarArchivar:
+        'Archive this session? It will no longer appear on the calendar but history will be preserved.',
+    sesionArchivada: 'Session archived',
+    sesionActivada: 'Session activated',
     ajustesTitle: 'Settings',
     miCuenta: 'My account',
     miPerfil: 'My profile',
@@ -1491,6 +1537,17 @@ class AppLocalizations {
     confirmarEliminarSesionCalendario:
         'Eliminare questa sessione dal calendario? Verrà rimossa permanentemente.',
     sesionEliminada: 'Sessione eliminata',
+    fechaFin: 'Data di fine',
+    sinFechaFin: 'Nessuna data di fine (indefinita)',
+    gestionSesiones: 'Gestione sessioni',
+    sesionesActivas: 'Attive',
+    sesionesArchivadas: 'Archiviate',
+    archivarSesion: 'Archivia sessione',
+    activarSesion: 'Attiva sessione',
+    confirmarArchivar:
+        'Archiviare questa sessione? Non apparirà più nel calendario ma lo storico sarà conservato.',
+    sesionArchivada: 'Sessione archiviata',
+    sesionActivada: 'Sessione attivata',
     ajustesTitle: 'Impostazioni',
     miCuenta: 'Il mio account',
     miPerfil: 'Il mio profilo',

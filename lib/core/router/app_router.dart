@@ -13,6 +13,7 @@ import '../../presentation/screens/cobros/cobros_screen.dart';
 import '../../presentation/screens/cobros/cobro_detalle_screen.dart';
 import '../../presentation/screens/sesiones/registro_sesion_screen.dart';
 import '../../presentation/screens/sesiones/sesion_form_screen.dart';
+import '../../presentation/screens/sesiones/sesiones_list_screen.dart';
 import '../../domain/models/sesion_recurrente.dart';
 import '../../presentation/screens/horas_extra/horas_extra_screen.dart';
 import '../../presentation/screens/ajustes/ajustes_screen.dart';
@@ -39,6 +40,7 @@ abstract class AppRoutes {
   static const String cobroDetalle = '/cobros/:id';
   static const String registroSesion = '/sesiones/registro';
   static const String sesionForm = '/sesiones/form';
+  static const String sesionesGestion = '/sesiones';
   static const String horasExtra = '/horas-extra';
   static const String ajustes = '/ajustes';
   static const String tarifas = '/ajustes/tarifas';
@@ -155,6 +157,10 @@ final appRouter = GoRouter(
         final existing = state.extra as SesionRecurrente?;
         return SesionFormScreen(existing: existing);
       },
+    ),
+    GoRoute(
+      path: AppRoutes.sesionesGestion,
+      builder: (_, __) => const SesionesListScreen(),
     ),
     GoRoute(
       path: AppRoutes.horasExtra,

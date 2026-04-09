@@ -13,6 +13,7 @@ class SesionRecurrente {
     this.alumnoId,
     this.fechaFin,
     this.esPuntual = false,
+    this.activa = true,
     this.syncStatus = 'pending',
   });
 
@@ -38,6 +39,9 @@ class SesionRecurrente {
   /// true = clase puntual/única (no se repite semana a semana).
   final bool esPuntual;
 
+  /// false = sesión archivada (no aparece en el calendario).
+  final bool activa;
+
   final String syncStatus;
 
   SesionRecurrente copyWith({
@@ -50,6 +54,7 @@ class SesionRecurrente {
     String? fechaInicio,
     String? fechaFin,
     bool? esPuntual,
+    bool? activa,
     String? syncStatus,
   }) =>
       SesionRecurrente(
@@ -62,6 +67,7 @@ class SesionRecurrente {
         fechaInicio: fechaInicio ?? this.fechaInicio,
         fechaFin: fechaFin ?? this.fechaFin,
         esPuntual: esPuntual ?? this.esPuntual,
+        activa: activa ?? this.activa,
         syncStatus: syncStatus ?? this.syncStatus,
       );
 

@@ -28,6 +28,9 @@ class SesionesRecurrentesTable extends Table {
   /// true = clase puntual/única (no se repite semana a semana)
   BoolColumn get esPuntual => boolean().withDefault(const Constant(false))();
 
+  /// false = sesión archivada (no aparece en el calendario)
+  BoolColumn get activa => boolean().withDefault(const Constant(true))();
+
   TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
 
   @override

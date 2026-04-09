@@ -1137,6 +1137,15 @@ class $SesionesRecurrentesTableTable extends SesionesRecurrentesTable
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("es_puntual" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _activaMeta = const VerificationMeta('activa');
+  @override
+  late final GeneratedColumn<bool> activa = GeneratedColumn<bool>(
+      'activa', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("activa" IN (0, 1))'),
+      defaultValue: const Constant(true));
   static const VerificationMeta _syncStatusMeta =
       const VerificationMeta('syncStatus');
   @override
@@ -1156,6 +1165,7 @@ class $SesionesRecurrentesTableTable extends SesionesRecurrentesTable
         fechaInicio,
         fechaFin,
         esPuntual,
+        activa,
         syncStatus
       ];
   @override
@@ -1222,6 +1232,10 @@ class $SesionesRecurrentesTableTable extends SesionesRecurrentesTable
       context.handle(_esPuntualMeta,
           esPuntual.isAcceptableOrUnknown(data['es_puntual']!, _esPuntualMeta));
     }
+    if (data.containsKey('activa')) {
+      context.handle(_activaMeta,
+          activa.isAcceptableOrUnknown(data['activa']!, _activaMeta));
+    }
     if (data.containsKey('sync_status')) {
       context.handle(
           _syncStatusMeta,
@@ -1256,6 +1270,8 @@ class $SesionesRecurrentesTableTable extends SesionesRecurrentesTable
           .read(DriftSqlType.string, data['${effectivePrefix}fecha_fin']),
       esPuntual: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}es_puntual'])!,
+      activa: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}activa'])!,
       syncStatus: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}sync_status'])!,
     );
@@ -1290,6 +1306,9 @@ class SesionesRecurrentesTableData extends DataClass
 
   /// true = clase puntual/única (no se repite semana a semana)
   final bool esPuntual;
+
+  /// false = sesión archivada (no aparece en el calendario)
+  final bool activa;
   final String syncStatus;
   const SesionesRecurrentesTableData(
       {required this.id,
@@ -1301,6 +1320,7 @@ class SesionesRecurrentesTableData extends DataClass
       required this.fechaInicio,
       this.fechaFin,
       required this.esPuntual,
+      required this.activa,
       required this.syncStatus});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1318,6 +1338,7 @@ class SesionesRecurrentesTableData extends DataClass
       map['fecha_fin'] = Variable<String>(fechaFin);
     }
     map['es_puntual'] = Variable<bool>(esPuntual);
+    map['activa'] = Variable<bool>(activa);
     map['sync_status'] = Variable<String>(syncStatus);
     return map;
   }
@@ -1337,6 +1358,7 @@ class SesionesRecurrentesTableData extends DataClass
           ? const Value.absent()
           : Value(fechaFin),
       esPuntual: Value(esPuntual),
+      activa: Value(activa),
       syncStatus: Value(syncStatus),
     );
   }
@@ -1354,6 +1376,7 @@ class SesionesRecurrentesTableData extends DataClass
       fechaInicio: serializer.fromJson<String>(json['fechaInicio']),
       fechaFin: serializer.fromJson<String?>(json['fechaFin']),
       esPuntual: serializer.fromJson<bool>(json['esPuntual']),
+      activa: serializer.fromJson<bool>(json['activa']),
       syncStatus: serializer.fromJson<String>(json['syncStatus']),
     );
   }
@@ -1370,6 +1393,7 @@ class SesionesRecurrentesTableData extends DataClass
       'fechaInicio': serializer.toJson<String>(fechaInicio),
       'fechaFin': serializer.toJson<String?>(fechaFin),
       'esPuntual': serializer.toJson<bool>(esPuntual),
+      'activa': serializer.toJson<bool>(activa),
       'syncStatus': serializer.toJson<String>(syncStatus),
     };
   }
@@ -1384,6 +1408,7 @@ class SesionesRecurrentesTableData extends DataClass
           String? fechaInicio,
           Value<String?> fechaFin = const Value.absent(),
           bool? esPuntual,
+          bool? activa,
           String? syncStatus}) =>
       SesionesRecurrentesTableData(
         id: id ?? this.id,
@@ -1395,6 +1420,7 @@ class SesionesRecurrentesTableData extends DataClass
         fechaInicio: fechaInicio ?? this.fechaInicio,
         fechaFin: fechaFin.present ? fechaFin.value : this.fechaFin,
         esPuntual: esPuntual ?? this.esPuntual,
+        activa: activa ?? this.activa,
         syncStatus: syncStatus ?? this.syncStatus,
       );
   SesionesRecurrentesTableData copyWithCompanion(
@@ -1412,6 +1438,7 @@ class SesionesRecurrentesTableData extends DataClass
           data.fechaInicio.present ? data.fechaInicio.value : this.fechaInicio,
       fechaFin: data.fechaFin.present ? data.fechaFin.value : this.fechaFin,
       esPuntual: data.esPuntual.present ? data.esPuntual.value : this.esPuntual,
+      activa: data.activa.present ? data.activa.value : this.activa,
       syncStatus:
           data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
     );
@@ -1429,14 +1456,25 @@ class SesionesRecurrentesTableData extends DataClass
           ..write('fechaInicio: $fechaInicio, ')
           ..write('fechaFin: $fechaFin, ')
           ..write('esPuntual: $esPuntual, ')
+          ..write('activa: $activa, ')
           ..write('syncStatus: $syncStatus')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, alumnoId, fuenteId, diasSemana,
-      horaInicio, horaFin, fechaInicio, fechaFin, esPuntual, syncStatus);
+  int get hashCode => Object.hash(
+      id,
+      alumnoId,
+      fuenteId,
+      diasSemana,
+      horaInicio,
+      horaFin,
+      fechaInicio,
+      fechaFin,
+      esPuntual,
+      activa,
+      syncStatus);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1450,6 +1488,7 @@ class SesionesRecurrentesTableData extends DataClass
           other.fechaInicio == this.fechaInicio &&
           other.fechaFin == this.fechaFin &&
           other.esPuntual == this.esPuntual &&
+          other.activa == this.activa &&
           other.syncStatus == this.syncStatus);
 }
 
@@ -1464,6 +1503,7 @@ class SesionesRecurrentesTableCompanion
   final Value<String> fechaInicio;
   final Value<String?> fechaFin;
   final Value<bool> esPuntual;
+  final Value<bool> activa;
   final Value<String> syncStatus;
   final Value<int> rowid;
   const SesionesRecurrentesTableCompanion({
@@ -1476,6 +1516,7 @@ class SesionesRecurrentesTableCompanion
     this.fechaInicio = const Value.absent(),
     this.fechaFin = const Value.absent(),
     this.esPuntual = const Value.absent(),
+    this.activa = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1489,6 +1530,7 @@ class SesionesRecurrentesTableCompanion
     required String fechaInicio,
     this.fechaFin = const Value.absent(),
     this.esPuntual = const Value.absent(),
+    this.activa = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
@@ -1507,6 +1549,7 @@ class SesionesRecurrentesTableCompanion
     Expression<String>? fechaInicio,
     Expression<String>? fechaFin,
     Expression<bool>? esPuntual,
+    Expression<bool>? activa,
     Expression<String>? syncStatus,
     Expression<int>? rowid,
   }) {
@@ -1520,6 +1563,7 @@ class SesionesRecurrentesTableCompanion
       if (fechaInicio != null) 'fecha_inicio': fechaInicio,
       if (fechaFin != null) 'fecha_fin': fechaFin,
       if (esPuntual != null) 'es_puntual': esPuntual,
+      if (activa != null) 'activa': activa,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1535,6 +1579,7 @@ class SesionesRecurrentesTableCompanion
       Value<String>? fechaInicio,
       Value<String?>? fechaFin,
       Value<bool>? esPuntual,
+      Value<bool>? activa,
       Value<String>? syncStatus,
       Value<int>? rowid}) {
     return SesionesRecurrentesTableCompanion(
@@ -1547,6 +1592,7 @@ class SesionesRecurrentesTableCompanion
       fechaInicio: fechaInicio ?? this.fechaInicio,
       fechaFin: fechaFin ?? this.fechaFin,
       esPuntual: esPuntual ?? this.esPuntual,
+      activa: activa ?? this.activa,
       syncStatus: syncStatus ?? this.syncStatus,
       rowid: rowid ?? this.rowid,
     );
@@ -1582,6 +1628,9 @@ class SesionesRecurrentesTableCompanion
     if (esPuntual.present) {
       map['es_puntual'] = Variable<bool>(esPuntual.value);
     }
+    if (activa.present) {
+      map['activa'] = Variable<bool>(activa.value);
+    }
     if (syncStatus.present) {
       map['sync_status'] = Variable<String>(syncStatus.value);
     }
@@ -1603,6 +1652,7 @@ class SesionesRecurrentesTableCompanion
           ..write('fechaInicio: $fechaInicio, ')
           ..write('fechaFin: $fechaFin, ')
           ..write('esPuntual: $esPuntual, ')
+          ..write('activa: $activa, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -3603,6 +3653,7 @@ typedef $$SesionesRecurrentesTableTableCreateCompanionBuilder
   required String fechaInicio,
   Value<String?> fechaFin,
   Value<bool> esPuntual,
+  Value<bool> activa,
   Value<String> syncStatus,
   Value<int> rowid,
 });
@@ -3617,6 +3668,7 @@ typedef $$SesionesRecurrentesTableTableUpdateCompanionBuilder
   Value<String> fechaInicio,
   Value<String?> fechaFin,
   Value<bool> esPuntual,
+  Value<bool> activa,
   Value<String> syncStatus,
   Value<int> rowid,
 });
@@ -3648,6 +3700,7 @@ class $$SesionesRecurrentesTableTableTableManager extends RootTableManager<
             Value<String> fechaInicio = const Value.absent(),
             Value<String?> fechaFin = const Value.absent(),
             Value<bool> esPuntual = const Value.absent(),
+            Value<bool> activa = const Value.absent(),
             Value<String> syncStatus = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -3661,6 +3714,7 @@ class $$SesionesRecurrentesTableTableTableManager extends RootTableManager<
             fechaInicio: fechaInicio,
             fechaFin: fechaFin,
             esPuntual: esPuntual,
+            activa: activa,
             syncStatus: syncStatus,
             rowid: rowid,
           ),
@@ -3674,6 +3728,7 @@ class $$SesionesRecurrentesTableTableTableManager extends RootTableManager<
             required String fechaInicio,
             Value<String?> fechaFin = const Value.absent(),
             Value<bool> esPuntual = const Value.absent(),
+            Value<bool> activa = const Value.absent(),
             Value<String> syncStatus = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -3687,6 +3742,7 @@ class $$SesionesRecurrentesTableTableTableManager extends RootTableManager<
             fechaInicio: fechaInicio,
             fechaFin: fechaFin,
             esPuntual: esPuntual,
+            activa: activa,
             syncStatus: syncStatus,
             rowid: rowid,
           ),
@@ -3741,6 +3797,11 @@ class $$SesionesRecurrentesTableTableFilterComposer
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
+  ColumnFilters<bool> get activa => $state.composableBuilder(
+      column: $state.table.activa,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
   ColumnFilters<String> get syncStatus => $state.composableBuilder(
       column: $state.table.syncStatus,
       builder: (column, joinBuilders) =>
@@ -3792,6 +3853,11 @@ class $$SesionesRecurrentesTableTableOrderingComposer
 
   ColumnOrderings<bool> get esPuntual => $state.composableBuilder(
       column: $state.table.esPuntual,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<bool> get activa => $state.composableBuilder(
+      column: $state.table.activa,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 

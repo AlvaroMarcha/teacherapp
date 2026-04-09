@@ -92,6 +92,24 @@ final eventosDelDiaProvider =
       continue; // La sesión aún no ha empezado
     }
 
+    // Sesión archivada → no aparece en el calendario
+    if (!sesion.activa) continue;
+
+    // Si tiene fecha fin y ya pasó, no aparece
+    if (sesion.fechaFin != null) {
+      final fechaFinSesion = DateTime.tryParse(sesion.fechaFin!);
+      if (fechaFinSesion != null &&
+          dia.isAfter(
+            DateTime(
+              fechaFinSesion.year,
+              fechaFinSesion.month,
+              fechaFinSesion.day,
+            ),
+          )) {
+        continue;
+      }
+    }
+
     if (sesion.esPuntual) {
       // Clase única: solo aparece en su fechaInicio exacta
       if (sesion.fechaInicio != fechaIso) continue;

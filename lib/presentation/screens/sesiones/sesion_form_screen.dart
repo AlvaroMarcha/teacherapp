@@ -38,6 +38,7 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
   double _duracion = 1.0;
   bool _esPuntual = false;
   DateTime? _fechaUnica;
+  DateTime? _fechaFin;
   bool _cobradoAhora = false;
 
   // Labels de días lunes=1 ... domingo=7
@@ -78,6 +79,9 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
       _esPuntual = e.esPuntual;
       if (e.esPuntual && e.fechaInicio.isNotEmpty) {
         _fechaUnica = DateTime.tryParse(e.fechaInicio);
+      }
+      if (e.fechaFin != null) {
+        _fechaFin = DateTime.tryParse(e.fechaFin!);
       }
       // Cargar tarifa del alumno si existe
       if (e.alumnoId != null) {
@@ -224,6 +228,37 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
                       ),
                     ),
                   ] else ...[
+                    // Fecha fin opcional para sesiones recurrentes
+                    GestureDetector(
+                      onTap: () async {
+                        final d = await showDatePicker(
+                          context: context,
+                          initialDate: _fechaFin ?? DateTime.now(),
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime(2100),
+                        );
+                        if (d != null) setState(() => _fechaFin = d);
+                      },
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: l.fechaFin,
+                          prefixIcon: const Icon(Icons.event_busy_outlined),
+                          suffixIcon: _fechaFin != null
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear),
+                                  onPressed: () =>
+                                      setState(() => _fechaFin = null),
+                                )
+                              : const Icon(Icons.chevron_right),
+                        ),
+                        child: Text(
+                          _fechaFin != null
+                              ? AppDateUtils.formatFullDate(_fechaFin!)
+                              : l.sinFechaFin,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     Text(l.diasSemana, style: AppTextStyles.labelMedium),
                     const SizedBox(height: 8),
                     Wrap(
@@ -385,6 +420,10 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
         : (List<int>.from(_diasSemana)..sort());
 
     final recurrenteId = widget.existing?.id ?? _uuid.v4();
+    final fechaFinStr = (!_esPuntual && _fechaFin != null)
+        ? _fechaFin!.toIso8601String().substring(0, 10)
+        : widget.existing?.fechaFin;
+
     final sesion = SesionRecurrente(
       id: recurrenteId,
       alumnoId: _alumnoId,
@@ -393,7 +432,9 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
       horaInicio: horaInicio,
       horaFin: horaFin,
       fechaInicio: fechaBase,
+      fechaFin: fechaFinStr,
       esPuntual: _esPuntual,
+      activa: widget.existing?.activa ?? true,
     );
 
     await ref.read(sesionRepositoryProvider).saveSesionRecurrente(sesion);

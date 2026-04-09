@@ -26,26 +26,29 @@ class EventoBloque extends StatelessWidget {
 
     return Opacity(
       opacity: opacity,
-      child: Material(
-        color: color.withOpacity(compact ? 0.15 : 0.12),
+      child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: InkWell(
+        child: Material(
+          color: color.withOpacity(compact ? 0.15 : 0.12),
           borderRadius: BorderRadius.circular(8),
-          onTap: onTap,
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border(
-                left: BorderSide(color: color, width: 3),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: onTap,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border(
+                  left: BorderSide(color: color, width: 3),
+                ),
               ),
+              padding: EdgeInsets.symmetric(
+                horizontal: compact ? 4 : 8,
+                vertical: compact ? 2 : 8,
+              ),
+              child: compact
+                  ? _CompactContent(evento: evento, color: color)
+                  : _FullContent(evento: evento, color: color),
             ),
-            padding: EdgeInsets.symmetric(
-              horizontal: compact ? 4 : 8,
-              vertical: compact ? 2 : 8,
-            ),
-            child: compact
-                ? _CompactContent(evento: evento, color: color)
-                : _FullContent(evento: evento, color: color),
           ),
         ),
       ),
@@ -60,32 +63,40 @@ class _CompactContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Una sola línea: punto color + hora + título truncado
-    final icon = evento.esCancelada
-        ? '✕ '
-        : evento.estaConfirmada
-            ? '✓ '
-            : '';
+    final style = AppTextStyles.labelSmall.copyWith(color: color, fontSize: 9);
 
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Container(
-          width: 6,
-          height: 6,
-          decoration: BoxDecoration(
-            color: evento.fuenteColor,
-            shape: BoxShape.circle,
-          ),
+        // Hora — sin icono de estado para no truncar
+        Row(
+          children: [
+            Container(
+              width: 5,
+              height: 5,
+              decoration: BoxDecoration(
+                color: evento.fuenteColor,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 3),
+            Text(
+              evento.horaInicio,
+              style: style.copyWith(fontWeight: FontWeight.w600),
+            ),
+            if (evento.esCancelada)
+              const Text(' ✕', style: TextStyle(fontSize: 8))
+            else if (evento.estaConfirmada)
+              const Text(' ✓', style: TextStyle(fontSize: 8)),
+          ],
         ),
-        const SizedBox(width: 4),
-        Expanded(
-          child: Text(
-            '$icon${evento.horaInicio} ${evento.titulo}',
-            style:
-                AppTextStyles.labelSmall.copyWith(color: color, fontSize: 9.5),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
+        // Título (alumno o fuente)
+        Text(
+          evento.titulo,
+          style: style,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );

@@ -24,6 +24,7 @@ class SesionRepository {
         fechaInicio: row.fechaInicio,
         fechaFin: row.fechaFin,
         esPuntual: row.esPuntual,
+        activa: row.activa,
         syncStatus: row.syncStatus,
       );
 
@@ -70,6 +71,7 @@ class SesionRepository {
         fechaInicio: Value(sesion.fechaInicio),
         fechaFin: Value(sesion.fechaFin),
         esPuntual: Value(sesion.esPuntual),
+        activa: Value(sesion.activa),
         syncStatus: Value(sesion.syncStatus),
       ),
     );
@@ -77,6 +79,11 @@ class SesionRepository {
 
   Future<int> deleteSesionRecurrente(String id) =>
       _db.deleteSesionRecurrente(id);
+
+  /// Desvincula sesiones realizadas (pone sesionRecurrenteId = null)
+  /// para conservar historial al eliminar la recurrente.
+  Future<int> desvincularSesionesRealizadas(String sesionRecurrenteId) =>
+      _db.desvincularSesionesRealizadas(sesionRecurrenteId);
 
   Future<int> deleteSesionRealizada(String id) => _db.deleteSesionRealizada(id);
 
