@@ -9,7 +9,6 @@ import '../../../domain/models/hora_extra.dart';
 import '../../providers/alumnos_provider.dart';
 import '../../providers/fuentes_provider.dart';
 import '../../providers/horas_extra_provider.dart';
-import '../../providers/sesiones_provider.dart';
 import '../../providers/database_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../providers/theme_provider.dart';
@@ -70,9 +69,6 @@ class _HorasExtraBody extends ConsumerWidget {
 
     // Sesiones confirmadas del empleo este mes
     final periodoMes = DateFormat('yyyy-MM').format(DateTime.now());
-    final sesionesAsync = ref.watch(
-      sesionesEmpleoMesProvider('${fuente.id}_$periodoMes'),
-    );
 
     return Scaffold(
       appBar: AppBar(title: Text('${l.horasExtra} — ${fuente.nombre}')),
@@ -84,11 +80,6 @@ class _HorasExtraBody extends ConsumerWidget {
           final horasExtrasMes = entries
               .where((e) => e.fecha.startsWith(periodoMes))
               .fold<double>(0, (acc, e) => acc + e.horas);
-
-          // Horas trabajadas de sesiones confirmadas
-          final horasTrabajadas = sesionesAsync.valueOrNull
-                  ?.fold<double>(0, (acc, s) => acc + s.horas) ??
-              0;
 
           return ListView(
             padding: const EdgeInsets.all(16),

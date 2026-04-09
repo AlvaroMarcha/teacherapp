@@ -289,6 +289,19 @@ class AppLocalizations {
     required this.sinCopiaLocal,
     required this.versionInfo,
 
+    // ── Factory Reset ──
+    required this.zonaPeligro,
+    required this.resetearDatos,
+    required this.resetearDatosDesc,
+    required this.confirmarReseteo,
+    required this.escribaEliminar,
+    required this.textoCorrecto,
+    required this.backupCreadoAntes,
+    required this.datosEliminados,
+    required this.errorAlResetear,
+    required this.advertenciaReseteo,
+    required this.eliminarMayusculas,
+
     // ── Perfil ──
     required this.nombre,
     required this.tuNombre,
@@ -639,6 +652,19 @@ class AppLocalizations {
   final String sinCopiaLocal;
   final String versionInfo;
 
+  // ── Factory Reset ──
+  final String zonaPeligro;
+  final String resetearDatos;
+  final String resetearDatosDesc;
+  final String confirmarReseteo;
+  final String escribaEliminar;
+  final String textoCorrecto;
+  final String backupCreadoAntes;
+  final String datosEliminados;
+  final String errorAlResetear;
+  final String advertenciaReseteo;
+  final String eliminarMayusculas;
+
   // ── Perfil ──
   final String nombre;
   final String tuNombre;
@@ -979,6 +1005,19 @@ class AppLocalizations {
     sinCopiaLocal: 'Aún no hay copia local',
     versionInfo:
         "Laura's Language v1.0.0\nOffline-first — tus datos siempre contigo",
+    zonaPeligro: 'Zona de peligro',
+    resetearDatos: 'Resetear todos los datos',
+    resetearDatosDesc:
+        'Elimina TODOS los datos de la app y vuelve al estado inicial',
+    confirmarReseteo: '¿Estás completamente seguro?',
+    escribaEliminar: 'Escribe "ELIMINAR" para confirmar',
+    textoCorrecto: 'El texto debe ser exactamente "ELIMINAR"',
+    backupCreadoAntes: 'Copia de seguridad creada automáticamente',
+    datosEliminados: 'Todos los datos han sido eliminados',
+    errorAlResetear: 'Error al resetear los datos',
+    advertenciaReseteo:
+        'Esta acción eliminará TODAS las fuentes, alumnos, sesiones, cobros y configuraciones. No se puede deshacer.',
+    eliminarMayusculas: 'ELIMINAR',
     nombre: 'Nombre',
     tuNombre: 'Tu nombre',
     preferencias: 'Preferencias',
@@ -1294,6 +1333,18 @@ class AppLocalizations {
     sinCopiaLocal: 'No local backup yet',
     versionInfo:
         "Laura's Language v1.0.0\nOffline-first — your data always with you",
+    zonaPeligro: 'Danger zone',
+    resetearDatos: 'Reset all data',
+    resetearDatosDesc: 'Delete ALL app data and return to initial state',
+    confirmarReseteo: 'Are you absolutely sure?',
+    escribaEliminar: 'Type "DELETE" to confirm',
+    textoCorrecto: 'Text must be exactly "DELETE"',
+    backupCreadoAntes: 'Backup created automatically',
+    datosEliminados: 'All data has been deleted',
+    errorAlResetear: 'Error resetting data',
+    advertenciaReseteo:
+        'This action will delete ALL sources, students, sessions, payments and settings. It cannot be undone.',
+    eliminarMayusculas: 'DELETE',
     nombre: 'Name',
     tuNombre: 'Your name',
     preferencias: 'Preferences',
@@ -1614,6 +1665,19 @@ class AppLocalizations {
     sinCopiaLocal: 'Nessun backup locale ancora',
     versionInfo:
         "Laura's Language v1.0.0\nOffline-first — i tuoi dati sempre con te",
+    zonaPeligro: 'Zona pericolosa',
+    resetearDatos: 'Resetta tutti i dati',
+    resetearDatosDesc:
+        'Elimina TUTTI i dati dell\'app e torna allo stato iniziale',
+    confirmarReseteo: 'Sei completamente sicuro?',
+    escribaEliminar: 'Scrivi "ELIMINA" per confermare',
+    textoCorrecto: 'Il testo deve essere esattamente "ELIMINA"',
+    backupCreadoAntes: 'Backup creato automaticamente',
+    datosEliminados: 'Tutti i dati sono stati eliminati',
+    errorAlResetear: 'Errore nel reset dei dati',
+    advertenciaReseteo:
+        'Questa azione eliminerà TUTTE le fonti, studenti, sessioni, pagamenti e impostazioni. Non può essere annullata.',
+    eliminarMayusculas: 'ELIMINA',
     nombre: 'Nome',
     tuNombre: 'Il tuo nome',
     preferencias: 'Preferenze',

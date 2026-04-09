@@ -10,10 +10,14 @@ import '../../../core/services/cobro_auto_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/scheduled_backup_service.dart';
 import '../../../core/utils/date_utils.dart';
+import '../../providers/alumnos_provider.dart';
 import '../../providers/backup_provider.dart';
 import '../../providers/cobros_provider.dart';
+import '../../providers/dashboard_provider.dart';
 import '../../providers/database_provider.dart';
+import '../../providers/fuentes_provider.dart';
 import '../../providers/notification_provider.dart';
+import '../../providers/sesiones_provider.dart';
 import '../../providers/theme_provider.dart';
 
 /// Hub de navegación hacia las sub-pantallas de ajustes.
@@ -210,6 +214,11 @@ class AjustesScreen extends ConsumerWidget {
             items: const [],
             customContent: _CobroAutoSection(),
           ),
+          _Section(
+            title: l.zonaPeligro,
+            items: const [],
+            customContent: _DangerZoneSection(),
+          ),
           const SizedBox(height: 32),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -282,24 +291,22 @@ class _Item extends StatelessWidget {
   final IconData icon;
   final String label;
   final String subtitle;
-  final bool enabled;
   final VoidCallback onTap;
   const _Item({
     required this.icon,
     required this.label,
     required this.subtitle,
     required this.onTap,
-    this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      leading: Icon(icon, color: enabled ? null : Colors.grey),
-      title: Text(label, style: TextStyle(color: enabled ? null : Colors.grey)),
+      leading: Icon(icon),
+      title: Text(label),
       subtitle: Text(subtitle),
-      trailing: enabled ? const Icon(Icons.chevron_right) : null,
-      onTap: enabled ? onTap : null,
+      trailing: const Icon(Icons.chevron_right),
+      onTap: onTap,
     );
   }
 }
@@ -1071,6 +1078,243 @@ class _CobroAutoSectionState extends ConsumerState<_CobroAutoSection> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _DangerZoneSection extends ConsumerStatefulWidget {
+  const _DangerZoneSection();
+
+  @override
+  ConsumerState<_DangerZoneSection> createState() => _DangerZoneSectionState();
+}
+
+class _DangerZoneSectionState extends ConsumerState<_DangerZoneSection> {
+  bool _busy = false;
+
+  Future<void> _confirmAndResetData() async {
+    final l = ref.read(appLocalizationsProvider);
+    final confirmWord = l.eliminarMayusculas;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => _ResetConfirmDialog(
+        confirmWord: confirmWord,
+        l: l,
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _busy = true);
+
+    try {
+      // 1. Crear backup automático
+      final backupService = BackupService();
+      await backupService.createAutoBackup();
+      final backupPath = await backupService.getAutoBackupPath();
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              '${l.backupCreadoAntes}${backupPath != null ? '\n$backupPath' : ''}'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // 2. Eliminar todos los datos
+      final database = ref.read(databaseProvider);
+      await database.clearAllData();
+
+      if (!mounted) return;
+
+      // 3. Invalidar todos los providers
+      ref.invalidate(alumnosProvider);
+      ref.invalidate(sesionesRecurrentesProvider);
+      ref.invalidate(fuentesProvider);
+      ref.invalidate(dashboardProvider);
+      ref.invalidate(cobrosProvider);
+      ref.invalidate(cobrosPendientesProvider);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l.datosEliminados),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${l.errorAlResetear}: $e'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = ref.watch(appLocalizationsProvider);
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.errorContainer.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: theme.colorScheme.error.withOpacity(0.5),
+                width: 1.5,
+              ),
+            ),
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: theme.colorScheme.error,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l.resetearDatos,
+                        style: AppTextStyles.titleSmall.copyWith(
+                          color: theme.colorScheme.error,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        l.resetearDatosDesc,
+                        style: AppTextStyles.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _busy ? null : _confirmAndResetData,
+              icon: _busy
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.delete_forever_outlined),
+              label: Text(l.resetearDatos),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: theme.colorScheme.error,
+                side: BorderSide(color: theme.colorScheme.error),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ResetConfirmDialog extends StatefulWidget {
+  final String confirmWord;
+  final dynamic l;
+
+  const _ResetConfirmDialog({
+    required this.confirmWord,
+    required this.l,
+  });
+
+  @override
+  State<_ResetConfirmDialog> createState() => _ResetConfirmDialogState();
+}
+
+class _ResetConfirmDialogState extends State<_ResetConfirmDialog> {
+  final _controller = TextEditingController();
+  bool _isMatchingText = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Row(
+        children: [
+          Icon(
+            Icons.warning_amber_rounded,
+            color: Theme.of(context).colorScheme.error,
+            size: 28,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(widget.l.confirmarReseteo),
+          ),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            widget.l.advertenciaReseteo,
+            style: AppTextStyles.bodyMedium,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            widget.l.escribaEliminar,
+            style: AppTextStyles.labelSmall,
+          ),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _controller,
+            decoration: InputDecoration(
+              hintText: widget.confirmWord,
+              border: const OutlineInputBorder(),
+              errorText: _controller.text.isNotEmpty && !_isMatchingText
+                  ? widget.l.textoCorrecto
+                  : null,
+            ),
+            onChanged: (value) {
+              setState(() {
+                _isMatchingText = value == widget.confirmWord;
+              });
+            },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(widget.l.cancelar),
+        ),
+        FilledButton(
+          onPressed:
+              _isMatchingText ? () => Navigator.of(context).pop(true) : null,
+          style: FilledButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+          child: Text(widget.l.resetearDatos),
+        ),
+      ],
     );
   }
 }

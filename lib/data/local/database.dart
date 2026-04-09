@@ -468,6 +468,24 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
+  // ── Factory Reset ────────────────────────────────────────────────
+
+  /// Elimina TODOS los datos de TODAS las tablas.
+  /// ⚠️ Esta acción es IRREVERSIBLE.
+  /// Se recomienda hacer un backup antes de ejecutar.
+  Future<void> clearAllData() async {
+    await transaction(() async {
+      // Orden de eliminación: respetando dependencias
+      await delete(cobrosTable).go();
+      await delete(sesionesRealizadasTable).go();
+      await delete(horasExtraTable).go();
+      await delete(sesionesRecurrentesTable).go();
+      await delete(alumnosTable).go();
+      await delete(empleoConfigTable).go();
+      await delete(fuentesTable).go();
+    });
+  }
+
   // ── Seed data (solo primera instalación) ────────────────────────
 
   Future<void> _seedDemoData() async {

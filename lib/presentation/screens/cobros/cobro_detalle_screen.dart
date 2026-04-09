@@ -12,7 +12,6 @@ import '../../providers/dashboard_provider.dart';
 import '../../providers/fuentes_provider.dart';
 import '../../providers/sesiones_provider.dart';
 import '../../providers/theme_provider.dart';
-import '../../../domain/models/alumno.dart';
 import '../../../domain/models/cobro.dart';
 import '../../../domain/models/fuente.dart';
 import '../../../domain/models/sesion_realizada.dart';
