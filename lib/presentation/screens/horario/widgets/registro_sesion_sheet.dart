@@ -179,7 +179,8 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
         titulo = l.sesionPendiente;
         // Cambiar mensaje según tipo de fuente
         if (evento.fuenteTipo == FuenteTipo.empleo) {
-          subtitulo = 'Esta sesión se registró pero aún no se ha marcado como realizada';
+          subtitulo =
+              'Esta sesión se registró pero aún no se ha marcado como realizada';
         } else {
           subtitulo = l.sesionPendienteDesc;
         }
@@ -687,8 +688,9 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
     try {
       // Caso 1: Sesión de empleo - solo actualizar estado a confirmada
       if (evento.fuenteTipo == FuenteTipo.empleo) {
-        final sesion =
-            await ref.read(sesionRepositoryProvider).getSesionRealizadaById(sesionId);
+        final sesion = await ref
+            .read(sesionRepositoryProvider)
+            .getSesionRealizadaById(sesionId);
         if (sesion != null) {
           await ref.read(sesionRepositoryProvider).saveSesionRealizada(
                 sesion.copyWith(estado: EstadoSesion.confirmada),
