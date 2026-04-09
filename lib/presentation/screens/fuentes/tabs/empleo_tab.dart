@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/router/app_router.dart';
 import '../../../../core/utils/currency_utils.dart';
+import '../../../providers/alumnos_provider.dart';
 import '../../../providers/fuentes_provider.dart';
 import '../../../../domain/models/fuente.dart';
 import '../../../providers/theme_provider.dart';
@@ -30,7 +33,28 @@ class EmpleoTab extends ConsumerWidget {
         return ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            _SectionHeader(title: fuente.nombre, color: AppColors.around),
+            Row(
+              children: [
+                Container(
+                  width: 12,
+                  height: 12,
+                  decoration: const BoxDecoration(
+                    color: AppColors.around,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(fuente.nombre, style: AppTextStyles.titleMedium),
+                const Spacer(),
+                TextButton.icon(
+                  onPressed: () => context.push(
+                    '${AppRoutes.alumnos}/form?fuenteId=${fuente.id}',
+                  ),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: Text(l.alumno),
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
             Consumer(
               builder: (context, ref, _) {
@@ -77,31 +101,68 @@ class EmpleoTab extends ConsumerWidget {
                 );
               },
             ),
+            const SizedBox(height: 24),
+            // ── Alumnos ───────────────────────────────────────────
+            Text('Alumnos', style: AppTextStyles.titleSmall),
+            const SizedBox(height: 8),
+            Consumer(
+              builder: (context, ref, _) {
+                final alumnosAsync =
+                    ref.watch(alumnosByFuenteProvider(fuente.id));
+                return alumnosAsync.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (e, _) => Center(child: Text('Error: $e')),
+                  data: (alumnos) {
+                    if (alumnos.isEmpty) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(32),
+                          child: Text(
+                            l.sinAlumnosEmpleo,
+                            style: AppTextStyles.bodySmall
+                                .copyWith(color: Colors.grey),
+                          ),
+                        ),
+                      );
+                    }
+                    return Column(
+                      children: alumnos
+                          .map(
+                            (a) => Card(
+                              margin: const EdgeInsets.only(bottom: 8),
+                              child: ListTile(
+                                title: Text(a.nombre),
+                                subtitle: Text(
+                                  '${CurrencyUtils.formatCompact(a.tarifaSesion)}${l.porHoraMin}',
+                                  style: AppTextStyles.bodySmall,
+                                ),
+                                leading: CircleAvatar(
+                                  backgroundColor:
+                                      Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? AppColors.aroundLightDark
+                                          : AppColors.aroundLight,
+                                  child: Text(
+                                    a.nombre.substring(0, 1).toUpperCase(),
+                                    style: const TextStyle(
+                                        color: AppColors.around),
+                                  ),
+                                ),
+                                trailing: const Icon(Icons.chevron_right),
+                                onTap: () => context.push('/alumnos/${a.id}'),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    );
+                  },
+                );
+              },
+            ),
           ],
         );
       },
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title, required this.color});
-
-  final String title;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 8),
-        Text(title, style: AppTextStyles.titleMedium),
-      ],
     );
   }
 }

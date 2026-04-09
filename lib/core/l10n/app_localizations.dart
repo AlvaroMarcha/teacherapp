@@ -301,6 +301,10 @@ class AppLocalizations {
     required this.errorAlResetear,
     required this.advertenciaReseteo,
     required this.eliminarMayusculas,
+    required this.mesAnterior,
+    required this.mesSiguiente,
+    required this.sinAlumnosEmpleo,
+    required this.porHoraMin,
 
     // ── Perfil ──
     required this.nombre,
@@ -664,6 +668,10 @@ class AppLocalizations {
   final String errorAlResetear;
   final String advertenciaReseteo;
   final String eliminarMayusculas;
+  final String mesAnterior;
+  final String mesSiguiente;
+  final String sinAlumnosEmpleo;
+  final String porHoraMin;
 
   // ── Perfil ──
   final String nombre;
@@ -1018,6 +1026,10 @@ class AppLocalizations {
     advertenciaReseteo:
         'Esta acción eliminará TODAS las fuentes, alumnos, sesiones, cobros y configuraciones. No se puede deshacer.',
     eliminarMayusculas: 'ELIMINAR',
+    mesAnterior: 'Mes anterior',
+    mesSiguiente: 'Mes siguiente',
+    sinAlumnosEmpleo: 'Sin alumnos asignados a este empleo',
+    porHoraMin: '/h',
     nombre: 'Nombre',
     tuNombre: 'Tu nombre',
     preferencias: 'Preferencias',
@@ -1345,6 +1357,10 @@ class AppLocalizations {
     advertenciaReseteo:
         'This action will delete ALL sources, students, sessions, payments and settings. It cannot be undone.',
     eliminarMayusculas: 'DELETE',
+    mesAnterior: 'Previous month',
+    mesSiguiente: 'Next month',
+    sinAlumnosEmpleo: 'No students assigned to this job',
+    porHoraMin: '/h',
     nombre: 'Name',
     tuNombre: 'Your name',
     preferencias: 'Preferences',
@@ -1678,6 +1694,10 @@ class AppLocalizations {
     advertenciaReseteo:
         'Questa azione eliminerà TUTTE le fonti, studenti, sessioni, pagamenti e impostazioni. Non può essere annullata.',
     eliminarMayusculas: 'ELIMINA',
+    mesAnterior: 'Mese precedente',
+    mesSiguiente: 'Mese successivo',
+    sinAlumnosEmpleo: 'Nessuno studente assegnato a questo lavoro',
+    porHoraMin: '/h',
     nombre: 'Nome',
     tuNombre: 'Il tuo nome',
     preferencias: 'Preferenze',

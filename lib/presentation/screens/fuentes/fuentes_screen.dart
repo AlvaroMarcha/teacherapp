@@ -188,43 +188,121 @@ class _EmpleoContent extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l = ref.watch(appLocalizationsProvider);
     final configAsync = ref.watch(empleoConfigProvider(fuente.id));
-    return configAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, _) => Center(child: Text('Error: $e')),
-      data: (config) {
-        if (config == null) {
-          return const Center(child: Text(''));
-        }
-        return ListView(
-          padding: const EdgeInsets.all(16),
+    final alumnosAsync = ref.watch(alumnosByFuenteProvider(fuente.id));
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // ── Contract info ──
+        configAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(child: Text('Error: $e')),
+          data: (config) {
+            if (config == null) return const SizedBox.shrink();
+            return Column(
+              children: [
+                _InfoTile(
+                  icon: Icons.euro_rounded,
+                  label: l.salarioBase,
+                  value: CurrencyUtils.formatCompact(config.salarioBase),
+                  color: fuente.flutterColor,
+                ),
+                _InfoTile(
+                  icon: Icons.access_time_rounded,
+                  label: l.horasSemanalesContratadas,
+                  value: '${config.horasSemanales.toStringAsFixed(0)}h',
+                  color: fuente.flutterColor,
+                ),
+                _InfoTile(
+                  icon: Icons.add_circle_outline_rounded,
+                  label: l.tarifaHoraExtra,
+                  value:
+                      '${CurrencyUtils.formatCompact(config.tarifaHoraExtra)}/h',
+                  color: fuente.flutterColor,
+                ),
+                _InfoTile(
+                  icon: Icons.calendar_today_rounded,
+                  label: l.diaCobro,
+                  value: '${config.diaCobro} ${l.diaCadaMes}',
+                  color: fuente.flutterColor,
+                ),
+              ],
+            );
+          },
+        ),
+
+        const SizedBox(height: 24),
+
+        // ── Alumnos section ──
+        Row(
           children: [
-            _InfoTile(
-              icon: Icons.euro_rounded,
-              label: l.salarioBase,
-              value: CurrencyUtils.formatCompact(config.salarioBase),
-              color: fuente.flutterColor,
-            ),
-            _InfoTile(
-              icon: Icons.access_time_rounded,
-              label: l.horasSemanalesContratadas,
-              value: '${config.horasSemanales.toStringAsFixed(0)}h',
-              color: fuente.flutterColor,
-            ),
-            _InfoTile(
-              icon: Icons.add_circle_outline_rounded,
-              label: l.tarifaHoraExtra,
-              value: '${CurrencyUtils.formatCompact(config.tarifaHoraExtra)}/h',
-              color: fuente.flutterColor,
-            ),
-            _InfoTile(
-              icon: Icons.calendar_today_rounded,
-              label: l.diaCobro,
-              value: '${config.diaCobro} ${l.diaCadaMes}',
-              color: fuente.flutterColor,
+            Text(l.alumnosTitle, style: AppTextStyles.titleMedium),
+            const Spacer(),
+            TextButton.icon(
+              onPressed: () => context.push(
+                '${AppRoutes.alumnos}/form?fuenteId=${fuente.id}',
+              ),
+              icon: const Icon(Icons.add, size: 18),
+              label: Text(l.anadirAlumno),
             ),
           ],
-        );
-      },
+        ),
+        const SizedBox(height: 8),
+        alumnosAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (e, _) => Center(child: Text('Error: $e')),
+          data: (alumnos) {
+            if (alumnos.isEmpty) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.people_outline,
+                        size: 48,
+                        color: Theme.of(context).colorScheme.outlineVariant,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        l.sinAlumnosEmpleo,
+                        style: AppTextStyles.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+            return Column(
+              children: alumnos
+                  .map(
+                    (a) => Card(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor:
+                              fuente.flutterColor.withValues(alpha: 0.15),
+                          child: Text(
+                            a.nombre.substring(0, 1).toUpperCase(),
+                            style: TextStyle(color: fuente.flutterColor),
+                          ),
+                        ),
+                        title: Text(a.nombre),
+                        subtitle: Text(
+                          '${CurrencyUtils.formatCompact(a.tarifaSesion)}/h · ${a.duracionMinutos} min',
+                          style: AppTextStyles.bodySmall,
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => context.push('/alumnos/${a.id}'),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            );
+          },
+        ),
+      ],
     );
   }
 }

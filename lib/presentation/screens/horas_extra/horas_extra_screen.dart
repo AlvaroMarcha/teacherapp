@@ -55,23 +55,82 @@ class HorasExtraScreen extends ConsumerWidget {
   }
 }
 
-class _HorasExtraBody extends ConsumerWidget {
+class _HorasExtraBody extends ConsumerStatefulWidget {
   const _HorasExtraBody({required this.fuente});
 
   final Fuente fuente;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final color = fuente.flutterColor;
-    final horasAsync = ref.watch(horasExtraByFuenteProvider(fuente.id));
-    final configAsync = ref.watch(empleoConfigProvider(fuente.id));
+  ConsumerState<_HorasExtraBody> createState() => _HorasExtraBodyState();
+}
+
+class _HorasExtraBodyState extends ConsumerState<_HorasExtraBody> {
+  DateTime _selectedMonth = DateTime.now();
+
+  void _previousMonth() {
+    setState(() {
+      _selectedMonth = DateTime(
+        _selectedMonth.year,
+        _selectedMonth.month - 1,
+      );
+    });
+  }
+
+  void _nextMonth() {
+    final now = DateTime.now();
+    final nextMonth = DateTime(
+      _selectedMonth.year,
+      _selectedMonth.month + 1,
+    );
+    // No permitir avanzar más allá del mes actual
+    if (nextMonth.isBefore(DateTime(now.year, now.month + 1))) {
+      setState(() {
+        _selectedMonth = nextMonth;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = widget.fuente.flutterColor;
+    final horasAsync = ref.watch(horasExtraByFuenteProvider(widget.fuente.id));
+    final configAsync = ref.watch(empleoConfigProvider(widget.fuente.id));
     final l = ref.watch(appLocalizationsProvider);
 
-    // Sesiones confirmadas del empleo este mes
-    final periodoMes = DateFormat('yyyy-MM').format(DateTime.now());
+    // Periodo del mes seleccionado
+    final periodoMes = DateFormat('yyyy-MM').format(_selectedMonth);
+    final mesActual = DateFormat('yyyy-MM').format(DateTime.now());
+    final esMesActual = periodoMes == mesActual;
 
     return Scaffold(
-      appBar: AppBar(title: Text('${l.horasExtra} — ${fuente.nombre}')),
+      appBar: AppBar(
+        title: Text('${l.horasExtra} — ${widget.fuente.nombre}'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(56),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  onPressed: _previousMonth,
+                  tooltip: l.mesAnterior,
+                ),
+                Text(
+                  DateFormat('MMMM yyyy', 'es').format(_selectedMonth),
+                  style: AppTextStyles.titleMedium,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  onPressed: esMesActual ? null : _nextMonth,
+                  tooltip: l.mesSiguiente,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
       body: horasAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
@@ -84,75 +143,80 @@ class _HorasExtraBody extends ConsumerWidget {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // ── Resumen contrato ──────────────────────────────
-              configAsync.when(
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
-                data: (config) {
-                  if (config == null) return const SizedBox.shrink();
+              // Solo mostrar resumen de contrato si es el mes actual
+              if (esMesActual) ...[
+                // ── Resumen contrato ──────────────────────────────
+                configAsync.when(
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                  data: (config) {
+                    if (config == null) return const SizedBox.shrink();
 
-                  // Semanas en el mes actual
-                  final now = DateTime.now();
-                  final lastDayOfMonth =
-                      DateTime(now.year, now.month + 1, 0).day;
-                  final semanasEnMes = lastDayOfMonth / 7;
-                  final horasContratadas = config.horasSemanales * semanasEnMes;
+                    // Semanas en el mes actual
+                    final now = DateTime.now();
+                    final lastDayOfMonth =
+                        DateTime(now.year, now.month + 1, 0).day;
+                    final semanasEnMes = lastDayOfMonth / 7;
+                    final horasContratadas =
+                        config.horasSemanales * semanasEnMes;
 
-                  // Horas extra = horas extra registradas
-                  final totalExtra = horasExtrasMes;
+                    // Horas extra = horas extra registradas
+                    final totalExtra = horasExtrasMes;
 
-                  // Sueldo teórico = base + extras
-                  final sueldoEsperado =
-                      config.salarioBase + totalExtra * config.tarifaHoraExtra;
+                    // Sueldo teórico = base + extras
+                    final sueldoEsperado = config.salarioBase +
+                        totalExtra * config.tarifaHoraExtra;
 
-                  return Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            l.configuracionContrato,
-                            style: AppTextStyles.titleSmall,
-                          ),
-                          const SizedBox(height: 12),
-                          _InfoRow(
-                            label: l.horasSemanalesContratadas,
-                            value: '${config.horasSemanales}h',
-                          ),
-                          _InfoRow(
-                            label: l.tarifaHoraExtra,
-                            value: CurrencyUtils.format(config.tarifaHoraExtra),
-                          ),
-                          const Divider(height: 24),
-                          _InfoRow(
-                            label: l.horasTrabajadasMes,
-                            value: CurrencyUtils.format(sueldoEsperado),
-                          ),
-                          _InfoRow(
-                            label: l.horasContratadasMes,
-                            value: '${horasContratadas.toStringAsFixed(1)}h',
-                          ),
-                          _InfoRow(
-                            label: l.horasExtraMes,
-                            value: '${totalExtra.toStringAsFixed(1)}h',
-                            highlight: totalExtra > 0,
-                          ),
-                          if (totalExtra > 0)
-                            _InfoRow(
-                              label: l.extraACobrar,
-                              value: CurrencyUtils.format(
-                                totalExtra * config.tarifaHoraExtra,
-                              ),
-                              highlight: true,
+                    return Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              l.configuracionContrato,
+                              style: AppTextStyles.titleSmall,
                             ),
-                        ],
+                            const SizedBox(height: 12),
+                            _InfoRow(
+                              label: l.horasSemanalesContratadas,
+                              value: '${config.horasSemanales}h',
+                            ),
+                            _InfoRow(
+                              label: l.tarifaHoraExtra,
+                              value:
+                                  CurrencyUtils.format(config.tarifaHoraExtra),
+                            ),
+                            const Divider(height: 24),
+                            _InfoRow(
+                              label: l.horasTrabajadasMes,
+                              value: CurrencyUtils.format(sueldoEsperado),
+                            ),
+                            _InfoRow(
+                              label: l.horasContratadasMes,
+                              value: '${horasContratadas.toStringAsFixed(1)}h',
+                            ),
+                            _InfoRow(
+                              label: l.horasExtraMes,
+                              value: '${totalExtra.toStringAsFixed(1)}h',
+                              highlight: totalExtra > 0,
+                            ),
+                            if (totalExtra > 0)
+                              _InfoRow(
+                                label: l.extraACobrar,
+                                value: CurrencyUtils.format(
+                                  totalExtra * config.tarifaHoraExtra,
+                                ),
+                                highlight: true,
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+              ],
 
               // ── Historial ─────────────────────────────────────
               if (entries.isEmpty)
@@ -171,50 +235,52 @@ class _HorasExtraBody extends ConsumerWidget {
               else ...[
                 Text(l.historial, style: AppTextStyles.titleSmall),
                 const SizedBox(height: 8),
-                ...entries.map(
-                  (e) => _HoraExtraItem(
-                    entry: e,
-                    fuenteId: fuente.id,
-                    color: color,
-                    onDelete: () async {
-                      final confirmed = await showDialog<bool>(
-                        context: context,
-                        builder: (_) => AlertDialog(
-                          title: Text(l.eliminarRegistro),
-                          content: Text(
-                            l.confirmarEliminarHoraExtra,
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: Text(l.cancelar),
+                // Historial filtrado por mes seleccionado
+                ...entries.where((e) => e.fecha.startsWith(periodoMes)).map(
+                      (e) => _HoraExtraItem(
+                        entry: e,
+                        fuenteId: widget.fuente.id,
+                        color: color,
+                        onDelete: () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (_) => AlertDialog(
+                              title: Text(l.eliminarRegistro),
+                              content: Text(
+                                l.confirmarEliminarHoraExtra,
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(context, false),
+                                  child: Text(l.cancelar),
+                                ),
+                                FilledButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: Text(l.eliminar),
+                                ),
+                              ],
                             ),
-                            FilledButton(
-                              onPressed: () => Navigator.pop(context, true),
-                              child: Text(l.eliminar),
-                            ),
-                          ],
-                        ),
-                      );
-                      if (confirmed == true) {
-                        await ref
-                            .read(horasExtraRepositoryProvider)
-                            .deleteHoraExtra(e.id);
-                        // Si es auto (del calendario), eliminar también la sesión
-                        if (e.notas.startsWith('Auto')) {
-                          await ref
-                              .read(databaseProvider)
-                              .deleteSesionRealizadaByFechaAndFuente(
-                                e.fecha,
-                                e.fuenteId,
-                              );
-                        }
-                        // Invalidar providers para actualizar dashboard
-                        ref.invalidate(dashboardProvider);
-                      }
-                    },
-                  ),
-                ),
+                          );
+                          if (confirmed == true) {
+                            await ref
+                                .read(horasExtraRepositoryProvider)
+                                .deleteHoraExtra(e.id);
+                            // Si es auto (del calendario), eliminar también la sesión
+                            if (e.notas.startsWith('Auto')) {
+                              await ref
+                                  .read(databaseProvider)
+                                  .deleteSesionRealizadaByFechaAndFuente(
+                                    e.fecha,
+                                    e.fuenteId,
+                                  );
+                            }
+                            // Invalidar providers para actualizar dashboard
+                            ref.invalidate(dashboardProvider);
+                          }
+                        },
+                      ),
+                    ),
               ],
               const SizedBox(height: 80),
             ],
@@ -239,10 +305,8 @@ class _HorasExtraBody extends ConsumerWidget {
     final formKey = GlobalKey<FormState>();
 
     // Pre-load alumnos of this fuente
-    final alumnos = await ref
-        .read(alumnoRepositoryProvider)
-        .watchAlumnosByFuente(fuente.id)
-        .first;
+    final alumnos =
+        await ref.read(alumnosByFuenteProvider(widget.fuente.id).future);
 
     if (!context.mounted) return;
 
@@ -342,7 +406,7 @@ class _HorasExtraBody extends ConsumerWidget {
                 if (!formKey.currentState!.validate()) return;
                 final entry = HoraExtra(
                   id: '',
-                  fuenteId: fuente.id,
+                  fuenteId: widget.fuente.id,
                   fecha: DateFormat('yyyy-MM-dd').format(fecha),
                   horas: double.parse(horasCtrl.text),
                   alumnoId: selectedAlumnoId,
