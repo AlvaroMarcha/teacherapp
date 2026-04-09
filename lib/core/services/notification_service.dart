@@ -103,4 +103,43 @@ class NotificationService {
       notificationDetails: details,
     );
   }
+
+  /// Programa una notificación de recordatorio (notas).
+  /// IDs empiezan en 10000 para no colisionar con class reminders.
+  Future<void> scheduleReminder({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledTime,
+  }) async {
+    final tzTime = tz.TZDateTime.from(scheduledTime, tz.local);
+
+    if (tzTime.isBefore(tz.TZDateTime.now(tz.local))) return;
+
+    const androidDetails = AndroidNotificationDetails(
+      'reminders',
+      'Recordatorios',
+      channelDescription: 'Notificaciones de notas y recordatorios',
+      importance: Importance.high,
+      priority: Priority.high,
+      playSound: true,
+      enableVibration: true,
+    );
+
+    const details = NotificationDetails(android: androidDetails);
+
+    await _plugin.zonedSchedule(
+      id: id,
+      title: title,
+      body: body,
+      scheduledDate: tzTime,
+      notificationDetails: details,
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+    );
+  }
+
+  /// Cancela una notificación de recordatorio por su ID de nota.
+  Future<void> cancelReminder(int id) async {
+    await _plugin.cancel(id: id);
+  }
 }

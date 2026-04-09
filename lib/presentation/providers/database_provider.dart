@@ -5,6 +5,7 @@ import '../../data/repositories/alumno_repository.dart';
 import '../../data/repositories/sesion_repository.dart';
 import '../../data/repositories/cobro_repository.dart';
 import '../../data/repositories/horas_extra_repository.dart';
+import '../../data/repositories/nota_repository.dart';
 
 // ── Database ─────────────────────────────────────────────────────────────────
 
@@ -42,4 +43,8 @@ final cobroRepositoryProvider = Provider<CobroRepository>((ref) {
 
 final horasExtraRepositoryProvider = Provider<HorasExtraRepository>((ref) {
   return HorasExtraRepository(ref.watch(databaseProvider));
+});
+
+final notaRepositoryProvider = Provider<NotaRepository>((ref) {
+  return NotaRepository(ref.watch(databaseProvider));
 });

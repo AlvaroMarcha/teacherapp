@@ -3180,6 +3180,959 @@ class HorasExtraTableCompanion extends UpdateCompanion<HorasExtraTableData> {
   }
 }
 
+class $NotasTableTable extends NotasTable
+    with TableInfo<$NotasTableTable, NotasTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $NotasTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _tituloMeta = const VerificationMeta('titulo');
+  @override
+  late final GeneratedColumn<String> titulo = GeneratedColumn<String>(
+      'titulo', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _contenidoMeta =
+      const VerificationMeta('contenido');
+  @override
+  late final GeneratedColumn<String> contenido = GeneratedColumn<String>(
+      'contenido', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
+  static const VerificationMeta _tipoMeta = const VerificationMeta('tipo');
+  @override
+  late final GeneratedColumn<String> tipo = GeneratedColumn<String>(
+      'tipo', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('nota'));
+  static const VerificationMeta _prioridadMeta =
+      const VerificationMeta('prioridad');
+  @override
+  late final GeneratedColumn<String> prioridad = GeneratedColumn<String>(
+      'prioridad', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('media'));
+  static const VerificationMeta _fechaRecordatorioMeta =
+      const VerificationMeta('fechaRecordatorio');
+  @override
+  late final GeneratedColumn<String> fechaRecordatorio =
+      GeneratedColumn<String>('fecha_recordatorio', aliasedName, true,
+          type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _recurrenciaMeta =
+      const VerificationMeta('recurrencia');
+  @override
+  late final GeneratedColumn<String> recurrencia = GeneratedColumn<String>(
+      'recurrencia', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('ninguna'));
+  static const VerificationMeta _completadaMeta =
+      const VerificationMeta('completada');
+  @override
+  late final GeneratedColumn<bool> completada = GeneratedColumn<bool>(
+      'completada', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("completada" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _creadaEnMeta =
+      const VerificationMeta('creadaEn');
+  @override
+  late final GeneratedColumn<String> creadaEn = GeneratedColumn<String>(
+      'creada_en', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _syncStatusMeta =
+      const VerificationMeta('syncStatus');
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+      'sync_status', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('pending'));
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        titulo,
+        contenido,
+        tipo,
+        prioridad,
+        fechaRecordatorio,
+        recurrencia,
+        completada,
+        creadaEn,
+        syncStatus
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'notas';
+  @override
+  VerificationContext validateIntegrity(Insertable<NotasTableData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('titulo')) {
+      context.handle(_tituloMeta,
+          titulo.isAcceptableOrUnknown(data['titulo']!, _tituloMeta));
+    } else if (isInserting) {
+      context.missing(_tituloMeta);
+    }
+    if (data.containsKey('contenido')) {
+      context.handle(_contenidoMeta,
+          contenido.isAcceptableOrUnknown(data['contenido']!, _contenidoMeta));
+    }
+    if (data.containsKey('tipo')) {
+      context.handle(
+          _tipoMeta, tipo.isAcceptableOrUnknown(data['tipo']!, _tipoMeta));
+    }
+    if (data.containsKey('prioridad')) {
+      context.handle(_prioridadMeta,
+          prioridad.isAcceptableOrUnknown(data['prioridad']!, _prioridadMeta));
+    }
+    if (data.containsKey('fecha_recordatorio')) {
+      context.handle(
+          _fechaRecordatorioMeta,
+          fechaRecordatorio.isAcceptableOrUnknown(
+              data['fecha_recordatorio']!, _fechaRecordatorioMeta));
+    }
+    if (data.containsKey('recurrencia')) {
+      context.handle(
+          _recurrenciaMeta,
+          recurrencia.isAcceptableOrUnknown(
+              data['recurrencia']!, _recurrenciaMeta));
+    }
+    if (data.containsKey('completada')) {
+      context.handle(
+          _completadaMeta,
+          completada.isAcceptableOrUnknown(
+              data['completada']!, _completadaMeta));
+    }
+    if (data.containsKey('creada_en')) {
+      context.handle(_creadaEnMeta,
+          creadaEn.isAcceptableOrUnknown(data['creada_en']!, _creadaEnMeta));
+    } else if (isInserting) {
+      context.missing(_creadaEnMeta);
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+          _syncStatusMeta,
+          syncStatus.isAcceptableOrUnknown(
+              data['sync_status']!, _syncStatusMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  NotasTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return NotasTableData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      titulo: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}titulo'])!,
+      contenido: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}contenido'])!,
+      tipo: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tipo'])!,
+      prioridad: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}prioridad'])!,
+      fechaRecordatorio: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}fecha_recordatorio']),
+      recurrencia: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}recurrencia'])!,
+      completada: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}completada'])!,
+      creadaEn: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}creada_en'])!,
+      syncStatus: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}sync_status'])!,
+    );
+  }
+
+  @override
+  $NotasTableTable createAlias(String alias) {
+    return $NotasTableTable(attachedDatabase, alias);
+  }
+}
+
+class NotasTableData extends DataClass implements Insertable<NotasTableData> {
+  final String id;
+  final String titulo;
+  final String contenido;
+
+  /// 'nota' | 'recordatorio'
+  final String tipo;
+
+  /// 'alta' | 'media' | 'baja'
+  final String prioridad;
+
+  /// ISO 8601 datetime para recordatorio (nullable si es nota simple)
+  final String? fechaRecordatorio;
+
+  /// 'ninguna' | 'diaria' | 'semanal' | 'mensual'
+  final String recurrencia;
+  final bool completada;
+  final String creadaEn;
+  final String syncStatus;
+  const NotasTableData(
+      {required this.id,
+      required this.titulo,
+      required this.contenido,
+      required this.tipo,
+      required this.prioridad,
+      this.fechaRecordatorio,
+      required this.recurrencia,
+      required this.completada,
+      required this.creadaEn,
+      required this.syncStatus});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['titulo'] = Variable<String>(titulo);
+    map['contenido'] = Variable<String>(contenido);
+    map['tipo'] = Variable<String>(tipo);
+    map['prioridad'] = Variable<String>(prioridad);
+    if (!nullToAbsent || fechaRecordatorio != null) {
+      map['fecha_recordatorio'] = Variable<String>(fechaRecordatorio);
+    }
+    map['recurrencia'] = Variable<String>(recurrencia);
+    map['completada'] = Variable<bool>(completada);
+    map['creada_en'] = Variable<String>(creadaEn);
+    map['sync_status'] = Variable<String>(syncStatus);
+    return map;
+  }
+
+  NotasTableCompanion toCompanion(bool nullToAbsent) {
+    return NotasTableCompanion(
+      id: Value(id),
+      titulo: Value(titulo),
+      contenido: Value(contenido),
+      tipo: Value(tipo),
+      prioridad: Value(prioridad),
+      fechaRecordatorio: fechaRecordatorio == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fechaRecordatorio),
+      recurrencia: Value(recurrencia),
+      completada: Value(completada),
+      creadaEn: Value(creadaEn),
+      syncStatus: Value(syncStatus),
+    );
+  }
+
+  factory NotasTableData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return NotasTableData(
+      id: serializer.fromJson<String>(json['id']),
+      titulo: serializer.fromJson<String>(json['titulo']),
+      contenido: serializer.fromJson<String>(json['contenido']),
+      tipo: serializer.fromJson<String>(json['tipo']),
+      prioridad: serializer.fromJson<String>(json['prioridad']),
+      fechaRecordatorio:
+          serializer.fromJson<String?>(json['fechaRecordatorio']),
+      recurrencia: serializer.fromJson<String>(json['recurrencia']),
+      completada: serializer.fromJson<bool>(json['completada']),
+      creadaEn: serializer.fromJson<String>(json['creadaEn']),
+      syncStatus: serializer.fromJson<String>(json['syncStatus']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'titulo': serializer.toJson<String>(titulo),
+      'contenido': serializer.toJson<String>(contenido),
+      'tipo': serializer.toJson<String>(tipo),
+      'prioridad': serializer.toJson<String>(prioridad),
+      'fechaRecordatorio': serializer.toJson<String?>(fechaRecordatorio),
+      'recurrencia': serializer.toJson<String>(recurrencia),
+      'completada': serializer.toJson<bool>(completada),
+      'creadaEn': serializer.toJson<String>(creadaEn),
+      'syncStatus': serializer.toJson<String>(syncStatus),
+    };
+  }
+
+  NotasTableData copyWith(
+          {String? id,
+          String? titulo,
+          String? contenido,
+          String? tipo,
+          String? prioridad,
+          Value<String?> fechaRecordatorio = const Value.absent(),
+          String? recurrencia,
+          bool? completada,
+          String? creadaEn,
+          String? syncStatus}) =>
+      NotasTableData(
+        id: id ?? this.id,
+        titulo: titulo ?? this.titulo,
+        contenido: contenido ?? this.contenido,
+        tipo: tipo ?? this.tipo,
+        prioridad: prioridad ?? this.prioridad,
+        fechaRecordatorio: fechaRecordatorio.present
+            ? fechaRecordatorio.value
+            : this.fechaRecordatorio,
+        recurrencia: recurrencia ?? this.recurrencia,
+        completada: completada ?? this.completada,
+        creadaEn: creadaEn ?? this.creadaEn,
+        syncStatus: syncStatus ?? this.syncStatus,
+      );
+  NotasTableData copyWithCompanion(NotasTableCompanion data) {
+    return NotasTableData(
+      id: data.id.present ? data.id.value : this.id,
+      titulo: data.titulo.present ? data.titulo.value : this.titulo,
+      contenido: data.contenido.present ? data.contenido.value : this.contenido,
+      tipo: data.tipo.present ? data.tipo.value : this.tipo,
+      prioridad: data.prioridad.present ? data.prioridad.value : this.prioridad,
+      fechaRecordatorio: data.fechaRecordatorio.present
+          ? data.fechaRecordatorio.value
+          : this.fechaRecordatorio,
+      recurrencia:
+          data.recurrencia.present ? data.recurrencia.value : this.recurrencia,
+      completada:
+          data.completada.present ? data.completada.value : this.completada,
+      creadaEn: data.creadaEn.present ? data.creadaEn.value : this.creadaEn,
+      syncStatus:
+          data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NotasTableData(')
+          ..write('id: $id, ')
+          ..write('titulo: $titulo, ')
+          ..write('contenido: $contenido, ')
+          ..write('tipo: $tipo, ')
+          ..write('prioridad: $prioridad, ')
+          ..write('fechaRecordatorio: $fechaRecordatorio, ')
+          ..write('recurrencia: $recurrencia, ')
+          ..write('completada: $completada, ')
+          ..write('creadaEn: $creadaEn, ')
+          ..write('syncStatus: $syncStatus')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, titulo, contenido, tipo, prioridad,
+      fechaRecordatorio, recurrencia, completada, creadaEn, syncStatus);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is NotasTableData &&
+          other.id == this.id &&
+          other.titulo == this.titulo &&
+          other.contenido == this.contenido &&
+          other.tipo == this.tipo &&
+          other.prioridad == this.prioridad &&
+          other.fechaRecordatorio == this.fechaRecordatorio &&
+          other.recurrencia == this.recurrencia &&
+          other.completada == this.completada &&
+          other.creadaEn == this.creadaEn &&
+          other.syncStatus == this.syncStatus);
+}
+
+class NotasTableCompanion extends UpdateCompanion<NotasTableData> {
+  final Value<String> id;
+  final Value<String> titulo;
+  final Value<String> contenido;
+  final Value<String> tipo;
+  final Value<String> prioridad;
+  final Value<String?> fechaRecordatorio;
+  final Value<String> recurrencia;
+  final Value<bool> completada;
+  final Value<String> creadaEn;
+  final Value<String> syncStatus;
+  final Value<int> rowid;
+  const NotasTableCompanion({
+    this.id = const Value.absent(),
+    this.titulo = const Value.absent(),
+    this.contenido = const Value.absent(),
+    this.tipo = const Value.absent(),
+    this.prioridad = const Value.absent(),
+    this.fechaRecordatorio = const Value.absent(),
+    this.recurrencia = const Value.absent(),
+    this.completada = const Value.absent(),
+    this.creadaEn = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  NotasTableCompanion.insert({
+    required String id,
+    required String titulo,
+    this.contenido = const Value.absent(),
+    this.tipo = const Value.absent(),
+    this.prioridad = const Value.absent(),
+    this.fechaRecordatorio = const Value.absent(),
+    this.recurrencia = const Value.absent(),
+    this.completada = const Value.absent(),
+    required String creadaEn,
+    this.syncStatus = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        titulo = Value(titulo),
+        creadaEn = Value(creadaEn);
+  static Insertable<NotasTableData> custom({
+    Expression<String>? id,
+    Expression<String>? titulo,
+    Expression<String>? contenido,
+    Expression<String>? tipo,
+    Expression<String>? prioridad,
+    Expression<String>? fechaRecordatorio,
+    Expression<String>? recurrencia,
+    Expression<bool>? completada,
+    Expression<String>? creadaEn,
+    Expression<String>? syncStatus,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (titulo != null) 'titulo': titulo,
+      if (contenido != null) 'contenido': contenido,
+      if (tipo != null) 'tipo': tipo,
+      if (prioridad != null) 'prioridad': prioridad,
+      if (fechaRecordatorio != null) 'fecha_recordatorio': fechaRecordatorio,
+      if (recurrencia != null) 'recurrencia': recurrencia,
+      if (completada != null) 'completada': completada,
+      if (creadaEn != null) 'creada_en': creadaEn,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  NotasTableCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? titulo,
+      Value<String>? contenido,
+      Value<String>? tipo,
+      Value<String>? prioridad,
+      Value<String?>? fechaRecordatorio,
+      Value<String>? recurrencia,
+      Value<bool>? completada,
+      Value<String>? creadaEn,
+      Value<String>? syncStatus,
+      Value<int>? rowid}) {
+    return NotasTableCompanion(
+      id: id ?? this.id,
+      titulo: titulo ?? this.titulo,
+      contenido: contenido ?? this.contenido,
+      tipo: tipo ?? this.tipo,
+      prioridad: prioridad ?? this.prioridad,
+      fechaRecordatorio: fechaRecordatorio ?? this.fechaRecordatorio,
+      recurrencia: recurrencia ?? this.recurrencia,
+      completada: completada ?? this.completada,
+      creadaEn: creadaEn ?? this.creadaEn,
+      syncStatus: syncStatus ?? this.syncStatus,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (titulo.present) {
+      map['titulo'] = Variable<String>(titulo.value);
+    }
+    if (contenido.present) {
+      map['contenido'] = Variable<String>(contenido.value);
+    }
+    if (tipo.present) {
+      map['tipo'] = Variable<String>(tipo.value);
+    }
+    if (prioridad.present) {
+      map['prioridad'] = Variable<String>(prioridad.value);
+    }
+    if (fechaRecordatorio.present) {
+      map['fecha_recordatorio'] = Variable<String>(fechaRecordatorio.value);
+    }
+    if (recurrencia.present) {
+      map['recurrencia'] = Variable<String>(recurrencia.value);
+    }
+    if (completada.present) {
+      map['completada'] = Variable<bool>(completada.value);
+    }
+    if (creadaEn.present) {
+      map['creada_en'] = Variable<String>(creadaEn.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NotasTableCompanion(')
+          ..write('id: $id, ')
+          ..write('titulo: $titulo, ')
+          ..write('contenido: $contenido, ')
+          ..write('tipo: $tipo, ')
+          ..write('prioridad: $prioridad, ')
+          ..write('fechaRecordatorio: $fechaRecordatorio, ')
+          ..write('recurrencia: $recurrencia, ')
+          ..write('completada: $completada, ')
+          ..write('creadaEn: $creadaEn, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $EtiquetasTableTable extends EtiquetasTable
+    with TableInfo<$EtiquetasTableTable, EtiquetasTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EtiquetasTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+      'id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _nombreMeta = const VerificationMeta('nombre');
+  @override
+  late final GeneratedColumn<String> nombre = GeneratedColumn<String>(
+      'nombre', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
+      'color', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('6366F1'));
+  @override
+  List<GeneratedColumn> get $columns => [id, nombre, color];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'etiquetas';
+  @override
+  VerificationContext validateIntegrity(Insertable<EtiquetasTableData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('nombre')) {
+      context.handle(_nombreMeta,
+          nombre.isAcceptableOrUnknown(data['nombre']!, _nombreMeta));
+    } else if (isInserting) {
+      context.missing(_nombreMeta);
+    }
+    if (data.containsKey('color')) {
+      context.handle(
+          _colorMeta, color.isAcceptableOrUnknown(data['color']!, _colorMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  EtiquetasTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EtiquetasTableData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}id'])!,
+      nombre: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}nombre'])!,
+      color: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}color'])!,
+    );
+  }
+
+  @override
+  $EtiquetasTableTable createAlias(String alias) {
+    return $EtiquetasTableTable(attachedDatabase, alias);
+  }
+}
+
+class EtiquetasTableData extends DataClass
+    implements Insertable<EtiquetasTableData> {
+  final String id;
+  final String nombre;
+
+  /// Color hex (e.g. 'FF5722')
+  final String color;
+  const EtiquetasTableData(
+      {required this.id, required this.nombre, required this.color});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['nombre'] = Variable<String>(nombre);
+    map['color'] = Variable<String>(color);
+    return map;
+  }
+
+  EtiquetasTableCompanion toCompanion(bool nullToAbsent) {
+    return EtiquetasTableCompanion(
+      id: Value(id),
+      nombre: Value(nombre),
+      color: Value(color),
+    );
+  }
+
+  factory EtiquetasTableData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EtiquetasTableData(
+      id: serializer.fromJson<String>(json['id']),
+      nombre: serializer.fromJson<String>(json['nombre']),
+      color: serializer.fromJson<String>(json['color']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'nombre': serializer.toJson<String>(nombre),
+      'color': serializer.toJson<String>(color),
+    };
+  }
+
+  EtiquetasTableData copyWith({String? id, String? nombre, String? color}) =>
+      EtiquetasTableData(
+        id: id ?? this.id,
+        nombre: nombre ?? this.nombre,
+        color: color ?? this.color,
+      );
+  EtiquetasTableData copyWithCompanion(EtiquetasTableCompanion data) {
+    return EtiquetasTableData(
+      id: data.id.present ? data.id.value : this.id,
+      nombre: data.nombre.present ? data.nombre.value : this.nombre,
+      color: data.color.present ? data.color.value : this.color,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EtiquetasTableData(')
+          ..write('id: $id, ')
+          ..write('nombre: $nombre, ')
+          ..write('color: $color')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, nombre, color);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EtiquetasTableData &&
+          other.id == this.id &&
+          other.nombre == this.nombre &&
+          other.color == this.color);
+}
+
+class EtiquetasTableCompanion extends UpdateCompanion<EtiquetasTableData> {
+  final Value<String> id;
+  final Value<String> nombre;
+  final Value<String> color;
+  final Value<int> rowid;
+  const EtiquetasTableCompanion({
+    this.id = const Value.absent(),
+    this.nombre = const Value.absent(),
+    this.color = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EtiquetasTableCompanion.insert({
+    required String id,
+    required String nombre,
+    this.color = const Value.absent(),
+    this.rowid = const Value.absent(),
+  })  : id = Value(id),
+        nombre = Value(nombre);
+  static Insertable<EtiquetasTableData> custom({
+    Expression<String>? id,
+    Expression<String>? nombre,
+    Expression<String>? color,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (nombre != null) 'nombre': nombre,
+      if (color != null) 'color': color,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EtiquetasTableCompanion copyWith(
+      {Value<String>? id,
+      Value<String>? nombre,
+      Value<String>? color,
+      Value<int>? rowid}) {
+    return EtiquetasTableCompanion(
+      id: id ?? this.id,
+      nombre: nombre ?? this.nombre,
+      color: color ?? this.color,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (nombre.present) {
+      map['nombre'] = Variable<String>(nombre.value);
+    }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EtiquetasTableCompanion(')
+          ..write('id: $id, ')
+          ..write('nombre: $nombre, ')
+          ..write('color: $color, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $NotasEtiquetasTableTable extends NotasEtiquetasTable
+    with TableInfo<$NotasEtiquetasTableTable, NotasEtiquetasTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $NotasEtiquetasTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _notaIdMeta = const VerificationMeta('notaId');
+  @override
+  late final GeneratedColumn<String> notaId = GeneratedColumn<String>(
+      'nota_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _etiquetaIdMeta =
+      const VerificationMeta('etiquetaId');
+  @override
+  late final GeneratedColumn<String> etiquetaId = GeneratedColumn<String>(
+      'etiqueta_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns => [notaId, etiquetaId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'notas_etiquetas';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<NotasEtiquetasTableData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('nota_id')) {
+      context.handle(_notaIdMeta,
+          notaId.isAcceptableOrUnknown(data['nota_id']!, _notaIdMeta));
+    } else if (isInserting) {
+      context.missing(_notaIdMeta);
+    }
+    if (data.containsKey('etiqueta_id')) {
+      context.handle(
+          _etiquetaIdMeta,
+          etiquetaId.isAcceptableOrUnknown(
+              data['etiqueta_id']!, _etiquetaIdMeta));
+    } else if (isInserting) {
+      context.missing(_etiquetaIdMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {notaId, etiquetaId};
+  @override
+  NotasEtiquetasTableData map(Map<String, dynamic> data,
+      {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return NotasEtiquetasTableData(
+      notaId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}nota_id'])!,
+      etiquetaId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}etiqueta_id'])!,
+    );
+  }
+
+  @override
+  $NotasEtiquetasTableTable createAlias(String alias) {
+    return $NotasEtiquetasTableTable(attachedDatabase, alias);
+  }
+}
+
+class NotasEtiquetasTableData extends DataClass
+    implements Insertable<NotasEtiquetasTableData> {
+  final String notaId;
+  final String etiquetaId;
+  const NotasEtiquetasTableData(
+      {required this.notaId, required this.etiquetaId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['nota_id'] = Variable<String>(notaId);
+    map['etiqueta_id'] = Variable<String>(etiquetaId);
+    return map;
+  }
+
+  NotasEtiquetasTableCompanion toCompanion(bool nullToAbsent) {
+    return NotasEtiquetasTableCompanion(
+      notaId: Value(notaId),
+      etiquetaId: Value(etiquetaId),
+    );
+  }
+
+  factory NotasEtiquetasTableData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return NotasEtiquetasTableData(
+      notaId: serializer.fromJson<String>(json['notaId']),
+      etiquetaId: serializer.fromJson<String>(json['etiquetaId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'notaId': serializer.toJson<String>(notaId),
+      'etiquetaId': serializer.toJson<String>(etiquetaId),
+    };
+  }
+
+  NotasEtiquetasTableData copyWith({String? notaId, String? etiquetaId}) =>
+      NotasEtiquetasTableData(
+        notaId: notaId ?? this.notaId,
+        etiquetaId: etiquetaId ?? this.etiquetaId,
+      );
+  NotasEtiquetasTableData copyWithCompanion(NotasEtiquetasTableCompanion data) {
+    return NotasEtiquetasTableData(
+      notaId: data.notaId.present ? data.notaId.value : this.notaId,
+      etiquetaId:
+          data.etiquetaId.present ? data.etiquetaId.value : this.etiquetaId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NotasEtiquetasTableData(')
+          ..write('notaId: $notaId, ')
+          ..write('etiquetaId: $etiquetaId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(notaId, etiquetaId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is NotasEtiquetasTableData &&
+          other.notaId == this.notaId &&
+          other.etiquetaId == this.etiquetaId);
+}
+
+class NotasEtiquetasTableCompanion
+    extends UpdateCompanion<NotasEtiquetasTableData> {
+  final Value<String> notaId;
+  final Value<String> etiquetaId;
+  final Value<int> rowid;
+  const NotasEtiquetasTableCompanion({
+    this.notaId = const Value.absent(),
+    this.etiquetaId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  NotasEtiquetasTableCompanion.insert({
+    required String notaId,
+    required String etiquetaId,
+    this.rowid = const Value.absent(),
+  })  : notaId = Value(notaId),
+        etiquetaId = Value(etiquetaId);
+  static Insertable<NotasEtiquetasTableData> custom({
+    Expression<String>? notaId,
+    Expression<String>? etiquetaId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (notaId != null) 'nota_id': notaId,
+      if (etiquetaId != null) 'etiqueta_id': etiquetaId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  NotasEtiquetasTableCompanion copyWith(
+      {Value<String>? notaId, Value<String>? etiquetaId, Value<int>? rowid}) {
+    return NotasEtiquetasTableCompanion(
+      notaId: notaId ?? this.notaId,
+      etiquetaId: etiquetaId ?? this.etiquetaId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (notaId.present) {
+      map['nota_id'] = Variable<String>(notaId.value);
+    }
+    if (etiquetaId.present) {
+      map['etiqueta_id'] = Variable<String>(etiquetaId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NotasEtiquetasTableCompanion(')
+          ..write('notaId: $notaId, ')
+          ..write('etiquetaId: $etiquetaId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -3194,6 +4147,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CobrosTableTable cobrosTable = $CobrosTableTable(this);
   late final $HorasExtraTableTable horasExtraTable =
       $HorasExtraTableTable(this);
+  late final $NotasTableTable notasTable = $NotasTableTable(this);
+  late final $EtiquetasTableTable etiquetasTable = $EtiquetasTableTable(this);
+  late final $NotasEtiquetasTableTable notasEtiquetasTable =
+      $NotasEtiquetasTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -3205,7 +4162,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         sesionesRecurrentesTable,
         sesionesRealizadasTable,
         cobrosTable,
-        horasExtraTable
+        horasExtraTable,
+        notasTable,
+        etiquetasTable,
+        notasEtiquetasTable
       ];
 }
 
@@ -4477,6 +5437,390 @@ class $$HorasExtraTableTableOrderingComposer
           ColumnOrderings(column, joinBuilders: joinBuilders));
 }
 
+typedef $$NotasTableTableCreateCompanionBuilder = NotasTableCompanion Function({
+  required String id,
+  required String titulo,
+  Value<String> contenido,
+  Value<String> tipo,
+  Value<String> prioridad,
+  Value<String?> fechaRecordatorio,
+  Value<String> recurrencia,
+  Value<bool> completada,
+  required String creadaEn,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
+typedef $$NotasTableTableUpdateCompanionBuilder = NotasTableCompanion Function({
+  Value<String> id,
+  Value<String> titulo,
+  Value<String> contenido,
+  Value<String> tipo,
+  Value<String> prioridad,
+  Value<String?> fechaRecordatorio,
+  Value<String> recurrencia,
+  Value<bool> completada,
+  Value<String> creadaEn,
+  Value<String> syncStatus,
+  Value<int> rowid,
+});
+
+class $$NotasTableTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $NotasTableTable,
+    NotasTableData,
+    $$NotasTableTableFilterComposer,
+    $$NotasTableTableOrderingComposer,
+    $$NotasTableTableCreateCompanionBuilder,
+    $$NotasTableTableUpdateCompanionBuilder> {
+  $$NotasTableTableTableManager(_$AppDatabase db, $NotasTableTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer:
+              $$NotasTableTableFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $$NotasTableTableOrderingComposer(ComposerState(db, table)),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> titulo = const Value.absent(),
+            Value<String> contenido = const Value.absent(),
+            Value<String> tipo = const Value.absent(),
+            Value<String> prioridad = const Value.absent(),
+            Value<String?> fechaRecordatorio = const Value.absent(),
+            Value<String> recurrencia = const Value.absent(),
+            Value<bool> completada = const Value.absent(),
+            Value<String> creadaEn = const Value.absent(),
+            Value<String> syncStatus = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              NotasTableCompanion(
+            id: id,
+            titulo: titulo,
+            contenido: contenido,
+            tipo: tipo,
+            prioridad: prioridad,
+            fechaRecordatorio: fechaRecordatorio,
+            recurrencia: recurrencia,
+            completada: completada,
+            creadaEn: creadaEn,
+            syncStatus: syncStatus,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String titulo,
+            Value<String> contenido = const Value.absent(),
+            Value<String> tipo = const Value.absent(),
+            Value<String> prioridad = const Value.absent(),
+            Value<String?> fechaRecordatorio = const Value.absent(),
+            Value<String> recurrencia = const Value.absent(),
+            Value<bool> completada = const Value.absent(),
+            required String creadaEn,
+            Value<String> syncStatus = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              NotasTableCompanion.insert(
+            id: id,
+            titulo: titulo,
+            contenido: contenido,
+            tipo: tipo,
+            prioridad: prioridad,
+            fechaRecordatorio: fechaRecordatorio,
+            recurrencia: recurrencia,
+            completada: completada,
+            creadaEn: creadaEn,
+            syncStatus: syncStatus,
+            rowid: rowid,
+          ),
+        ));
+}
+
+class $$NotasTableTableFilterComposer
+    extends FilterComposer<_$AppDatabase, $NotasTableTable> {
+  $$NotasTableTableFilterComposer(super.$state);
+  ColumnFilters<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get titulo => $state.composableBuilder(
+      column: $state.table.titulo,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get contenido => $state.composableBuilder(
+      column: $state.table.contenido,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get tipo => $state.composableBuilder(
+      column: $state.table.tipo,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get prioridad => $state.composableBuilder(
+      column: $state.table.prioridad,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get fechaRecordatorio => $state.composableBuilder(
+      column: $state.table.fechaRecordatorio,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get recurrencia => $state.composableBuilder(
+      column: $state.table.recurrencia,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<bool> get completada => $state.composableBuilder(
+      column: $state.table.completada,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get creadaEn => $state.composableBuilder(
+      column: $state.table.creadaEn,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get syncStatus => $state.composableBuilder(
+      column: $state.table.syncStatus,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $$NotasTableTableOrderingComposer
+    extends OrderingComposer<_$AppDatabase, $NotasTableTable> {
+  $$NotasTableTableOrderingComposer(super.$state);
+  ColumnOrderings<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get titulo => $state.composableBuilder(
+      column: $state.table.titulo,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get contenido => $state.composableBuilder(
+      column: $state.table.contenido,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get tipo => $state.composableBuilder(
+      column: $state.table.tipo,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get prioridad => $state.composableBuilder(
+      column: $state.table.prioridad,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get fechaRecordatorio => $state.composableBuilder(
+      column: $state.table.fechaRecordatorio,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get recurrencia => $state.composableBuilder(
+      column: $state.table.recurrencia,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<bool> get completada => $state.composableBuilder(
+      column: $state.table.completada,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get creadaEn => $state.composableBuilder(
+      column: $state.table.creadaEn,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get syncStatus => $state.composableBuilder(
+      column: $state.table.syncStatus,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
+typedef $$EtiquetasTableTableCreateCompanionBuilder = EtiquetasTableCompanion
+    Function({
+  required String id,
+  required String nombre,
+  Value<String> color,
+  Value<int> rowid,
+});
+typedef $$EtiquetasTableTableUpdateCompanionBuilder = EtiquetasTableCompanion
+    Function({
+  Value<String> id,
+  Value<String> nombre,
+  Value<String> color,
+  Value<int> rowid,
+});
+
+class $$EtiquetasTableTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $EtiquetasTableTable,
+    EtiquetasTableData,
+    $$EtiquetasTableTableFilterComposer,
+    $$EtiquetasTableTableOrderingComposer,
+    $$EtiquetasTableTableCreateCompanionBuilder,
+    $$EtiquetasTableTableUpdateCompanionBuilder> {
+  $$EtiquetasTableTableTableManager(
+      _$AppDatabase db, $EtiquetasTableTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer:
+              $$EtiquetasTableTableFilterComposer(ComposerState(db, table)),
+          orderingComposer:
+              $$EtiquetasTableTableOrderingComposer(ComposerState(db, table)),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> nombre = const Value.absent(),
+            Value<String> color = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              EtiquetasTableCompanion(
+            id: id,
+            nombre: nombre,
+            color: color,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String id,
+            required String nombre,
+            Value<String> color = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              EtiquetasTableCompanion.insert(
+            id: id,
+            nombre: nombre,
+            color: color,
+            rowid: rowid,
+          ),
+        ));
+}
+
+class $$EtiquetasTableTableFilterComposer
+    extends FilterComposer<_$AppDatabase, $EtiquetasTableTable> {
+  $$EtiquetasTableTableFilterComposer(super.$state);
+  ColumnFilters<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get nombre => $state.composableBuilder(
+      column: $state.table.nombre,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get color => $state.composableBuilder(
+      column: $state.table.color,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $$EtiquetasTableTableOrderingComposer
+    extends OrderingComposer<_$AppDatabase, $EtiquetasTableTable> {
+  $$EtiquetasTableTableOrderingComposer(super.$state);
+  ColumnOrderings<String> get id => $state.composableBuilder(
+      column: $state.table.id,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get nombre => $state.composableBuilder(
+      column: $state.table.nombre,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get color => $state.composableBuilder(
+      column: $state.table.color,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
+typedef $$NotasEtiquetasTableTableCreateCompanionBuilder
+    = NotasEtiquetasTableCompanion Function({
+  required String notaId,
+  required String etiquetaId,
+  Value<int> rowid,
+});
+typedef $$NotasEtiquetasTableTableUpdateCompanionBuilder
+    = NotasEtiquetasTableCompanion Function({
+  Value<String> notaId,
+  Value<String> etiquetaId,
+  Value<int> rowid,
+});
+
+class $$NotasEtiquetasTableTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $NotasEtiquetasTableTable,
+    NotasEtiquetasTableData,
+    $$NotasEtiquetasTableTableFilterComposer,
+    $$NotasEtiquetasTableTableOrderingComposer,
+    $$NotasEtiquetasTableTableCreateCompanionBuilder,
+    $$NotasEtiquetasTableTableUpdateCompanionBuilder> {
+  $$NotasEtiquetasTableTableTableManager(
+      _$AppDatabase db, $NotasEtiquetasTableTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer: $$NotasEtiquetasTableTableFilterComposer(
+              ComposerState(db, table)),
+          orderingComposer: $$NotasEtiquetasTableTableOrderingComposer(
+              ComposerState(db, table)),
+          updateCompanionCallback: ({
+            Value<String> notaId = const Value.absent(),
+            Value<String> etiquetaId = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              NotasEtiquetasTableCompanion(
+            notaId: notaId,
+            etiquetaId: etiquetaId,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String notaId,
+            required String etiquetaId,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              NotasEtiquetasTableCompanion.insert(
+            notaId: notaId,
+            etiquetaId: etiquetaId,
+            rowid: rowid,
+          ),
+        ));
+}
+
+class $$NotasEtiquetasTableTableFilterComposer
+    extends FilterComposer<_$AppDatabase, $NotasEtiquetasTableTable> {
+  $$NotasEtiquetasTableTableFilterComposer(super.$state);
+  ColumnFilters<String> get notaId => $state.composableBuilder(
+      column: $state.table.notaId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get etiquetaId => $state.composableBuilder(
+      column: $state.table.etiquetaId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $$NotasEtiquetasTableTableOrderingComposer
+    extends OrderingComposer<_$AppDatabase, $NotasEtiquetasTableTable> {
+  $$NotasEtiquetasTableTableOrderingComposer(super.$state);
+  ColumnOrderings<String> get notaId => $state.composableBuilder(
+      column: $state.table.notaId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get etiquetaId => $state.composableBuilder(
+      column: $state.table.etiquetaId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
@@ -4496,4 +5840,10 @@ class $AppDatabaseManager {
       $$CobrosTableTableTableManager(_db, _db.cobrosTable);
   $$HorasExtraTableTableTableManager get horasExtraTable =>
       $$HorasExtraTableTableTableManager(_db, _db.horasExtraTable);
+  $$NotasTableTableTableManager get notasTable =>
+      $$NotasTableTableTableManager(_db, _db.notasTable);
+  $$EtiquetasTableTableTableManager get etiquetasTable =>
+      $$EtiquetasTableTableTableManager(_db, _db.etiquetasTable);
+  $$NotasEtiquetasTableTableTableManager get notasEtiquetasTable =>
+      $$NotasEtiquetasTableTableTableManager(_db, _db.notasEtiquetasTable);
 }

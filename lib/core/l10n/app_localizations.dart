@@ -371,6 +371,39 @@ class AppLocalizations {
     required this.minutosAntes,
     required this.notificacionesActivadas,
     required this.notificacionesDesactivadas,
+
+    // ── Notas y Recordatorios ──
+    required this.notasTitle,
+    required this.recordatorios,
+    required this.nuevaNota,
+    required this.nuevoRecordatorio,
+    required this.editarNota,
+    required this.editarRecordatorio,
+    required this.sinNotas,
+    required this.sinRecordatorios,
+    required this.titulo,
+    required this.contenido,
+    required this.tipoNota,
+    required this.prioridadAlta,
+    required this.prioridadMedia,
+    required this.prioridadBaja,
+    required this.fechaRecordatorio,
+    required this.recurrencia,
+    required this.recurrenciaNinguna,
+    required this.recurrenciaDiaria,
+    required this.recurrenciaSemanal,
+    required this.recurrenciaMensual,
+    required this.etiquetas,
+    required this.nuevaEtiqueta,
+    required this.nombreEtiqueta,
+    required this.notaGuardada,
+    required this.notaEliminada,
+    required this.marcarCompletada,
+    required this.marcarPendiente,
+    required this.todas,
+    required this.notasLabel,
+    required this.seleccionaFechaHora,
+    required this.prioridad,
   });
 
   // ── App ──
@@ -739,6 +772,39 @@ class AppLocalizations {
   final String notificacionesActivadas;
   final String notificacionesDesactivadas;
 
+  // ── Notas y Recordatorios ──
+  final String notasTitle;
+  final String recordatorios;
+  final String nuevaNota;
+  final String nuevoRecordatorio;
+  final String editarNota;
+  final String editarRecordatorio;
+  final String sinNotas;
+  final String sinRecordatorios;
+  final String titulo;
+  final String contenido;
+  final String tipoNota;
+  final String prioridadAlta;
+  final String prioridadMedia;
+  final String prioridadBaja;
+  final String fechaRecordatorio;
+  final String recurrencia;
+  final String recurrenciaNinguna;
+  final String recurrenciaDiaria;
+  final String recurrenciaSemanal;
+  final String recurrenciaMensual;
+  final String etiquetas;
+  final String nuevaEtiqueta;
+  final String nombreEtiqueta;
+  final String notaGuardada;
+  final String notaEliminada;
+  final String marcarCompletada;
+  final String marcarPendiente;
+  final String todas;
+  final String notasLabel;
+  final String seleccionaFechaHora;
+  final String prioridad;
+
   // ── Factory ──
   factory AppLocalizations.of(AppLocale locale) => switch (locale) {
         AppLocale.es => _es,
@@ -1079,6 +1145,37 @@ class AppLocalizations {
     minutosAntes: 'min antes',
     notificacionesActivadas: 'Notificaciones activadas',
     notificacionesDesactivadas: 'Notificaciones desactivadas',
+    notasTitle: 'Notas y Recordatorios',
+    recordatorios: 'Recordatorios',
+    nuevaNota: 'Nueva nota',
+    nuevoRecordatorio: 'Nuevo recordatorio',
+    editarNota: 'Editar nota',
+    editarRecordatorio: 'Editar recordatorio',
+    sinNotas: 'No hay notas',
+    sinRecordatorios: 'No hay recordatorios',
+    titulo: 'Título',
+    contenido: 'Contenido',
+    tipoNota: 'Tipo',
+    prioridadAlta: 'Alta',
+    prioridadMedia: 'Media',
+    prioridadBaja: 'Baja',
+    fechaRecordatorio: 'Fecha y hora',
+    recurrencia: 'Repetir',
+    recurrenciaNinguna: 'No repetir',
+    recurrenciaDiaria: 'Diaria',
+    recurrenciaSemanal: 'Semanal',
+    recurrenciaMensual: 'Mensual',
+    etiquetas: 'Etiquetas',
+    nuevaEtiqueta: 'Nueva etiqueta',
+    nombreEtiqueta: 'Nombre de la etiqueta',
+    notaGuardada: 'Nota guardada',
+    notaEliminada: 'Nota eliminada',
+    marcarCompletada: 'Marcar como completada',
+    marcarPendiente: 'Marcar como pendiente',
+    todas: 'Todas',
+    notasLabel: 'Notas',
+    seleccionaFechaHora: 'Selecciona fecha y hora',
+    prioridad: 'Prioridad',
   );
 
   // ═══════════════════════════════════════════════════════════════════
@@ -1410,6 +1507,37 @@ class AppLocalizations {
     minutosAntes: 'min before',
     notificacionesActivadas: 'Notifications enabled',
     notificacionesDesactivadas: 'Notifications disabled',
+    notasTitle: 'Notes & Reminders',
+    recordatorios: 'Reminders',
+    nuevaNota: 'New note',
+    nuevoRecordatorio: 'New reminder',
+    editarNota: 'Edit note',
+    editarRecordatorio: 'Edit reminder',
+    sinNotas: 'No notes',
+    sinRecordatorios: 'No reminders',
+    titulo: 'Title',
+    contenido: 'Content',
+    tipoNota: 'Type',
+    prioridadAlta: 'High',
+    prioridadMedia: 'Medium',
+    prioridadBaja: 'Low',
+    fechaRecordatorio: 'Date and time',
+    recurrencia: 'Repeat',
+    recurrenciaNinguna: 'Don\'t repeat',
+    recurrenciaDiaria: 'Daily',
+    recurrenciaSemanal: 'Weekly',
+    recurrenciaMensual: 'Monthly',
+    etiquetas: 'Tags',
+    nuevaEtiqueta: 'New tag',
+    nombreEtiqueta: 'Tag name',
+    notaGuardada: 'Note saved',
+    notaEliminada: 'Note deleted',
+    marcarCompletada: 'Mark as completed',
+    marcarPendiente: 'Mark as pending',
+    todas: 'All',
+    notasLabel: 'Notes',
+    seleccionaFechaHora: 'Select date and time',
+    prioridad: 'Priority',
   );
 
   // ═══════════════════════════════════════════════════════════════════
@@ -1747,5 +1875,36 @@ class AppLocalizations {
     minutosAntes: 'min prima',
     notificacionesActivadas: 'Notifiche attivate',
     notificacionesDesactivadas: 'Notifiche disattivate',
+    notasTitle: 'Note e Promemoria',
+    recordatorios: 'Promemoria',
+    nuevaNota: 'Nuova nota',
+    nuevoRecordatorio: 'Nuovo promemoria',
+    editarNota: 'Modifica nota',
+    editarRecordatorio: 'Modifica promemoria',
+    sinNotas: 'Nessuna nota',
+    sinRecordatorios: 'Nessun promemoria',
+    titulo: 'Titolo',
+    contenido: 'Contenuto',
+    tipoNota: 'Tipo',
+    prioridadAlta: 'Alta',
+    prioridadMedia: 'Media',
+    prioridadBaja: 'Bassa',
+    fechaRecordatorio: 'Data e ora',
+    recurrencia: 'Ripeti',
+    recurrenciaNinguna: 'Non ripetere',
+    recurrenciaDiaria: 'Giornaliera',
+    recurrenciaSemanal: 'Settimanale',
+    recurrenciaMensual: 'Mensile',
+    etiquetas: 'Etichette',
+    nuevaEtiqueta: 'Nuova etichetta',
+    nombreEtiqueta: "Nome dell'etichetta",
+    notaGuardada: 'Nota salvata',
+    notaEliminada: 'Nota eliminata',
+    marcarCompletada: 'Segna come completata',
+    marcarPendiente: 'Segna come in sospeso',
+    todas: 'Tutte',
+    notasLabel: 'Note',
+    seleccionaFechaHora: 'Seleziona data e ora',
+    prioridad: 'Priorità',
   );
 }

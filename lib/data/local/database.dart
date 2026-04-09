@@ -10,6 +10,8 @@ import 'tables/sesiones_recurrentes_table.dart';
 import 'tables/sesiones_realizadas_table.dart';
 import 'tables/cobros_table.dart';
 import 'tables/horas_extra_table.dart';
+import 'tables/notas_table.dart';
+import 'tables/etiquetas_table.dart';
 
 part 'database.g.dart';
 
@@ -29,6 +31,9 @@ part 'database.g.dart';
     SesionesRealizadasTable,
     CobrosTable,
     HorasExtraTable,
+    NotasTable,
+    EtiquetasTable,
+    NotasEtiquetasTable,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -38,7 +43,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.connection);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -76,6 +81,11 @@ class AppDatabase extends _$AppDatabase {
                 sesionesRecurrentesTable.activa,
               );
             } catch (_) {}
+          }
+          if (from < 6) {
+            await m.createTable(notasTable);
+            await m.createTable(etiquetasTable);
+            await m.createTable(notasEtiquetasTable);
           }
         },
       );
@@ -468,6 +478,83 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
+  // ── Queries — Notas ───────────────────────────────────────────────
+
+  Stream<List<NotasTableData>> watchAllNotas() =>
+      (select(notasTable)..orderBy([(t) => OrderingTerm.desc(t.creadaEn)]))
+          .watch();
+
+  Stream<List<NotasTableData>> watchNotasByTipo(String tipo) =>
+      (select(notasTable)
+            ..where((t) => t.tipo.equals(tipo))
+            ..orderBy([(t) => OrderingTerm.desc(t.creadaEn)]))
+          .watch();
+
+  Future<NotasTableData?> getNotaById(String id) =>
+      (select(notasTable)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  Future<String> upsertNota(NotasTableCompanion nota) =>
+      into(notasTable).insertOnConflictUpdate(nota).then((_) => nota.id.value);
+
+  Future<int> deleteNota(String id) =>
+      (delete(notasTable)..where((t) => t.id.equals(id))).go();
+
+  /// Obtiene recordatorios pendientes (no completados) con fecha futura o de hoy.
+  Future<List<NotasTableData>> getRecordatoriosPendientes() =>
+      (select(notasTable)
+            ..where(
+              (t) =>
+                  t.tipo.equals('recordatorio') &
+                  t.completada.equals(false) &
+                  t.fechaRecordatorio.isNotNull(),
+            )
+            ..orderBy([(t) => OrderingTerm.asc(t.fechaRecordatorio)]))
+          .get();
+
+  // ── Queries — Etiquetas ──────────────────────────────────────────
+
+  Stream<List<EtiquetasTableData>> watchAllEtiquetas() =>
+      select(etiquetasTable).watch();
+
+  Future<String> upsertEtiqueta(EtiquetasTableCompanion etiqueta) =>
+      into(etiquetasTable)
+          .insertOnConflictUpdate(etiqueta)
+          .then((_) => etiqueta.id.value);
+
+  Future<int> deleteEtiqueta(String id) =>
+      (delete(etiquetasTable)..where((t) => t.id.equals(id))).go();
+
+  // ── Queries — NotasEtiquetas (join) ──────────────────────────────
+
+  Future<List<NotasEtiquetasTableData>> getEtiquetasForNota(
+    String notaId,
+  ) =>
+      (select(notasEtiquetasTable)..where((t) => t.notaId.equals(notaId)))
+          .get();
+
+  Future<void> setEtiquetasForNota(
+    String notaId,
+    List<String> etiquetaIds,
+  ) async {
+    await transaction(() async {
+      await (delete(notasEtiquetasTable)..where((t) => t.notaId.equals(notaId)))
+          .go();
+      for (final eid in etiquetaIds) {
+        await into(notasEtiquetasTable).insert(
+          NotasEtiquetasTableCompanion.insert(
+            notaId: notaId,
+            etiquetaId: eid,
+          ),
+        );
+      }
+    });
+  }
+
+  Future<void> deleteEtiquetaReferences(String etiquetaId) =>
+      (delete(notasEtiquetasTable)
+            ..where((t) => t.etiquetaId.equals(etiquetaId)))
+          .go();
+
   // ── Factory Reset ────────────────────────────────────────────────
 
   /// Elimina TODOS los datos de TODAS las tablas.
@@ -476,6 +563,9 @@ class AppDatabase extends _$AppDatabase {
   Future<void> clearAllData() async {
     await transaction(() async {
       // Orden de eliminación: respetando dependencias
+      await delete(notasEtiquetasTable).go();
+      await delete(notasTable).go();
+      await delete(etiquetasTable).go();
       await delete(cobrosTable).go();
       await delete(sesionesRealizadasTable).go();
       await delete(horasExtraTable).go();

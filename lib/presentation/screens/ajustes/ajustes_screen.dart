@@ -44,6 +44,12 @@ class AjustesScreen extends ConsumerWidget {
                 subtitle: l.nombreDatosPersonales,
                 onTap: () => context.push(AppRoutes.perfil),
               ),
+              _Item(
+                icon: Icons.note_alt_outlined,
+                label: l.notasTitle,
+                subtitle: l.recordatorios,
+                onTap: () => context.push(AppRoutes.notas),
+              ),
             ],
           ),
           _Section(

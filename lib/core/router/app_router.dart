@@ -21,6 +21,8 @@ import '../../presentation/screens/ajustes/tarifas_screen.dart';
 import '../../presentation/screens/ajustes/perfil_screen.dart';
 import '../../presentation/screens/onboarding/onboarding_screen.dart';
 import '../../presentation/screens/auth/login_screen.dart';
+import '../../presentation/screens/notas/notas_screen.dart';
+import '../../presentation/screens/notas/nota_form_screen.dart';
 
 /// Notifier de autenticación — GoRouter escucha cambios para redirigir.
 final authNotifier = ValueNotifier<bool>(false);
@@ -45,6 +47,8 @@ abstract class AppRoutes {
   static const String ajustes = '/ajustes';
   static const String tarifas = '/ajustes/tarifas';
   static const String perfil = '/ajustes/perfil';
+  static const String notas = '/notas';
+  static const String notaForm = '/notas/form';
 }
 
 final appRouter = GoRouter(
@@ -176,6 +180,18 @@ final appRouter = GoRouter(
         GoRoute(path: 'tarifas', builder: (_, __) => const TarifasScreen()),
         GoRoute(path: 'perfil', builder: (_, __) => const PerfilScreen()),
       ],
+    ),
+    GoRoute(
+      path: AppRoutes.notas,
+      builder: (_, __) => const NotasScreen(),
+    ),
+    GoRoute(
+      path: AppRoutes.notaForm,
+      builder: (context, state) {
+        final notaId = state.uri.queryParameters['id'];
+        final tipo = state.uri.queryParameters['tipo'];
+        return NotaFormScreen(notaId: notaId, tipoInicial: tipo);
+      },
     ),
   ],
 );
