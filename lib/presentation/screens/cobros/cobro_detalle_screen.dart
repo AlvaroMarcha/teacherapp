@@ -257,6 +257,7 @@ class CobroDetalleScreen extends ConsumerWidget {
                     ref.invalidate(cobrosProvider);
                     ref.invalidate(dashboardProvider);
                     ref.invalidate(sesionesRealizadasFechaProvider);
+                    ref.invalidate(sesionesRealizadasMesProvider);
                     if (context.mounted) context.pop();
                   },
                   icon: const Icon(Icons.check_circle_outline),
@@ -337,6 +338,7 @@ class CobroDetalleScreen extends ConsumerWidget {
     ref.invalidate(cobrosProvider);
     ref.invalidate(dashboardProvider);
     ref.invalidate(sesionesRealizadasFechaProvider);
+    ref.invalidate(sesionesRealizadasMesProvider);
   }
 }
 

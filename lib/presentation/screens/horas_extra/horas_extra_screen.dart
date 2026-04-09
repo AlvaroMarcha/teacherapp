@@ -11,6 +11,7 @@ import '../../providers/fuentes_provider.dart';
 import '../../providers/horas_extra_provider.dart';
 import '../../providers/database_provider.dart';
 import '../../providers/dashboard_provider.dart';
+import '../../providers/sesiones_provider.dart';
 import '../../providers/theme_provider.dart';
 
 /// Pantalla de horas extra para una fuente concreta de tipo [FuenteTipo.empleo].
@@ -277,6 +278,10 @@ class _HorasExtraBodyState extends ConsumerState<_HorasExtraBody> {
                             }
                             // Invalidar providers para actualizar dashboard
                             ref.invalidate(dashboardProvider);
+                            ref.invalidate(horasExtraProvider);
+                            ref.invalidate(sesionesRealizadasFechaProvider);
+                            ref.invalidate(sesionesRealizadasMesProvider);
+                            ref.invalidate(sesionesEmpleoMesProvider);
                           }
                         },
                       ),

@@ -289,7 +289,9 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
           ),
           const Divider(height: 24),
           TextButton.icon(
-            onPressed: () => _eliminarRegistro(context, evento),
+            onPressed: evento.estaPendiente
+                ? null
+                : () => _eliminarRegistro(context, evento),
             icon: const Icon(Icons.undo_outlined, size: 18),
             label: Text(l.eliminarRegistro),
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
@@ -477,8 +479,10 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
 
     // Invalidar providers para actualizar toda la app
     ref.invalidate(cobrosProvider);
+    ref.invalidate(cobrosPendientesProvider);
     ref.invalidate(dashboardProvider);
     ref.invalidate(sesionesRealizadasFechaProvider);
+    ref.invalidate(sesionesRealizadasMesProvider);
 
     if (mounted) {
       Navigator.of(context).pop();
@@ -542,6 +546,8 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
     ref.invalidate(horasExtraProvider);
     ref.invalidate(dashboardProvider);
     ref.invalidate(sesionesRealizadasFechaProvider);
+    ref.invalidate(sesionesRealizadasMesProvider);
+    ref.invalidate(sesionesEmpleoMesProvider);
 
     if (mounted) {
       Navigator.of(context).pop();
@@ -588,19 +594,47 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
     final sesionId = evento.sesionRealizadaId;
     if (sesionId == null) return;
 
-    // Eliminar SesionRealizada
-    await ref.read(sesionRepositoryProvider).deleteSesionRealizada(sesionId);
-
-    // Eliminar registros vinculados
+    // Revertir a estado pendiente en lugar de eliminar
     if (evento.fuenteTipo == FuenteTipo.empleo) {
-      // Eliminar HoraExtra auto vinculada
+      // Empleo: eliminar HoraExtra y cambiar sesión a pendiente
       final fechaIso = AppDateUtils.formatIso(widget.dia);
       await ref
           .read(databaseProvider)
           .deleteHoraExtraByFechaAndFuente(fechaIso, evento.fuenteId);
+
+      // Obtener la sesión actual
+      final sesion = await ref
+          .read(sesionRepositoryProvider)
+          .getSesionRealizadaById(sesionId);
+
+      if (sesion != null) {
+        // Cambiar estado a pendiente
+        await ref.read(sesionRepositoryProvider).saveSesionRealizada(
+              sesion.copyWith(estado: EstadoSesion.pendiente),
+            );
+      }
     } else {
-      // Eliminar Cobro vinculado
-      await ref.read(cobroRepositoryProvider).deleteCobroBySesionId(sesionId);
+      // Academia/Particular: cambiar cobro a pendiente
+      final cobro =
+          await ref.read(cobroRepositoryProvider).getCobroBySesionId(sesionId);
+
+      if (cobro != null) {
+        // Cambiar cobro a pendiente (resetear estado)
+        await ref.read(cobroRepositoryProvider).saveCobro(
+              cobro.copyWith(estado: EstadoCobro.pendiente),
+            );
+      }
+
+      // Cambiar sesión a pendiente
+      final sesion = await ref
+          .read(sesionRepositoryProvider)
+          .getSesionRealizadaById(sesionId);
+
+      if (sesion != null) {
+        await ref.read(sesionRepositoryProvider).saveSesionRealizada(
+              sesion.copyWith(estado: EstadoSesion.pendiente),
+            );
+      }
     }
 
     // IMPORTANTE: Invalidar providers para forzar actualización en toda la app
@@ -609,6 +643,8 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
     ref.invalidate(dashboardProvider);
     ref.invalidate(horasExtraProvider);
     ref.invalidate(sesionesRealizadasFechaProvider);
+    ref.invalidate(sesionesRealizadasMesProvider);
+    ref.invalidate(sesionesEmpleoMesProvider);
 
     if (mounted) {
       navigator.pop();
@@ -638,6 +674,7 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
 
     // Invalidar providers para actualizar UI del calendario
     ref.invalidate(sesionesRealizadasFechaProvider);
+    ref.invalidate(sesionesRealizadasMesProvider);
     ref.invalidate(dashboardProvider);
 
     if (mounted) {
@@ -719,6 +756,8 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
     ref.invalidate(horasExtraProvider);
     ref.invalidate(sesionesRecurrentesProvider);
     ref.invalidate(sesionesRealizadasFechaProvider);
+    ref.invalidate(sesionesRealizadasMesProvider);
+    ref.invalidate(sesionesEmpleoMesProvider);
 
     if (mounted) {
       navigator.pop();
@@ -791,6 +830,8 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
             ref.invalidate(dashboardProvider);
             ref.invalidate(horasExtraProvider);
             ref.invalidate(sesionesRealizadasFechaProvider);
+            ref.invalidate(sesionesRealizadasMesProvider);
+            ref.invalidate(sesionesEmpleoMesProvider);
 
             if (mounted) {
               navigator.pop();
@@ -829,8 +870,10 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
             await ref.read(cobroRepositoryProvider).saveCobro(cobro);
 
             ref.invalidate(cobrosProvider);
+            ref.invalidate(cobrosPendientesProvider);
             ref.invalidate(dashboardProvider);
             ref.invalidate(sesionesRealizadasFechaProvider);
+            ref.invalidate(sesionesRealizadasMesProvider);
 
             if (mounted) {
               navigator.pop();
@@ -877,6 +920,8 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
         ref.invalidate(dashboardProvider);
         ref.invalidate(horasExtraProvider);
         ref.invalidate(sesionesRealizadasFechaProvider);
+        ref.invalidate(sesionesRealizadasMesProvider);
+        ref.invalidate(sesionesEmpleoMesProvider);
 
         if (mounted) {
           navigator.pop();
@@ -929,6 +974,7 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
       ref.invalidate(cobrosProvider);
       ref.invalidate(dashboardProvider);
       ref.invalidate(sesionesRealizadasFechaProvider);
+      ref.invalidate(sesionesRealizadasMesProvider);
 
       if (mounted) {
         navigator.pop();
