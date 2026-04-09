@@ -11,6 +11,7 @@ import '../../providers/theme_provider.dart';
 import '../../providers/cobros_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../providers/horas_extra_provider.dart';
+import '../../providers/sesiones_provider.dart';
 import '../../../domain/models/sesion_recurrente.dart';
 import '../../../domain/models/sesion_realizada.dart';
 import '../../../domain/models/cobro.dart';
@@ -496,6 +497,8 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
         // Invalidar providers para actualizar toda la app
         ref.invalidate(horasExtraProvider);
         ref.invalidate(dashboardProvider);
+        ref.invalidate(sesionesRecurrentesProvider);
+        ref.invalidate(sesionesRealizadasFechaProvider(fechaIso));
       } else {
         // Para sesiones no-empleo: crear SesionRealizada + Cobro
         final sesion = SesionRealizada(
@@ -526,6 +529,8 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
         // Invalidar providers para actualizar toda la app
         ref.invalidate(cobrosProvider);
         ref.invalidate(dashboardProvider);
+        ref.invalidate(sesionesRecurrentesProvider);
+        ref.invalidate(sesionesRealizadasFechaProvider(fechaIso));
       }
     }
 

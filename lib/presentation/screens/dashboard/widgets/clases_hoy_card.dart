@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../../core/utils/currency_utils.dart';
 import '../../../../domain/models/evento_calendario.dart';
 import '../../../providers/sesiones_provider.dart';
 import '../../../providers/theme_provider.dart';
@@ -94,14 +95,15 @@ class _ClaseRow extends StatelessWidget {
     return Opacity(
       opacity: opacity,
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(vertical: 6),
         child: Row(
           children: [
+            // Punto de color de fuente
             Container(
-              width: 8,
-              height: 8,
+              width: 10,
+              height: 10,
               decoration: BoxDecoration(
-                color: color,
+                color: evento.fuenteColor,
                 shape: BoxShape.circle,
               ),
             ),
@@ -124,6 +126,14 @@ class _ClaseRow extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+            if (evento.cobro != null) ...[
+              const SizedBox(width: 8),
+              Text(
+                CurrencyUtils.formatCompact(evento.cobro!),
+                style: AppTextStyles.labelSmall.copyWith(color: color),
+              ),
+            ],
+            const SizedBox(width: 4),
             if (evento.esCancelada)
               Icon(Icons.cancel_outlined, size: 16, color: color)
             else if (evento.estaConfirmada)
