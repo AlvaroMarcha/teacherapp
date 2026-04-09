@@ -7,6 +7,8 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../core/utils/currency_utils.dart';
 import '../../providers/cobros_provider.dart';
 import '../../providers/database_provider.dart';
+import '../../providers/dashboard_provider.dart';
+import '../../providers/sesiones_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../../domain/models/cobro.dart';
 
@@ -144,8 +146,10 @@ class _CobroTile extends ConsumerWidget {
     );
   }
 
-  void _marcarCobrado(WidgetRef ref) {
-    ref.read(cobroRepositoryProvider).marcarCobrado(cobro.id);
+  void _marcarCobrado(WidgetRef ref) async {
+    await ref.read(cobroRepositoryProvider).marcarCobrado(cobro.id);
+    ref.invalidate(dashboardProvider);
+    ref.invalidate(sesionesRealizadasFechaProvider);
   }
 }
 

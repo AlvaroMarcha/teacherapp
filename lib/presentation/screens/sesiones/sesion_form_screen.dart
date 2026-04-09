@@ -7,6 +7,8 @@ import '../../providers/fuentes_provider.dart';
 import '../../providers/alumnos_provider.dart';
 import '../../providers/database_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../providers/cobros_provider.dart';
+import '../../providers/dashboard_provider.dart';
 import '../../../domain/models/sesion_recurrente.dart';
 import '../../../domain/models/sesion_realizada.dart';
 import '../../../domain/models/cobro.dart';
@@ -381,7 +383,8 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
         fecha: fechaBase,
         horas: _duracion,
         cobro: tarifa,
-        estado: EstadoSesion.confirmada,
+        estado:
+            _cobradoAhora ? EstadoSesion.confirmada : EstadoSesion.pendiente,
       );
       await ref.read(sesionRepositoryProvider).saveSesionRealizada(realizada);
 
@@ -396,6 +399,10 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
         fechaCobro: _cobradoAhora ? fechaBase : null,
       );
       await ref.read(cobroRepositoryProvider).saveCobro(cobro);
+
+      // Invalidar providers para actualizar toda la app
+      ref.invalidate(cobrosProvider);
+      ref.invalidate(dashboardProvider);
     }
 
     if (mounted) Navigator.of(context).pop();

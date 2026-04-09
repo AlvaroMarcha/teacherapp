@@ -43,6 +43,11 @@ class CobroRepository {
     return row == null ? null : _mapToCobro(row);
   }
 
+  Future<Cobro?> getCobroBySesionId(String sesionId) async {
+    final row = await _db.getCobroBySesionId(sesionId);
+    return row == null ? null : _mapToCobro(row);
+  }
+
   Future<String> saveCobro(Cobro cobro) {
     final id = cobro.id.isEmpty ? _uuid.v4() : cobro.id;
     return _db.upsertCobro(
@@ -64,9 +69,12 @@ class CobroRepository {
   }
 
   /// Marca un cobro como cobrado con la fecha actual.
+  /// También actualiza la sesión realizada asociada a estado "confirmada".
   Future<void> marcarCobrado(String cobroId) async {
     final cobro = await getCobroById(cobroId);
     if (cobro == null) return;
+
+    // Actualizar el cobro
     await saveCobro(
       cobro.copyWith(
         estado: EstadoCobro.cobrado,
@@ -74,6 +82,27 @@ class CobroRepository {
         syncStatus: 'pending',
       ),
     );
+
+    // Si el cobro está vinculado a una sesión, actualizar su estado
+    if (cobro.sesionId != null) {
+      final sesionRow = await _db.getSesionRealizadaById(cobro.sesionId!);
+      if (sesionRow != null) {
+        await _db.upsertSesionRealizada(
+          SesionesRealizadasTableCompanion(
+            id: Value(sesionRow.id),
+            alumnoId: Value(sesionRow.alumnoId),
+            fuenteId: Value(sesionRow.fuenteId),
+            sesionRecurrenteId: Value(sesionRow.sesionRecurrenteId),
+            fecha: Value(sesionRow.fecha),
+            horas: Value(sesionRow.horas),
+            cobro: Value(sesionRow.cobro),
+            estado: const Value('confirmada'),
+            notas: Value(sesionRow.notas),
+            syncStatus: const Value('pending'),
+          ),
+        );
+      }
+    }
   }
 
   /// Registra un pago parcial.

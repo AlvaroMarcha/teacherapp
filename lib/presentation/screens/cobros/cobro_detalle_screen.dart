@@ -6,6 +6,8 @@ import '../../../core/utils/currency_utils.dart';
 import '../../../core/utils/date_utils.dart';
 import '../../providers/cobros_provider.dart';
 import '../../providers/database_provider.dart';
+import '../../providers/dashboard_provider.dart';
+import '../../providers/sesiones_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../../domain/models/cobro.dart';
 
@@ -73,6 +75,8 @@ class CobroDetalleScreen extends ConsumerWidget {
                     await ref
                         .read(cobroRepositoryProvider)
                         .marcarCobrado(cobroId);
+                    ref.invalidate(dashboardProvider);
+                    ref.invalidate(sesionesRealizadasFechaProvider);
                     if (context.mounted) context.pop();
                   },
                   icon: const Icon(Icons.check_circle_outline),
@@ -149,6 +153,8 @@ class CobroDetalleScreen extends ConsumerWidget {
     await ref.read(cobroRepositoryProvider).marcarParcial(cobroId, monto);
     // Invalidate para que el watch se actualice
     ref.invalidate(cobroByIdProvider(cobroId));
+    ref.invalidate(dashboardProvider);
+    ref.invalidate(sesionesRealizadasFechaProvider);
   }
 }
 

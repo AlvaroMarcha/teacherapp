@@ -65,7 +65,9 @@ class _CompactContent extends StatelessWidget {
         ? '✕ '
         : evento.estaConfirmada
             ? '✓ '
-            : '';
+            : evento.estaPendiente
+                ? '⏰ '
+                : '';
     return Text(
       '$icon${evento.horaInicio} ${evento.titulo}',
       style: AppTextStyles.labelSmall.copyWith(color: color, fontSize: 9.5),
@@ -95,6 +97,8 @@ class _FullContent extends StatelessWidget {
             const Spacer(),
             if (evento.esCancelada)
               Icon(Icons.cancel_outlined, size: 14, color: color)
+            else if (evento.estaPendiente)
+              Icon(Icons.schedule_outlined, size: 14, color: color)
             else if (evento.estaConfirmada)
               Icon(Icons.check_circle_outline, size: 14, color: color),
           ],

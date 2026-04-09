@@ -158,6 +158,10 @@ class AppDatabase extends _$AppDatabase {
       (select(sesionesRealizadasTable)..where((t) => t.fecha.equals(fecha)))
           .watch();
 
+  Future<SesionesRealizadasTableData?> getSesionRealizadaById(String id) =>
+      (select(sesionesRealizadasTable)..where((t) => t.id.equals(id)))
+          .getSingleOrNull();
+
   Stream<List<SesionesRealizadasTableData>>
       watchSesionesRealizadasByFuenteAndMes(
     String fuenteId,
@@ -181,6 +185,21 @@ class AppDatabase extends _$AppDatabase {
 
   Future<int> deleteSesionRealizada(String id) =>
       (delete(sesionesRealizadasTable)..where((t) => t.id.equals(id))).go();
+
+  Future<List<SesionesRealizadasTableData>>
+      getSesionesRealizadasBySesionRecurrenteId(
+    String sesionRecurrenteId,
+  ) =>
+          (select(sesionesRealizadasTable)
+                ..where((t) => t.sesionRecurrenteId.equals(sesionRecurrenteId)))
+              .get();
+
+  Future<int> deleteSesionesRealizadasBySesionRecurrenteId(
+    String sesionRecurrenteId,
+  ) =>
+      (delete(sesionesRealizadasTable)
+            ..where((t) => t.sesionRecurrenteId.equals(sesionRecurrenteId)))
+          .go();
 
   Future<int> deleteHoraExtraByFechaAndFuente(
     String fecha,
@@ -218,6 +237,10 @@ class AppDatabase extends _$AppDatabase {
 
   Future<CobrosTableData?> getCobroById(String id) =>
       (select(cobrosTable)..where((t) => t.id.equals(id))).getSingleOrNull();
+
+  Future<CobrosTableData?> getCobroBySesionId(String sesionId) =>
+      (select(cobrosTable)..where((t) => t.sesionId.equals(sesionId)))
+          .getSingleOrNull();
 
   Future<String> upsertCobro(CobrosTableCompanion cobro) => into(
         cobrosTable,

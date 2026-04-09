@@ -38,6 +38,7 @@ class EventoCalendario {
     this.alumnoNombre,
     this.fuenteNombre,
     this.cobro,
+    this.estadoSesion,
   });
 
   final TipoEvento tipo;
@@ -61,6 +62,9 @@ class EventoCalendario {
   /// Importe de la sesión realizada (null si aún no se ha registrado).
   final double? cobro;
 
+  /// Estado de la sesión realizada (null si aún no se ha registrado).
+  final EstadoSesion? estadoSesion;
+
   /// Duración en horas (decimal).
   double get duracionHoras {
     final ini = _toMinutes(horaInicio);
@@ -76,8 +80,10 @@ class EventoCalendario {
   /// Hora decimal de inicio (ej: "09:30" → 9.5).
   double get horaInicioDecimal => _toMinutes(horaInicio) / 60.0;
 
-  bool get esCancelada => tipo == TipoEvento.cancelada;
-  bool get estaConfirmada => sesionRealizadaId != null && !esCancelada;
+  bool get esCancelada => estadoSesion == EstadoSesion.cancelada;
+  bool get estaPendiente =>
+      estadoSesion == null || estadoSesion == EstadoSesion.pendiente;
+  bool get estaConfirmada => estadoSesion == EstadoSesion.confirmada;
 
   /// Construye un EventoCalendario a partir de una [SesionRecurrente] y una
   /// fuente, posiblemente sobreescrito por una [SesionRealizada] concreta.
@@ -87,25 +93,52 @@ class EventoCalendario {
     SesionRealizada? realizada,
     String? alumnoNombre,
   }) {
-    final esCancelada = realizada?.estado == EstadoSesion.cancelada;
+    final estadoSesion = realizada?.estado;
+    final esCancelada = estadoSesion == EstadoSesion.cancelada;
+    final estaConfirmada = estadoSesion == EstadoSesion.confirmada;
+    // Pendiente si: no hay sesión realizada O si está en estado pendiente
+    final estaPendiente =
+        realizada == null || estadoSesion == EstadoSesion.pendiente;
     final esPuntual = sesion.esPuntual;
     final esParticular = fuente.tipo == FuenteTipo.particular;
 
     TipoEvento tipo;
     Color color;
 
+    // Prioridad de color: 1) Estado, 2) Tipo de evento
     if (esCancelada) {
       tipo = TipoEvento.cancelada;
       color = AppColors.sesionCancelada;
-    } else if (esPuntual) {
-      tipo = TipoEvento.unica;
-      color = AppColors.sesionUnica;
-    } else if (esParticular) {
-      tipo = TipoEvento.particular;
-      color = AppColors.sesionParticular;
+    } else if (estaConfirmada) {
+      // Sesiones confirmadas y cobradas: color original según tipo
+      if (esPuntual) {
+        tipo = TipoEvento.unica;
+        color = AppColors.sesionUnica;
+      } else if (esParticular) {
+        tipo = TipoEvento.particular;
+        color = AppColors.sesionParticular;
+      } else {
+        tipo = TipoEvento.recurrente;
+        color = AppColors.sesionRecurrente;
+      }
+    } else if (estaPendiente) {
+      // Sesiones pendientes (sin registrar o registradas pendientes): amarillo
+      tipo = esPuntual
+          ? TipoEvento.unica
+          : (esParticular ? TipoEvento.particular : TipoEvento.recurrente);
+      color = AppColors.warning;
     } else {
-      tipo = TipoEvento.recurrente;
-      color = AppColors.sesionRecurrente;
+      // Fallback (no debería llegar aquí)
+      if (esPuntual) {
+        tipo = TipoEvento.unica;
+        color = AppColors.sesionUnica;
+      } else if (esParticular) {
+        tipo = TipoEvento.particular;
+        color = AppColors.sesionParticular;
+      } else {
+        tipo = TipoEvento.recurrente;
+        color = AppColors.sesionRecurrente;
+      }
     }
 
     final titulo = alumnoNombre ?? fuente.nombre;
@@ -124,6 +157,7 @@ class EventoCalendario {
       alumnoId: sesion.alumnoId,
       alumnoNombre: alumnoNombre,
       cobro: realizada?.cobro,
+      estadoSesion: realizada?.estado,
     );
   }
 
@@ -142,5 +176,6 @@ class EventoCalendario {
         alumnoId: alumnoId,
         alumnoNombre: alumnoNombre,
         cobro: cobro,
+        estadoSesion: estadoSesion,
       );
 }

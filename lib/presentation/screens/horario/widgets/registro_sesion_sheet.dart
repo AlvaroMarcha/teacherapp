@@ -14,6 +14,10 @@ import '../../../../domain/models/hora_extra.dart';
 import '../../../../domain/models/sesion_realizada.dart';
 import '../../../providers/database_provider.dart';
 import '../../../providers/theme_provider.dart';
+import '../../../providers/cobros_provider.dart';
+import '../../../providers/dashboard_provider.dart';
+import '../../../providers/horas_extra_provider.dart';
+import '../../../providers/sesiones_provider.dart';
 
 /// Bottom sheet del flujo de 3 toques para registrar una sesión desde el calendario.
 ///
@@ -152,18 +156,40 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
   // ── Paso 1: ¿Se realizó la sesión? ───────────────────────────────
 
   Widget _buildStepConfirmar(BuildContext context, EventoCalendario evento, l) {
-    final yaRegistrada = evento.estaConfirmada;
+    final yaRegistrada = evento.estaConfirmada || evento.estaPendiente;
     final yaCancel = evento.esCancelada;
 
     if (yaRegistrada || yaCancel) {
-      final bgColor = yaCancel
-          ? AppColors.error.withValues(alpha: 0.12)
-          : AppColors.cobroCobrado.withValues(alpha: 0.12);
-      final fgColor = yaCancel ? AppColors.error : AppColors.cobroCobrado;
-      final icono = yaCancel ? Icons.cancel_outlined : Icons.check_circle;
-      final titulo = yaCancel ? l.sesionCancelada : l.sesionRealizada;
-      final subtitulo =
-          yaCancel ? l.sesionCanceladaDesc : l.sesionRealizadaDesc;
+      Color bgColor;
+      Color fgColor;
+      IconData icono;
+      String titulo;
+      String subtitulo;
+
+      if (yaCancel) {
+        bgColor = AppColors.error.withValues(alpha: 0.12);
+        fgColor = AppColors.error;
+        icono = Icons.cancel_outlined;
+        titulo = l.sesionCancelada;
+        subtitulo = l.sesionCanceladaDesc;
+      } else if (evento.estaPendiente) {
+        bgColor = AppColors.warning.withValues(alpha: 0.12);
+        fgColor = AppColors.warning;
+        icono = Icons.schedule_outlined;
+        titulo = l.sesionPendiente;
+        // Cambiar mensaje según tipo de fuente
+        if (evento.fuenteTipo == FuenteTipo.empleo) {
+          subtitulo = 'Esta sesión se registró pero aún no se ha marcado como realizada';
+        } else {
+          subtitulo = l.sesionPendienteDesc;
+        }
+      } else {
+        bgColor = AppColors.cobroCobrado.withValues(alpha: 0.12);
+        fgColor = AppColors.cobroCobrado;
+        icono = Icons.check_circle;
+        titulo = l.sesionRealizada;
+        subtitulo = l.sesionRealizadaDesc;
+      }
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -200,6 +226,24 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
             ),
           ),
           const SizedBox(height: 16),
+          if (evento.estaPendiente) ...[
+            FilledButton.icon(
+              onPressed:
+                  _loading ? null : () => _marcarCobrado(context, evento),
+              icon: const Icon(
+                Icons.check_circle_outline,
+              ),
+              label: Text(
+                evento.fuenteTipo == FuenteTipo.empleo
+                    ? l.marcarRealizada
+                    : l.marcarCobrado,
+              ),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
           OutlinedButton(
             onPressed: () => Navigator.of(context).pop(),
             child: Text(l.cerrar),
@@ -376,7 +420,7 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
       fecha: fechaIso,
       horas: evento.duracionHoras,
       cobro: importe,
-      estado: EstadoSesion.confirmada,
+      estado: _cobradoAhora ? EstadoSesion.confirmada : EstadoSesion.pendiente,
     );
     await ref.read(sesionRepositoryProvider).saveSesionRealizada(sesion);
 
@@ -391,6 +435,10 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
       fechaCobro: _cobradoAhora ? fechaIso : null,
     );
     await ref.read(cobroRepositoryProvider).saveCobro(cobro);
+
+    // Invalidar providers para actualizar toda la app
+    ref.invalidate(cobrosProvider);
+    ref.invalidate(dashboardProvider);
 
     if (mounted) {
       Navigator.of(context).pop();
@@ -436,6 +484,10 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
       notas: 'Auto - calendario',
     );
     await ref.read(horasExtraRepositoryProvider).saveHoraExtra(horaExtra);
+
+    // Invalidar provider de horas extra para actualizar dashboard
+    ref.invalidate(horasExtraProvider);
+    ref.invalidate(dashboardProvider);
 
     if (mounted) {
       Navigator.of(context).pop();
@@ -495,6 +547,11 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
       await ref.read(cobroRepositoryProvider).deleteCobroBySesionId(sesionId);
     }
 
+    // IMPORTANTE: Invalidar providers para forzar actualización en toda la app
+    ref.invalidate(cobrosProvider);
+    ref.invalidate(dashboardProvider);
+    ref.invalidate(horasExtraProvider);
+
     if (mounted) {
       navigator.pop();
       messenger.showSnackBar(
@@ -520,6 +577,9 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
       estado: EstadoSesion.cancelada,
     );
     await ref.read(sesionRepositoryProvider).saveSesionRealizada(sesion);
+
+    // No hay cobro ni horas que actualizar, pero invalidamos por si acaso
+    // (la UI del calendario se actualiza automáticamente por el stream)
 
     if (mounted) {
       Navigator.of(context).pop();
@@ -578,15 +638,108 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
     );
     if (confirmed != true || !mounted) return;
 
+    // 1. Obtener todas las sesiones realizadas asociadas
+    final sesionesRealizadas = await ref
+        .read(sesionRepositoryProvider)
+        .getSesionesRealizadasBySesionRecurrenteId(sesionRecId);
+
+    // 2. Eliminar cobros de cada sesión realizada
+    for (final sesion in sesionesRealizadas) {
+      await ref.read(cobroRepositoryProvider).deleteCobroBySesionId(sesion.id);
+    }
+
+    // 3. Eliminar las sesiones realizadas
+    await ref
+        .read(sesionRepositoryProvider)
+        .deleteSesionesRealizadasBySesionRecurrenteId(sesionRecId);
+
+    // 4. Eliminar la sesión recurrente
     await ref
         .read(sesionRepositoryProvider)
         .deleteSesionRecurrente(sesionRecId);
+
+    // 5. IMPORTANTE: Invalidar providers para forzar actualización en toda la app
+    ref.invalidate(cobrosProvider);
+    ref.invalidate(dashboardProvider);
+    ref.invalidate(horasExtraProvider);
 
     if (mounted) {
       navigator.pop();
       messenger.showSnackBar(
         SnackBar(content: Text(l.sesionEliminada)),
       );
+    }
+  }
+
+  Future<void> _marcarCobrado(
+    BuildContext context,
+    EventoCalendario evento,
+  ) async {
+    final sesionId = evento.sesionRealizadaId;
+    if (sesionId == null) return;
+
+    setState(() => _loading = true);
+
+    final l = ref.read(appLocalizationsProvider);
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    try {
+      // Caso 1: Sesión de empleo - solo actualizar estado a confirmada
+      if (evento.fuenteTipo == FuenteTipo.empleo) {
+        final sesion =
+            await ref.read(sesionRepositoryProvider).getSesionRealizadaById(sesionId);
+        if (sesion != null) {
+          await ref.read(sesionRepositoryProvider).saveSesionRealizada(
+                sesion.copyWith(estado: EstadoSesion.confirmada),
+              );
+        }
+
+        // Invalidar providers para actualizar UI
+        ref.invalidate(dashboardProvider);
+        ref.invalidate(horasExtraProvider);
+        ref.invalidate(sesionesRealizadasFechaProvider);
+
+        if (mounted) {
+          navigator.pop();
+          messenger.showSnackBar(
+            SnackBar(content: Text(l.sesionMarcadaRealizada)),
+          );
+        }
+        return;
+      }
+
+      // Caso 2: Sesión con cobro (particular/academia) - marcar cobro
+      final cobro =
+          await ref.read(cobroRepositoryProvider).getCobroBySesionId(sesionId);
+
+      if (cobro == null) {
+        if (mounted) {
+          messenger.showSnackBar(
+            SnackBar(content: Text(l.cobroNoEncontrado)),
+          );
+        }
+        return;
+      }
+
+      // Marcar como cobrado (esto también actualiza la sesión)
+      await ref.read(cobroRepositoryProvider).marcarCobrado(cobro.id);
+
+      // Invalidar providers para actualizar UI
+      ref.invalidate(cobrosProvider);
+      ref.invalidate(dashboardProvider);
+      ref.invalidate(sesionesRealizadasFechaProvider);
+
+      if (mounted) {
+        navigator.pop();
+        messenger.showSnackBar(
+          SnackBar(content: Text(l.marcarCobrado)),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 }

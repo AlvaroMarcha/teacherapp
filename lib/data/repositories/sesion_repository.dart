@@ -80,6 +80,19 @@ class SesionRepository {
 
   Future<int> deleteSesionRealizada(String id) => _db.deleteSesionRealizada(id);
 
+  Future<List<SesionRealizada>> getSesionesRealizadasBySesionRecurrenteId(
+    String sesionRecurrenteId,
+  ) async {
+    final rows =
+        await _db.getSesionesRealizadasBySesionRecurrenteId(sesionRecurrenteId);
+    return rows.map(_mapRealizada).toList();
+  }
+
+  Future<int> deleteSesionesRealizadasBySesionRecurrenteId(
+    String sesionRecurrenteId,
+  ) =>
+      _db.deleteSesionesRealizadasBySesionRecurrenteId(sesionRecurrenteId);
+
   // ── Sesiones Realizadas ──────────────────────────────────────────
 
   Stream<List<SesionRealizada>> watchSesionesRealizadas() => _db
@@ -99,6 +112,11 @@ class SesionRepository {
       _db
           .watchSesionesRealizadasByFecha(fecha)
           .map((rows) => rows.map(_mapRealizada).toList());
+
+  Future<SesionRealizada?> getSesionRealizadaById(String id) async {
+    final row = await _db.getSesionRealizadaById(id);
+    return row == null ? null : _mapRealizada(row);
+  }
 
   Stream<List<SesionRealizada>> watchSesionesRealizadasByFuenteAndMes(
     String fuenteId,

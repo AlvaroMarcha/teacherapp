@@ -157,8 +157,10 @@ class AppLocalizations {
     // ── Registro sesión sheet ──
     required this.sesionCancelada,
     required this.sesionRealizada,
+    required this.sesionPendiente,
     required this.sesionCanceladaDesc,
     required this.sesionRealizadaDesc,
+    required this.sesionPendienteDesc,
     required this.seRealizo,
     required this.noSeDioMarcarCancelada,
     required this.importeSesion,
@@ -169,6 +171,7 @@ class AppLocalizations {
     required this.sesionConfirmadaPendiente,
     required this.sesionRegistradaHoras,
     required this.sesionMarcadaCancelada,
+    required this.sesionMarcadaRealizada,
 
     // ── Cobros ──
     required this.cobrosTitle,
@@ -177,6 +180,7 @@ class AppLocalizations {
     required this.cobrado,
     required this.parcial,
     required this.marcarCobrado,
+    required this.marcarRealizada,
     required this.dejarPendiente,
     required this.detalleCobro,
     required this.cobroNoEncontrado,
@@ -489,8 +493,10 @@ class AppLocalizations {
   // ── Registro sesión sheet ──
   final String sesionCancelada;
   final String sesionRealizada;
+  final String sesionPendiente;
   final String sesionCanceladaDesc;
   final String sesionRealizadaDesc;
+  final String sesionPendienteDesc;
   final String seRealizo;
   final String noSeDioMarcarCancelada;
   final String importeSesion;
@@ -501,6 +507,7 @@ class AppLocalizations {
   final String sesionConfirmadaPendiente;
   final String sesionRegistradaHoras;
   final String sesionMarcadaCancelada;
+  final String sesionMarcadaRealizada;
 
   // ── Cobros ──
   final String cobrosTitle;
@@ -509,6 +516,7 @@ class AppLocalizations {
   final String cobrado;
   final String parcial;
   final String marcarCobrado;
+  final String marcarRealizada;
   final String dejarPendiente;
   final String detalleCobro;
   final String cobroNoEncontrado;
@@ -811,8 +819,11 @@ class AppLocalizations {
     anio: 'Año',
     sesionCancelada: 'Sesión cancelada',
     sesionRealizada: 'Sesión realizada',
+    sesionPendiente: 'Sesión pendiente',
     sesionCanceladaDesc: 'Esta sesión fue marcada como no realizada.',
     sesionRealizadaDesc: 'Esta sesión ya está registrada como realizada.',
+    sesionPendienteDesc:
+        'Esta sesión se registró pero el cobro aún está pendiente.',
     seRealizo: 'Se realizó',
     noSeDioMarcarCancelada: 'No se dio — marcar cancelada',
     importeSesion: 'Importe de la sesión',
@@ -823,12 +834,14 @@ class AppLocalizations {
     sesionConfirmadaPendiente: 'Sesión confirmada — cobro pendiente',
     sesionRegistradaHoras: 'Sesión registrada — horas añadidas',
     sesionMarcadaCancelada: 'Sesión marcada como cancelada',
+    sesionMarcadaRealizada: 'Sesión marcada como realizada',
     cobrosTitle: 'Cobros',
     todoCobrado: '¡Todo cobrado!',
     totalPendiente: 'Total pendiente',
     cobrado: 'Cobrado',
     parcial: 'Parcial',
     marcarCobrado: 'Marcar cobrado',
+    marcarRealizada: 'Marcar realizada',
     dejarPendiente: 'Dejar pendiente',
     detalleCobro: 'Detalle del cobro',
     cobroNoEncontrado: 'Cobro no encontrado',
@@ -1111,8 +1124,11 @@ class AppLocalizations {
     anio: 'Year',
     sesionCancelada: 'Session cancelled',
     sesionRealizada: 'Session completed',
+    sesionPendiente: 'Session pending',
     sesionCanceladaDesc: 'This session was marked as not held.',
     sesionRealizadaDesc: 'This session is already recorded as completed.',
+    sesionPendienteDesc:
+        'This session was recorded but payment is still pending.',
     seRealizo: 'It was held',
     noSeDioMarcarCancelada: 'Not held — mark cancelled',
     importeSesion: 'Session amount',
@@ -1123,12 +1139,14 @@ class AppLocalizations {
     sesionConfirmadaPendiente: 'Session confirmed — payment pending',
     sesionRegistradaHoras: 'Session logged — hours added',
     sesionMarcadaCancelada: 'Session marked as cancelled',
+    sesionMarcadaRealizada: 'Session marked as completed',
     cobrosTitle: 'Payments',
     todoCobrado: 'All paid!',
     totalPendiente: 'Total pending',
     cobrado: 'Paid',
     parcial: 'Partial',
     marcarCobrado: 'Mark as paid',
+    marcarRealizada: 'Mark as completed',
     dejarPendiente: 'Leave pending',
     detalleCobro: 'Payment details',
     cobroNoEncontrado: 'Payment not found',
@@ -1410,8 +1428,11 @@ class AppLocalizations {
     anio: 'Anno',
     sesionCancelada: 'Sessione annullata',
     sesionRealizada: 'Sessione completata',
+    sesionPendiente: 'Sessione in sospeso',
     sesionCanceladaDesc: 'Questa sessione è stata segnata come non svolta.',
     sesionRealizadaDesc: 'Questa sessione è già registrata come completata.',
+    sesionPendienteDesc:
+        'Questa sessione è stata registrata ma il pagamento è ancora in sospeso.',
     seRealizo: 'Si è svolta',
     noSeDioMarcarCancelada: 'Non svolta — segna annullata',
     importeSesion: 'Importo della sessione',
@@ -1422,12 +1443,14 @@ class AppLocalizations {
     sesionConfirmadaPendiente: 'Sessione confermata — pagamento in sospeso',
     sesionRegistradaHoras: 'Sessione registrata — ore aggiunte',
     sesionMarcadaCancelada: 'Sessione segnata come annullata',
+    sesionMarcadaRealizada: 'Sessione segnata come completata',
     cobrosTitle: 'Pagamenti',
     todoCobrado: 'Tutto pagato!',
     totalPendiente: 'Totale in sospeso',
     cobrado: 'Pagato',
     parcial: 'Parziale',
     marcarCobrado: 'Segna come pagato',
+    marcarRealizada: 'Segna come completata',
     dejarPendiente: 'Lascia in sospeso',
     detalleCobro: 'Dettaglio pagamento',
     cobroNoEncontrado: 'Pagamento non trovato',

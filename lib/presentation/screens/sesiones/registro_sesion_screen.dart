@@ -8,6 +8,8 @@ import '../../providers/fuentes_provider.dart';
 import '../../providers/alumnos_provider.dart';
 import '../../providers/database_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../providers/cobros_provider.dart';
+import '../../providers/dashboard_provider.dart';
 import '../../../domain/models/sesion_recurrente.dart';
 import '../../../domain/models/sesion_realizada.dart';
 import '../../../domain/models/cobro.dart';
@@ -39,7 +41,6 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
   TimeOfDay _horaFin = const TimeOfDay(hour: 10, minute: 0);
   double _horas = 1.0;
   bool _cobradoAhora = false;
-  bool _importeEditable = false;
   bool _esPuntual = true;
   final List<int> _diasSemana = [];
   String? _importeHelper;
@@ -310,19 +311,10 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
                   if (!esEmpleo) ...[
                     TextFormField(
                       controller: _importeCtrl,
-                      enabled: _importeEditable,
                       decoration: InputDecoration(
                         labelText: l.importeEuro,
                         prefixIcon: const Icon(Icons.euro_rounded),
                         helperText: _importeHelper ?? l.introduceImporteSesion,
-                        suffixIcon: _importeEditable
-                            ? null
-                            : IconButton(
-                                icon: const Icon(Icons.edit_outlined),
-                                tooltip: l.editarImporte,
-                                onPressed: () =>
-                                    setState(() => _importeEditable = true),
-                              ),
                       ),
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
@@ -470,7 +462,8 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
         fecha: fechaIso,
         horas: _horas,
         cobro: tarifa,
-        estado: EstadoSesion.confirmada,
+        estado:
+            _cobradoAhora ? EstadoSesion.confirmada : EstadoSesion.pendiente,
       );
       await ref.read(sesionRepositoryProvider).saveSesionRealizada(sesion);
 
@@ -485,6 +478,10 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
         fechaCobro: _cobradoAhora ? fechaIso : null,
       );
       await ref.read(cobroRepositoryProvider).saveCobro(cobro);
+
+      // Invalidar providers para actualizar toda la app
+      ref.invalidate(cobrosProvider);
+      ref.invalidate(dashboardProvider);
     }
 
     if (mounted) context.pop();
