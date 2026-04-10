@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_text_styles.dart';
 import '../../../../core/utils/currency_utils.dart';
 import '../../../../domain/models/evento_calendario.dart';
+import '../../../../domain/models/fuente.dart';
 
 /// Bloque visual de un evento en el calendario.
 /// Usado en la vista Día, lista del día y timeline semanal.
@@ -108,6 +109,32 @@ class _FullContent extends StatelessWidget {
   final EventoCalendario evento;
   final Color color;
 
+  static const _diasLabels = [
+    '',
+    'Lun.',
+    'Mar.',
+    'Mié.',
+    'Jue.',
+    'Vie.',
+    'Sáb.',
+    'Dom.'
+  ];
+
+  String _buildSubtitulo() {
+    if (evento.esPuntual) {
+      return 'Clase única';
+    }
+
+    final diasStr = evento.diasSemana.map((d) => _diasLabels[d]).join(', ');
+    if (diasStr.isEmpty) return '';
+
+    if (evento.fuenteTipo == FuenteTipo.empleo) {
+      return 'Empleo · $diasStr';
+    }
+
+    return diasStr;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -146,18 +173,37 @@ class _FullContent extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        if (evento.fuenteNombre != null) ...[
-          const SizedBox(height: 2),
-          Text(
-            evento.fuenteNombre!,
-            style: AppTextStyles.caption.copyWith(
-              color: evento.fuenteColor,
-              fontWeight: FontWeight.w500,
+        const SizedBox(height: 2),
+        Row(
+          children: [
+            if (evento.fuenteNombre != null) ...[
+              Flexible(
+                child: Text(
+                  evento.fuenteNombre!,
+                  style: AppTextStyles.caption.copyWith(
+                    color: evento.fuenteColor,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text('·', style: AppTextStyles.caption),
+              const SizedBox(width: 4),
+            ],
+            Flexible(
+              child: Text(
+                _buildSubtitulo(),
+                style: AppTextStyles.caption.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
+          ],
+        ),
         if (evento.cobro != null) ...[
           const SizedBox(height: 2),
           Text(

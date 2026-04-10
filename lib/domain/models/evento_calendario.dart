@@ -40,6 +40,8 @@ class EventoCalendario {
     this.fuenteNombre,
     this.cobro,
     this.estadoSesion,
+    this.diasSemana = const [],
+    this.esPuntual = false,
   });
 
   final TipoEvento tipo;
@@ -68,6 +70,12 @@ class EventoCalendario {
 
   /// Estado de la sesión realizada (null si aún no se ha registrado).
   final EstadoSesion? estadoSesion;
+
+  /// Días de la semana (1=Lun, 2=Mar, ..., 7=Dom).
+  final List<int> diasSemana;
+
+  /// true si es una clase puntual/única.
+  final bool esPuntual;
 
   /// Duración en horas (decimal).
   double get duracionHoras {
@@ -167,6 +175,8 @@ class EventoCalendario {
       alumnoNombre: alumnoNombre,
       cobro: cobro,
       estadoSesion: realizada?.estado,
+      diasSemana: sesion.diasSemana,
+      esPuntual: sesion.esPuntual,
     );
   }
 
@@ -187,5 +197,7 @@ class EventoCalendario {
         alumnoNombre: alumnoNombre,
         cobro: cobro,
         estadoSesion: estadoSesion,
+        diasSemana: diasSemana,
+        esPuntual: esPuntual,
       );
 }

@@ -295,7 +295,16 @@ class _SesionTile extends StatelessWidget {
   final VoidCallback onEditar;
   final VoidCallback onEliminar;
 
-  static const _diasLabels = ['', 'L', 'M', 'X', 'J', 'V', 'S', 'D'];
+  static const _diasLabels = [
+    '',
+    'Lun.',
+    'Mar.',
+    'Mié.',
+    'Jue.',
+    'Vie.',
+    'Sáb.',
+    'Dom.'
+  ];
 
   @override
   Widget build(BuildContext context) {
