@@ -138,6 +138,73 @@ class AlumnoDetalleScreen extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 16),
+              // Información académica
+              if (alumno.materia.isNotEmpty ||
+                  alumno.nivel.isNotEmpty ||
+                  alumno.materiales.isNotEmpty) ...[
+                Text(l.informacionAcademica, style: AppTextStyles.titleSmall),
+                const SizedBox(height: 8),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (alumno.materia.isNotEmpty)
+                          _buildInfoRow(
+                            context,
+                            Icons.book_outlined,
+                            l.materia,
+                            alumno.materia,
+                          ),
+                        if (alumno.materia.isNotEmpty &&
+                            (alumno.nivel.isNotEmpty ||
+                                alumno.materiales.isNotEmpty))
+                          const SizedBox(height: 12),
+                        if (alumno.nivel.isNotEmpty)
+                          _buildInfoRow(
+                            context,
+                            Icons.grade_outlined,
+                            l.nivel,
+                            alumno.nivel,
+                          ),
+                        if (alumno.nivel.isNotEmpty &&
+                            alumno.materiales.isNotEmpty)
+                          const SizedBox(height: 12),
+                        if (alumno.materiales.isNotEmpty) ...[
+                          Row(
+                            children: [
+                              Icon(Icons.menu_book_outlined,
+                                  size: 20,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant),
+                              const SizedBox(width: 12),
+                              Text(l.materiales,
+                                  style: AppTextStyles.labelMedium),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: alumno.materiales
+                                .map(
+                                  (material) => Chip(
+                                    label: Text(material),
+                                    materialTapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
               // Notas
               if (alumno.notas.isNotEmpty) ...[
                 Text(l.notas, style: AppTextStyles.titleSmall),
@@ -200,6 +267,39 @@ class AlumnoDetalleScreen extends ConsumerWidget {
           ),
         );
       },
+    );
+  }
+
+  static Widget _buildInfoRow(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value,
+  ) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: AppTextStyles.bodyMedium,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

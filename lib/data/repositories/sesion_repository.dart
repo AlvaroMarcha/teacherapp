@@ -39,6 +39,7 @@ class SesionRepository {
         cobro: row.cobro,
         estado: EstadoSesionExt.fromString(row.estado),
         notas: row.notas,
+        temaSesion: row.temaSesion,
         syncStatus: row.syncStatus,
       );
 
@@ -157,6 +158,7 @@ class SesionRepository {
         cobro: Value(sesion.cobro),
         estado: Value(sesion.estado.value),
         notas: Value(sesion.notas),
+        temaSesion: Value(sesion.temaSesion),
         syncStatus: Value(sesion.syncStatus),
       ),
     );

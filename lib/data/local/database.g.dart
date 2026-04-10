@@ -724,6 +724,30 @@ class $AlumnosTableTable extends AlumnosTable
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       defaultValue: const Constant(''));
+  static const VerificationMeta _materiaMeta =
+      const VerificationMeta('materia');
+  @override
+  late final GeneratedColumn<String> materia = GeneratedColumn<String>(
+      'materia', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
+  static const VerificationMeta _nivelMeta = const VerificationMeta('nivel');
+  @override
+  late final GeneratedColumn<String> nivel = GeneratedColumn<String>(
+      'nivel', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
+  static const VerificationMeta _materialesMeta =
+      const VerificationMeta('materiales');
+  @override
+  late final GeneratedColumnWithTypeConverter<List<String>, String> materiales =
+      GeneratedColumn<String>('materiales', aliasedName, false,
+              type: DriftSqlType.string,
+              requiredDuringInsert: false,
+              defaultValue: const Constant('[]'))
+          .withConverter<List<String>>($AlumnosTableTable.$convertermateriales);
   static const VerificationMeta _syncStatusMeta =
       const VerificationMeta('syncStatus');
   @override
@@ -733,8 +757,18 @@ class $AlumnosTableTable extends AlumnosTable
       requiredDuringInsert: false,
       defaultValue: const Constant('pending'));
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, nombre, fuenteId, tarifaSesion, duracionMinutos, notas, syncStatus];
+  List<GeneratedColumn> get $columns => [
+        id,
+        nombre,
+        fuenteId,
+        tarifaSesion,
+        duracionMinutos,
+        notas,
+        materia,
+        nivel,
+        materiales,
+        syncStatus
+      ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -780,6 +814,15 @@ class $AlumnosTableTable extends AlumnosTable
       context.handle(
           _notasMeta, notas.isAcceptableOrUnknown(data['notas']!, _notasMeta));
     }
+    if (data.containsKey('materia')) {
+      context.handle(_materiaMeta,
+          materia.isAcceptableOrUnknown(data['materia']!, _materiaMeta));
+    }
+    if (data.containsKey('nivel')) {
+      context.handle(
+          _nivelMeta, nivel.isAcceptableOrUnknown(data['nivel']!, _nivelMeta));
+    }
+    context.handle(_materialesMeta, const VerificationResult.success());
     if (data.containsKey('sync_status')) {
       context.handle(
           _syncStatusMeta,
@@ -807,6 +850,13 @@ class $AlumnosTableTable extends AlumnosTable
           .read(DriftSqlType.int, data['${effectivePrefix}duracion_minutos'])!,
       notas: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}notas'])!,
+      materia: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}materia'])!,
+      nivel: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}nivel'])!,
+      materiales: $AlumnosTableTable.$convertermateriales.fromSql(
+          attachedDatabase.typeMapping.read(
+              DriftSqlType.string, data['${effectivePrefix}materiales'])!),
       syncStatus: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}sync_status'])!,
     );
@@ -816,6 +866,9 @@ class $AlumnosTableTable extends AlumnosTable
   $AlumnosTableTable createAlias(String alias) {
     return $AlumnosTableTable(attachedDatabase, alias);
   }
+
+  static TypeConverter<List<String>, String> $convertermateriales =
+      const StringListConverter();
 }
 
 class AlumnosTableData extends DataClass
@@ -826,6 +879,9 @@ class AlumnosTableData extends DataClass
   final double tarifaSesion;
   final int duracionMinutos;
   final String notas;
+  final String materia;
+  final String nivel;
+  final List<String> materiales;
   final String syncStatus;
   const AlumnosTableData(
       {required this.id,
@@ -834,6 +890,9 @@ class AlumnosTableData extends DataClass
       required this.tarifaSesion,
       required this.duracionMinutos,
       required this.notas,
+      required this.materia,
+      required this.nivel,
+      required this.materiales,
       required this.syncStatus});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -844,6 +903,12 @@ class AlumnosTableData extends DataClass
     map['tarifa_sesion'] = Variable<double>(tarifaSesion);
     map['duracion_minutos'] = Variable<int>(duracionMinutos);
     map['notas'] = Variable<String>(notas);
+    map['materia'] = Variable<String>(materia);
+    map['nivel'] = Variable<String>(nivel);
+    {
+      map['materiales'] = Variable<String>(
+          $AlumnosTableTable.$convertermateriales.toSql(materiales));
+    }
     map['sync_status'] = Variable<String>(syncStatus);
     return map;
   }
@@ -856,6 +921,9 @@ class AlumnosTableData extends DataClass
       tarifaSesion: Value(tarifaSesion),
       duracionMinutos: Value(duracionMinutos),
       notas: Value(notas),
+      materia: Value(materia),
+      nivel: Value(nivel),
+      materiales: Value(materiales),
       syncStatus: Value(syncStatus),
     );
   }
@@ -870,6 +938,9 @@ class AlumnosTableData extends DataClass
       tarifaSesion: serializer.fromJson<double>(json['tarifaSesion']),
       duracionMinutos: serializer.fromJson<int>(json['duracionMinutos']),
       notas: serializer.fromJson<String>(json['notas']),
+      materia: serializer.fromJson<String>(json['materia']),
+      nivel: serializer.fromJson<String>(json['nivel']),
+      materiales: serializer.fromJson<List<String>>(json['materiales']),
       syncStatus: serializer.fromJson<String>(json['syncStatus']),
     );
   }
@@ -883,6 +954,9 @@ class AlumnosTableData extends DataClass
       'tarifaSesion': serializer.toJson<double>(tarifaSesion),
       'duracionMinutos': serializer.toJson<int>(duracionMinutos),
       'notas': serializer.toJson<String>(notas),
+      'materia': serializer.toJson<String>(materia),
+      'nivel': serializer.toJson<String>(nivel),
+      'materiales': serializer.toJson<List<String>>(materiales),
       'syncStatus': serializer.toJson<String>(syncStatus),
     };
   }
@@ -894,6 +968,9 @@ class AlumnosTableData extends DataClass
           double? tarifaSesion,
           int? duracionMinutos,
           String? notas,
+          String? materia,
+          String? nivel,
+          List<String>? materiales,
           String? syncStatus}) =>
       AlumnosTableData(
         id: id ?? this.id,
@@ -902,6 +979,9 @@ class AlumnosTableData extends DataClass
         tarifaSesion: tarifaSesion ?? this.tarifaSesion,
         duracionMinutos: duracionMinutos ?? this.duracionMinutos,
         notas: notas ?? this.notas,
+        materia: materia ?? this.materia,
+        nivel: nivel ?? this.nivel,
+        materiales: materiales ?? this.materiales,
         syncStatus: syncStatus ?? this.syncStatus,
       );
   AlumnosTableData copyWithCompanion(AlumnosTableCompanion data) {
@@ -916,6 +996,10 @@ class AlumnosTableData extends DataClass
           ? data.duracionMinutos.value
           : this.duracionMinutos,
       notas: data.notas.present ? data.notas.value : this.notas,
+      materia: data.materia.present ? data.materia.value : this.materia,
+      nivel: data.nivel.present ? data.nivel.value : this.nivel,
+      materiales:
+          data.materiales.present ? data.materiales.value : this.materiales,
       syncStatus:
           data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
     );
@@ -930,14 +1014,17 @@ class AlumnosTableData extends DataClass
           ..write('tarifaSesion: $tarifaSesion, ')
           ..write('duracionMinutos: $duracionMinutos, ')
           ..write('notas: $notas, ')
+          ..write('materia: $materia, ')
+          ..write('nivel: $nivel, ')
+          ..write('materiales: $materiales, ')
           ..write('syncStatus: $syncStatus')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      id, nombre, fuenteId, tarifaSesion, duracionMinutos, notas, syncStatus);
+  int get hashCode => Object.hash(id, nombre, fuenteId, tarifaSesion,
+      duracionMinutos, notas, materia, nivel, materiales, syncStatus);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -948,6 +1035,9 @@ class AlumnosTableData extends DataClass
           other.tarifaSesion == this.tarifaSesion &&
           other.duracionMinutos == this.duracionMinutos &&
           other.notas == this.notas &&
+          other.materia == this.materia &&
+          other.nivel == this.nivel &&
+          other.materiales == this.materiales &&
           other.syncStatus == this.syncStatus);
 }
 
@@ -958,6 +1048,9 @@ class AlumnosTableCompanion extends UpdateCompanion<AlumnosTableData> {
   final Value<double> tarifaSesion;
   final Value<int> duracionMinutos;
   final Value<String> notas;
+  final Value<String> materia;
+  final Value<String> nivel;
+  final Value<List<String>> materiales;
   final Value<String> syncStatus;
   final Value<int> rowid;
   const AlumnosTableCompanion({
@@ -967,6 +1060,9 @@ class AlumnosTableCompanion extends UpdateCompanion<AlumnosTableData> {
     this.tarifaSesion = const Value.absent(),
     this.duracionMinutos = const Value.absent(),
     this.notas = const Value.absent(),
+    this.materia = const Value.absent(),
+    this.nivel = const Value.absent(),
+    this.materiales = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -977,6 +1073,9 @@ class AlumnosTableCompanion extends UpdateCompanion<AlumnosTableData> {
     required double tarifaSesion,
     this.duracionMinutos = const Value.absent(),
     this.notas = const Value.absent(),
+    this.materia = const Value.absent(),
+    this.nivel = const Value.absent(),
+    this.materiales = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
@@ -990,6 +1089,9 @@ class AlumnosTableCompanion extends UpdateCompanion<AlumnosTableData> {
     Expression<double>? tarifaSesion,
     Expression<int>? duracionMinutos,
     Expression<String>? notas,
+    Expression<String>? materia,
+    Expression<String>? nivel,
+    Expression<String>? materiales,
     Expression<String>? syncStatus,
     Expression<int>? rowid,
   }) {
@@ -1000,6 +1102,9 @@ class AlumnosTableCompanion extends UpdateCompanion<AlumnosTableData> {
       if (tarifaSesion != null) 'tarifa_sesion': tarifaSesion,
       if (duracionMinutos != null) 'duracion_minutos': duracionMinutos,
       if (notas != null) 'notas': notas,
+      if (materia != null) 'materia': materia,
+      if (nivel != null) 'nivel': nivel,
+      if (materiales != null) 'materiales': materiales,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1012,6 +1117,9 @@ class AlumnosTableCompanion extends UpdateCompanion<AlumnosTableData> {
       Value<double>? tarifaSesion,
       Value<int>? duracionMinutos,
       Value<String>? notas,
+      Value<String>? materia,
+      Value<String>? nivel,
+      Value<List<String>>? materiales,
       Value<String>? syncStatus,
       Value<int>? rowid}) {
     return AlumnosTableCompanion(
@@ -1021,6 +1129,9 @@ class AlumnosTableCompanion extends UpdateCompanion<AlumnosTableData> {
       tarifaSesion: tarifaSesion ?? this.tarifaSesion,
       duracionMinutos: duracionMinutos ?? this.duracionMinutos,
       notas: notas ?? this.notas,
+      materia: materia ?? this.materia,
+      nivel: nivel ?? this.nivel,
+      materiales: materiales ?? this.materiales,
       syncStatus: syncStatus ?? this.syncStatus,
       rowid: rowid ?? this.rowid,
     );
@@ -1047,6 +1158,16 @@ class AlumnosTableCompanion extends UpdateCompanion<AlumnosTableData> {
     if (notas.present) {
       map['notas'] = Variable<String>(notas.value);
     }
+    if (materia.present) {
+      map['materia'] = Variable<String>(materia.value);
+    }
+    if (nivel.present) {
+      map['nivel'] = Variable<String>(nivel.value);
+    }
+    if (materiales.present) {
+      map['materiales'] = Variable<String>(
+          $AlumnosTableTable.$convertermateriales.toSql(materiales.value));
+    }
     if (syncStatus.present) {
       map['sync_status'] = Variable<String>(syncStatus.value);
     }
@@ -1065,6 +1186,9 @@ class AlumnosTableCompanion extends UpdateCompanion<AlumnosTableData> {
           ..write('tarifaSesion: $tarifaSesion, ')
           ..write('duracionMinutos: $duracionMinutos, ')
           ..write('notas: $notas, ')
+          ..write('materia: $materia, ')
+          ..write('nivel: $nivel, ')
+          ..write('materiales: $materiales, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -1718,6 +1842,14 @@ class $SesionesRealizadasTableTable extends SesionesRealizadasTable
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       defaultValue: const Constant(''));
+  static const VerificationMeta _temaSesionMeta =
+      const VerificationMeta('temaSesion');
+  @override
+  late final GeneratedColumn<String> temaSesion = GeneratedColumn<String>(
+      'tema_sesion', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
   static const VerificationMeta _syncStatusMeta =
       const VerificationMeta('syncStatus');
   @override
@@ -1737,6 +1869,7 @@ class $SesionesRealizadasTableTable extends SesionesRealizadasTable
         estado,
         sesionRecurrenteId,
         notas,
+        temaSesion,
         syncStatus
       ];
   @override
@@ -1797,6 +1930,12 @@ class $SesionesRealizadasTableTable extends SesionesRealizadasTable
       context.handle(
           _notasMeta, notas.isAcceptableOrUnknown(data['notas']!, _notasMeta));
     }
+    if (data.containsKey('tema_sesion')) {
+      context.handle(
+          _temaSesionMeta,
+          temaSesion.isAcceptableOrUnknown(
+              data['tema_sesion']!, _temaSesionMeta));
+    }
     if (data.containsKey('sync_status')) {
       context.handle(
           _syncStatusMeta,
@@ -1831,6 +1970,8 @@ class $SesionesRealizadasTableTable extends SesionesRealizadasTable
           DriftSqlType.string, data['${effectivePrefix}sesion_recurrente_id']),
       notas: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}notas'])!,
+      temaSesion: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}tema_sesion'])!,
       syncStatus: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}sync_status'])!,
     );
@@ -1863,6 +2004,7 @@ class SesionesRealizadasTableData extends DataClass
   /// FK opcional a la sesión recurrente que originó este registro.
   final String? sesionRecurrenteId;
   final String notas;
+  final String temaSesion;
   final String syncStatus;
   const SesionesRealizadasTableData(
       {required this.id,
@@ -1874,6 +2016,7 @@ class SesionesRealizadasTableData extends DataClass
       required this.estado,
       this.sesionRecurrenteId,
       required this.notas,
+      required this.temaSesion,
       required this.syncStatus});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1891,6 +2034,7 @@ class SesionesRealizadasTableData extends DataClass
       map['sesion_recurrente_id'] = Variable<String>(sesionRecurrenteId);
     }
     map['notas'] = Variable<String>(notas);
+    map['tema_sesion'] = Variable<String>(temaSesion);
     map['sync_status'] = Variable<String>(syncStatus);
     return map;
   }
@@ -1910,6 +2054,7 @@ class SesionesRealizadasTableData extends DataClass
           ? const Value.absent()
           : Value(sesionRecurrenteId),
       notas: Value(notas),
+      temaSesion: Value(temaSesion),
       syncStatus: Value(syncStatus),
     );
   }
@@ -1928,6 +2073,7 @@ class SesionesRealizadasTableData extends DataClass
       sesionRecurrenteId:
           serializer.fromJson<String?>(json['sesionRecurrenteId']),
       notas: serializer.fromJson<String>(json['notas']),
+      temaSesion: serializer.fromJson<String>(json['temaSesion']),
       syncStatus: serializer.fromJson<String>(json['syncStatus']),
     );
   }
@@ -1944,6 +2090,7 @@ class SesionesRealizadasTableData extends DataClass
       'estado': serializer.toJson<String>(estado),
       'sesionRecurrenteId': serializer.toJson<String?>(sesionRecurrenteId),
       'notas': serializer.toJson<String>(notas),
+      'temaSesion': serializer.toJson<String>(temaSesion),
       'syncStatus': serializer.toJson<String>(syncStatus),
     };
   }
@@ -1958,6 +2105,7 @@ class SesionesRealizadasTableData extends DataClass
           String? estado,
           Value<String?> sesionRecurrenteId = const Value.absent(),
           String? notas,
+          String? temaSesion,
           String? syncStatus}) =>
       SesionesRealizadasTableData(
         id: id ?? this.id,
@@ -1971,6 +2119,7 @@ class SesionesRealizadasTableData extends DataClass
             ? sesionRecurrenteId.value
             : this.sesionRecurrenteId,
         notas: notas ?? this.notas,
+        temaSesion: temaSesion ?? this.temaSesion,
         syncStatus: syncStatus ?? this.syncStatus,
       );
   SesionesRealizadasTableData copyWithCompanion(
@@ -1987,6 +2136,8 @@ class SesionesRealizadasTableData extends DataClass
           ? data.sesionRecurrenteId.value
           : this.sesionRecurrenteId,
       notas: data.notas.present ? data.notas.value : this.notas,
+      temaSesion:
+          data.temaSesion.present ? data.temaSesion.value : this.temaSesion,
       syncStatus:
           data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
     );
@@ -2004,6 +2155,7 @@ class SesionesRealizadasTableData extends DataClass
           ..write('estado: $estado, ')
           ..write('sesionRecurrenteId: $sesionRecurrenteId, ')
           ..write('notas: $notas, ')
+          ..write('temaSesion: $temaSesion, ')
           ..write('syncStatus: $syncStatus')
           ..write(')'))
         .toString();
@@ -2011,7 +2163,7 @@ class SesionesRealizadasTableData extends DataClass
 
   @override
   int get hashCode => Object.hash(id, alumnoId, fuenteId, fecha, horas, cobro,
-      estado, sesionRecurrenteId, notas, syncStatus);
+      estado, sesionRecurrenteId, notas, temaSesion, syncStatus);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2025,6 +2177,7 @@ class SesionesRealizadasTableData extends DataClass
           other.estado == this.estado &&
           other.sesionRecurrenteId == this.sesionRecurrenteId &&
           other.notas == this.notas &&
+          other.temaSesion == this.temaSesion &&
           other.syncStatus == this.syncStatus);
 }
 
@@ -2039,6 +2192,7 @@ class SesionesRealizadasTableCompanion
   final Value<String> estado;
   final Value<String?> sesionRecurrenteId;
   final Value<String> notas;
+  final Value<String> temaSesion;
   final Value<String> syncStatus;
   final Value<int> rowid;
   const SesionesRealizadasTableCompanion({
@@ -2051,6 +2205,7 @@ class SesionesRealizadasTableCompanion
     this.estado = const Value.absent(),
     this.sesionRecurrenteId = const Value.absent(),
     this.notas = const Value.absent(),
+    this.temaSesion = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -2064,6 +2219,7 @@ class SesionesRealizadasTableCompanion
     this.estado = const Value.absent(),
     this.sesionRecurrenteId = const Value.absent(),
     this.notas = const Value.absent(),
+    this.temaSesion = const Value.absent(),
     this.syncStatus = const Value.absent(),
     this.rowid = const Value.absent(),
   })  : id = Value(id),
@@ -2081,6 +2237,7 @@ class SesionesRealizadasTableCompanion
     Expression<String>? estado,
     Expression<String>? sesionRecurrenteId,
     Expression<String>? notas,
+    Expression<String>? temaSesion,
     Expression<String>? syncStatus,
     Expression<int>? rowid,
   }) {
@@ -2095,6 +2252,7 @@ class SesionesRealizadasTableCompanion
       if (sesionRecurrenteId != null)
         'sesion_recurrente_id': sesionRecurrenteId,
       if (notas != null) 'notas': notas,
+      if (temaSesion != null) 'tema_sesion': temaSesion,
       if (syncStatus != null) 'sync_status': syncStatus,
       if (rowid != null) 'rowid': rowid,
     });
@@ -2110,6 +2268,7 @@ class SesionesRealizadasTableCompanion
       Value<String>? estado,
       Value<String?>? sesionRecurrenteId,
       Value<String>? notas,
+      Value<String>? temaSesion,
       Value<String>? syncStatus,
       Value<int>? rowid}) {
     return SesionesRealizadasTableCompanion(
@@ -2122,6 +2281,7 @@ class SesionesRealizadasTableCompanion
       estado: estado ?? this.estado,
       sesionRecurrenteId: sesionRecurrenteId ?? this.sesionRecurrenteId,
       notas: notas ?? this.notas,
+      temaSesion: temaSesion ?? this.temaSesion,
       syncStatus: syncStatus ?? this.syncStatus,
       rowid: rowid ?? this.rowid,
     );
@@ -2157,6 +2317,9 @@ class SesionesRealizadasTableCompanion
     if (notas.present) {
       map['notas'] = Variable<String>(notas.value);
     }
+    if (temaSesion.present) {
+      map['tema_sesion'] = Variable<String>(temaSesion.value);
+    }
     if (syncStatus.present) {
       map['sync_status'] = Variable<String>(syncStatus.value);
     }
@@ -2178,6 +2341,7 @@ class SesionesRealizadasTableCompanion
           ..write('estado: $estado, ')
           ..write('sesionRecurrenteId: $sesionRecurrenteId, ')
           ..write('notas: $notas, ')
+          ..write('temaSesion: $temaSesion, ')
           ..write('syncStatus: $syncStatus, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -4450,6 +4614,9 @@ typedef $$AlumnosTableTableCreateCompanionBuilder = AlumnosTableCompanion
   required double tarifaSesion,
   Value<int> duracionMinutos,
   Value<String> notas,
+  Value<String> materia,
+  Value<String> nivel,
+  Value<List<String>> materiales,
   Value<String> syncStatus,
   Value<int> rowid,
 });
@@ -4461,6 +4628,9 @@ typedef $$AlumnosTableTableUpdateCompanionBuilder = AlumnosTableCompanion
   Value<double> tarifaSesion,
   Value<int> duracionMinutos,
   Value<String> notas,
+  Value<String> materia,
+  Value<String> nivel,
+  Value<List<String>> materiales,
   Value<String> syncStatus,
   Value<int> rowid,
 });
@@ -4488,6 +4658,9 @@ class $$AlumnosTableTableTableManager extends RootTableManager<
             Value<double> tarifaSesion = const Value.absent(),
             Value<int> duracionMinutos = const Value.absent(),
             Value<String> notas = const Value.absent(),
+            Value<String> materia = const Value.absent(),
+            Value<String> nivel = const Value.absent(),
+            Value<List<String>> materiales = const Value.absent(),
             Value<String> syncStatus = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -4498,6 +4671,9 @@ class $$AlumnosTableTableTableManager extends RootTableManager<
             tarifaSesion: tarifaSesion,
             duracionMinutos: duracionMinutos,
             notas: notas,
+            materia: materia,
+            nivel: nivel,
+            materiales: materiales,
             syncStatus: syncStatus,
             rowid: rowid,
           ),
@@ -4508,6 +4684,9 @@ class $$AlumnosTableTableTableManager extends RootTableManager<
             required double tarifaSesion,
             Value<int> duracionMinutos = const Value.absent(),
             Value<String> notas = const Value.absent(),
+            Value<String> materia = const Value.absent(),
+            Value<String> nivel = const Value.absent(),
+            Value<List<String>> materiales = const Value.absent(),
             Value<String> syncStatus = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -4518,6 +4697,9 @@ class $$AlumnosTableTableTableManager extends RootTableManager<
             tarifaSesion: tarifaSesion,
             duracionMinutos: duracionMinutos,
             notas: notas,
+            materia: materia,
+            nivel: nivel,
+            materiales: materiales,
             syncStatus: syncStatus,
             rowid: rowid,
           ),
@@ -4557,6 +4739,23 @@ class $$AlumnosTableTableFilterComposer
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
+  ColumnFilters<String> get materia => $state.composableBuilder(
+      column: $state.table.materia,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get nivel => $state.composableBuilder(
+      column: $state.table.nivel,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnWithTypeConverterFilters<List<String>, List<String>, String>
+      get materiales => $state.composableBuilder(
+          column: $state.table.materiales,
+          builder: (column, joinBuilders) => ColumnWithTypeConverterFilters(
+              column,
+              joinBuilders: joinBuilders));
+
   ColumnFilters<String> get syncStatus => $state.composableBuilder(
       column: $state.table.syncStatus,
       builder: (column, joinBuilders) =>
@@ -4593,6 +4792,21 @@ class $$AlumnosTableTableOrderingComposer
 
   ColumnOrderings<String> get notas => $state.composableBuilder(
       column: $state.table.notas,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get materia => $state.composableBuilder(
+      column: $state.table.materia,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get nivel => $state.composableBuilder(
+      column: $state.table.nivel,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get materiales => $state.composableBuilder(
+      column: $state.table.materiales,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 
@@ -4838,6 +5052,7 @@ typedef $$SesionesRealizadasTableTableCreateCompanionBuilder
   Value<String> estado,
   Value<String?> sesionRecurrenteId,
   Value<String> notas,
+  Value<String> temaSesion,
   Value<String> syncStatus,
   Value<int> rowid,
 });
@@ -4852,6 +5067,7 @@ typedef $$SesionesRealizadasTableTableUpdateCompanionBuilder
   Value<String> estado,
   Value<String?> sesionRecurrenteId,
   Value<String> notas,
+  Value<String> temaSesion,
   Value<String> syncStatus,
   Value<int> rowid,
 });
@@ -4883,6 +5099,7 @@ class $$SesionesRealizadasTableTableTableManager extends RootTableManager<
             Value<String> estado = const Value.absent(),
             Value<String?> sesionRecurrenteId = const Value.absent(),
             Value<String> notas = const Value.absent(),
+            Value<String> temaSesion = const Value.absent(),
             Value<String> syncStatus = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -4896,6 +5113,7 @@ class $$SesionesRealizadasTableTableTableManager extends RootTableManager<
             estado: estado,
             sesionRecurrenteId: sesionRecurrenteId,
             notas: notas,
+            temaSesion: temaSesion,
             syncStatus: syncStatus,
             rowid: rowid,
           ),
@@ -4909,6 +5127,7 @@ class $$SesionesRealizadasTableTableTableManager extends RootTableManager<
             Value<String> estado = const Value.absent(),
             Value<String?> sesionRecurrenteId = const Value.absent(),
             Value<String> notas = const Value.absent(),
+            Value<String> temaSesion = const Value.absent(),
             Value<String> syncStatus = const Value.absent(),
             Value<int> rowid = const Value.absent(),
           }) =>
@@ -4922,6 +5141,7 @@ class $$SesionesRealizadasTableTableTableManager extends RootTableManager<
             estado: estado,
             sesionRecurrenteId: sesionRecurrenteId,
             notas: notas,
+            temaSesion: temaSesion,
             syncStatus: syncStatus,
             rowid: rowid,
           ),
@@ -4976,6 +5196,11 @@ class $$SesionesRealizadasTableTableFilterComposer
       builder: (column, joinBuilders) =>
           ColumnFilters(column, joinBuilders: joinBuilders));
 
+  ColumnFilters<String> get temaSesion => $state.composableBuilder(
+      column: $state.table.temaSesion,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
   ColumnFilters<String> get syncStatus => $state.composableBuilder(
       column: $state.table.syncStatus,
       builder: (column, joinBuilders) =>
@@ -5027,6 +5252,11 @@ class $$SesionesRealizadasTableTableOrderingComposer
 
   ColumnOrderings<String> get notas => $state.composableBuilder(
       column: $state.table.notas,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get temaSesion => $state.composableBuilder(
+      column: $state.table.temaSesion,
       builder: (column, joinBuilders) =>
           ColumnOrderings(column, joinBuilders: joinBuilders));
 

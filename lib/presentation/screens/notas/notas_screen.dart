@@ -7,7 +7,6 @@ import '../../../core/router/app_router.dart';
 import '../../../domain/models/nota.dart';
 import '../../providers/notas_provider.dart';
 import '../../providers/theme_provider.dart';
-import '../../providers/database_provider.dart';
 
 class NotasScreen extends ConsumerStatefulWidget {
   const NotasScreen({super.key});

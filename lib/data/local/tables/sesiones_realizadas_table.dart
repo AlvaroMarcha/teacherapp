@@ -26,6 +26,7 @@ class SesionesRealizadasTable extends Table {
   TextColumn get sesionRecurrenteId => text().nullable()();
 
   TextColumn get notas => text().withDefault(const Constant(''))();
+  TextColumn get temaSesion => text().withDefault(const Constant(''))();
   TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
 
   @override

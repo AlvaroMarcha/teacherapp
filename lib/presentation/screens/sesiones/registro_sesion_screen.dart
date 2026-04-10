@@ -36,6 +36,7 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
   static const _uuid = Uuid();
   final _formKey = GlobalKey<FormState>();
   final _importeCtrl = TextEditingController();
+  final _temaSesionCtrl = TextEditingController();
 
   String? _fuenteId;
   String? _alumnoId;
@@ -51,6 +52,7 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
   @override
   void dispose() {
     _importeCtrl.dispose();
+    _temaSesionCtrl.dispose();
     super.dispose();
   }
 
@@ -185,6 +187,18 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
                       ],
                       onChanged: _onAlumnoChanged,
                     ),
+                  const SizedBox(height: 12),
+
+                  // Tema de la sesión
+                  TextFormField(
+                    controller: _temaSesionCtrl,
+                    decoration: InputDecoration(
+                      labelText: l.temaSesion,
+                      prefixIcon: const Icon(Icons.topic_outlined),
+                      hintText: 'ej: Unit 5, Ecuaciones de 2º grado',
+                    ),
+                    maxLines: 2,
+                  ),
                   const SizedBox(height: 12),
 
                   // Tipo: puntual o recurrente
@@ -478,6 +492,7 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
           horas: _horas,
           cobro: 0,
           estado: yaTermino ? EstadoSesion.confirmada : EstadoSesion.pendiente,
+          temaSesion: _temaSesionCtrl.text.trim(),
         );
         await ref.read(sesionRepositoryProvider).saveSesionRealizada(sesion);
 
@@ -511,6 +526,7 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
           cobro: tarifa,
           estado:
               _cobradoAhora ? EstadoSesion.confirmada : EstadoSesion.pendiente,
+          temaSesion: _temaSesionCtrl.text.trim(),
         );
         await ref.read(sesionRepositoryProvider).saveSesionRealizada(sesion);
 

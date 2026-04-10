@@ -10,6 +10,9 @@ class Alumno {
     required this.tarifaSesion,
     this.duracionMinutos = 60,
     this.notas = '',
+    this.materia = '',
+    this.nivel = '',
+    this.materiales = const [],
     this.syncStatus = 'pending',
   });
 
@@ -28,6 +31,16 @@ class Alumno {
 
   /// Campo libre de notas (contacto, observaciones, etc.).
   final String notas;
+
+  /// Materia o asignatura que se enseña (ej: "Inglés", "Matemáticas").
+  final String materia;
+
+  /// Nivel académico (ej: "A2", "1º ESO", "2º Bachillerato").
+  final String nivel;
+
+  /// Materiales o libros utilizados (ej: ["English File A2", "Workbook"]).
+  final List<String> materiales;
+
   final String syncStatus;
 
   Alumno copyWith({
@@ -37,16 +50,23 @@ class Alumno {
     double? tarifaSesion,
     int? duracionMinutos,
     String? notas,
+    String? materia,
+    String? nivel,
+    List<String>? materiales,
     String? syncStatus,
-  }) => Alumno(
-    id: id ?? this.id,
-    nombre: nombre ?? this.nombre,
-    fuenteId: fuenteId ?? this.fuenteId,
-    tarifaSesion: tarifaSesion ?? this.tarifaSesion,
-    duracionMinutos: duracionMinutos ?? this.duracionMinutos,
-    notas: notas ?? this.notas,
-    syncStatus: syncStatus ?? this.syncStatus,
-  );
+  }) =>
+      Alumno(
+        id: id ?? this.id,
+        nombre: nombre ?? this.nombre,
+        fuenteId: fuenteId ?? this.fuenteId,
+        tarifaSesion: tarifaSesion ?? this.tarifaSesion,
+        duracionMinutos: duracionMinutos ?? this.duracionMinutos,
+        notas: notas ?? this.notas,
+        materia: materia ?? this.materia,
+        nivel: nivel ?? this.nivel,
+        materiales: materiales ?? this.materiales,
+        syncStatus: syncStatus ?? this.syncStatus,
+      );
 
   @override
   bool operator ==(Object other) =>

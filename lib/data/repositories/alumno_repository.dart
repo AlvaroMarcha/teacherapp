@@ -12,14 +12,17 @@ class AlumnoRepository {
   // ── Mappers ──────────────────────────────────────────────────────
 
   static Alumno _mapToAlumno(AlumnosTableData row) => Alumno(
-    id: row.id,
-    nombre: row.nombre,
-    fuenteId: row.fuenteId,
-    tarifaSesion: row.tarifaSesion,
-    duracionMinutos: row.duracionMinutos,
-    notas: row.notas,
-    syncStatus: row.syncStatus,
-  );
+        id: row.id,
+        nombre: row.nombre,
+        fuenteId: row.fuenteId,
+        tarifaSesion: row.tarifaSesion,
+        duracionMinutos: row.duracionMinutos,
+        notas: row.notas,
+        materia: row.materia,
+        nivel: row.nivel,
+        materiales: row.materiales,
+        syncStatus: row.syncStatus,
+      );
 
   // ── Queries ──────────────────────────────────────────────────────
 
@@ -45,6 +48,9 @@ class AlumnoRepository {
         tarifaSesion: Value(alumno.tarifaSesion),
         duracionMinutos: Value(alumno.duracionMinutos),
         notas: Value(alumno.notas),
+        materia: Value(alumno.materia),
+        nivel: Value(alumno.nivel),
+        materiales: Value(alumno.materiales),
         syncStatus: Value(alumno.syncStatus),
       ),
     );

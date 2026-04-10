@@ -43,7 +43,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.connection);
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -86,6 +86,28 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(notasTable);
             await m.createTable(etiquetasTable);
             await m.createTable(notasEtiquetasTable);
+          }
+          if (from < 7) {
+            // Sprint: Materiales/Nivel asignados a alumnos
+            try {
+              await m.addColumn(alumnosTable, alumnosTable.materia);
+            } catch (_) {}
+            try {
+              await m.addColumn(alumnosTable, alumnosTable.nivel);
+            } catch (_) {}
+            try {
+              await m.addColumn(alumnosTable, alumnosTable.materiales);
+            } catch (_) {}
+            try {
+              await m.addColumn(
+                sesionesRealizadasTable,
+                sesionesRealizadasTable.temaSesion,
+              );
+            } catch (_) {}
+          }
+          if (from < 8) {
+            // Migración v7→v8: Ya no es necesaria porque v7 ahora crea directamente 'materiales'
+            // Esta versión se mantiene para compatibilidad futura
           }
         },
       );

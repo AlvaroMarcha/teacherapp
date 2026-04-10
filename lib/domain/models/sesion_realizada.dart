@@ -38,6 +38,7 @@ class SesionRealizada {
     this.sesionRecurrenteId,
     this.estado = EstadoSesion.pendiente,
     this.notas = '',
+    this.temaSesion = '',
     this.syncStatus = 'pending',
   });
 
@@ -59,6 +60,10 @@ class SesionRealizada {
 
   final EstadoSesion estado;
   final String notas;
+
+  /// Tema específico tratado en esta sesión (ej: "Unit 5", "Ecuaciones").
+  final String temaSesion;
+
   final String syncStatus;
 
   SesionRealizada copyWith({
@@ -71,6 +76,7 @@ class SesionRealizada {
     double? cobro,
     EstadoSesion? estado,
     String? notas,
+    String? temaSesion,
     String? syncStatus,
   }) =>
       SesionRealizada(
@@ -83,6 +89,7 @@ class SesionRealizada {
         cobro: cobro ?? this.cobro,
         estado: estado ?? this.estado,
         notas: notas ?? this.notas,
+        temaSesion: temaSesion ?? this.temaSesion,
         syncStatus: syncStatus ?? this.syncStatus,
       );
 

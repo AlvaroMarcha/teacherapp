@@ -25,10 +25,14 @@ class AlumnoFormScreen extends ConsumerStatefulWidget {
 class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nombreCtrl = TextEditingController();
+  final _materiaCtrl = TextEditingController();
+  final _nivelCtrl = TextEditingController();
+  final _nuevoMaterialCtrl = TextEditingController();
   final _tarifaCtrl = TextEditingController();
   final _notasCtrl = TextEditingController();
   int _duracionMinutos = 60;
   String? _fuenteIdSeleccionada;
+  List<String> _materiales = [];
   static const _uuid = Uuid();
 
   @override
@@ -42,6 +46,9 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
         if (alumno != null && mounted) {
           setState(() {
             _nombreCtrl.text = alumno.nombre;
+            _materiaCtrl.text = alumno.materia;
+            _nivelCtrl.text = alumno.nivel;
+            _materiales = List.from(alumno.materiales);
             _tarifaCtrl.text = alumno.tarifaSesion.toString();
             _notasCtrl.text = alumno.notas;
             _duracionMinutos = alumno.duracionMinutos;
@@ -55,6 +62,9 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
   @override
   void dispose() {
     _nombreCtrl.dispose();
+    _materiaCtrl.dispose();
+    _nivelCtrl.dispose();
+    _nuevoMaterialCtrl.dispose();
     _tarifaCtrl.dispose();
     _notasCtrl.dispose();
     super.dispose();
@@ -95,6 +105,72 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
                 validator: (v) =>
                     v == null || v.trim().isEmpty ? l.nombreRequerido : null,
                 textCapitalization: TextCapitalization.words,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _materiaCtrl,
+                decoration: InputDecoration(
+                  labelText: l.materia,
+                  prefixIcon: const Icon(Icons.book_outlined),
+                  hintText: 'ej: Inglés, Matemáticas, Piano',
+                ),
+                textCapitalization: TextCapitalization.words,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _nivelCtrl,
+                decoration: InputDecoration(
+                  labelText: l.nivel,
+                  prefixIcon: const Icon(Icons.grade_outlined),
+                  hintText: 'ej: A2, 1º ESO, Principiante',
+                ),
+                textCapitalization: TextCapitalization.words,
+              ),
+              const SizedBox(height: 16),
+              // Materiales (lista editable)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _nuevoMaterialCtrl,
+                          decoration: InputDecoration(
+                            labelText: l.materiales,
+                            prefixIcon: const Icon(Icons.menu_book_outlined),
+                            hintText: 'ej: English File A2, Santillana',
+                          ),
+                          textCapitalization: TextCapitalization.words,
+                          onFieldSubmitted: (_) => _agregarMaterial(),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      FilledButton.icon(
+                        onPressed: _agregarMaterial,
+                        icon: const Icon(Icons.add),
+                        label: const Text('Agregar'),
+                      ),
+                    ],
+                  ),
+                  if (_materiales.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _materiales
+                          .map(
+                            (material) => Chip(
+                              label: Text(material),
+                              onDeleted: () => setState(() {
+                                _materiales.remove(material);
+                              }),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ],
+                ],
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
@@ -182,6 +258,21 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
     }
   }
 
+  void _agregarMaterial() {
+    final texto = _nuevoMaterialCtrl.text.trim();
+    if (texto.isEmpty) return;
+    if (_materiales.contains(texto)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Este material ya está en la lista')),
+      );
+      return;
+    }
+    setState(() {
+      _materiales.add(texto);
+      _nuevoMaterialCtrl.clear();
+    });
+  }
+
   void _guardar() {
     if (!_formKey.currentState!.validate()) return;
     final alumno = Alumno(
@@ -191,6 +282,9 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
       tarifaSesion: double.parse(_tarifaCtrl.text),
       duracionMinutos: _duracionMinutos,
       notas: _notasCtrl.text.trim(),
+      materia: _materiaCtrl.text.trim(),
+      nivel: _nivelCtrl.text.trim(),
+      materiales: _materiales,
     );
     ref.read(alumnoRepositoryProvider).saveAlumno(alumno).then((_) {
       ref.invalidate(alumnosProvider);

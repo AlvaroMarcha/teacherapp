@@ -329,6 +329,11 @@ class AppLocalizations {
     required this.claseExtra,
     required this.materialesNecesarios,
     required this.copiado,
+    required this.materia,
+    required this.nivel,
+    required this.materiales,
+    required this.temaSesion,
+    required this.informacionAcademica,
 
     // ── Tarifas ──
     required this.tarifasTitle,
@@ -745,6 +750,11 @@ class AppLocalizations {
   final String claseExtra;
   final String materialesNecesarios;
   final String copiado;
+  final String materia;
+  final String nivel;
+  final String materiales;
+  final String temaSesion;
+  final String informacionAcademica;
 
   // ── Tarifas ──
   final String tarifasTitle;
@@ -1157,6 +1167,11 @@ class AppLocalizations {
     materialesNecesarios:
         'Hola, para la próxima clase necesitarás traer [materiales]. ¡Nos vemos!',
     copiado: 'Copiado',
+    materia: 'Materia',
+    nivel: 'Nivel',
+    materiales: 'Materiales',
+    temaSesion: 'Tema de la sesión',
+    informacionAcademica: 'Información académica',
     tarifasTitle: 'Tarifas',
     comoFunciona: '¿Cómo funciona?',
     jerarquiaTarifas:
@@ -1542,6 +1557,11 @@ class AppLocalizations {
     materialesNecesarios:
         'Hi, for the next class you\'ll need to bring [materials]. See you!',
     copiado: 'Copied',
+    materia: 'Subject',
+    nivel: 'Level',
+    materiales: 'Materials',
+    temaSesion: 'Session topic',
+    informacionAcademica: 'Academic information',
     tarifasTitle: 'Rates',
     comoFunciona: 'How does it work?',
     jerarquiaTarifas:
@@ -1934,6 +1954,11 @@ class AppLocalizations {
     materialesNecesarios:
         'Ciao, per la prossima lezione dovrai portare [materiali]. Ci vediamo!',
     copiado: 'Copiato',
+    materia: 'Materia',
+    nivel: 'Livello',
+    materiales: 'Materiali',
+    temaSesion: 'Argomento della lezione',
+    informacionAcademica: 'Informazioni accademiche',
     tarifasTitle: 'Tariffe',
     comoFunciona: 'Come funziona?',
     jerarquiaTarifas:

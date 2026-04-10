@@ -163,6 +163,15 @@ class _AlumnoTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Construir subtítulo con materia/nivel si existen
+    final materiaInfo = <String>[];
+    if (alumno.materia.isNotEmpty) materiaInfo.add(alumno.materia);
+    if (alumno.nivel.isNotEmpty) materiaInfo.add(alumno.nivel);
+    final hasMateriaInfo = materiaInfo.isNotEmpty;
+    final materiaText = materiaInfo.join(' • ');
+    final tarifaInfo =
+        '${CurrencyUtils.formatCompact(alumno.tarifaSesion)}/sesión · ${alumno.duracionMinutos} min';
+
     return Card(
       child: ListTile(
         leading: CircleAvatar(
@@ -173,10 +182,27 @@ class _AlumnoTile extends StatelessWidget {
           ),
         ),
         title: Text(alumno.nombre, style: AppTextStyles.titleSmall),
-        subtitle: Text(
-          '${CurrencyUtils.formatCompact(alumno.tarifaSesion)}/sesión · ${alumno.duracionMinutos} min',
-          style: AppTextStyles.bodySmall,
-        ),
+        subtitle: hasMateriaInfo
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    materiaText,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Text(
+                    tarifaInfo,
+                    style: AppTextStyles.bodySmall,
+                  ),
+                ],
+              )
+            : Text(
+                tarifaInfo,
+                style: AppTextStyles.bodySmall,
+              ),
         trailing: Icon(
           Icons.chevron_right,
           color: Theme.of(context).colorScheme.onSurfaceVariant,
