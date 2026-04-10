@@ -313,6 +313,22 @@ class AppLocalizations {
     required this.moneda,
     required this.masOpcionesProximamente,
     required this.perfilActualizado,
+    required this.miResumen,
+    required this.estadisticasDelMes,
+    required this.totalAlumnosActivos,
+    required this.fuenteMasRentable,
+    required this.ingresoMedioPorClase,
+    required this.sinDatosEstadisticas,
+    required this.plantillasMensajes,
+    required this.recordatorioPago,
+    required this.confirmarClase,
+    required this.cancelarClase,
+    required this.cambioHorario,
+    required this.pagoConfirmado,
+    required this.nuevaTarifa,
+    required this.claseExtra,
+    required this.materialesNecesarios,
+    required this.copiado,
 
     // ── Tarifas ──
     required this.tarifasTitle,
@@ -713,6 +729,22 @@ class AppLocalizations {
   final String moneda;
   final String masOpcionesProximamente;
   final String perfilActualizado;
+  final String miResumen;
+  final String estadisticasDelMes;
+  final String totalAlumnosActivos;
+  final String fuenteMasRentable;
+  final String ingresoMedioPorClase;
+  final String sinDatosEstadisticas;
+  final String plantillasMensajes;
+  final String recordatorioPago;
+  final String confirmarClase;
+  final String cancelarClase;
+  final String cambioHorario;
+  final String pagoConfirmado;
+  final String nuevaTarifa;
+  final String claseExtra;
+  final String materialesNecesarios;
+  final String copiado;
 
   // ── Tarifas ──
   final String tarifasTitle;
@@ -1102,6 +1134,29 @@ class AppLocalizations {
     moneda: 'Moneda',
     masOpcionesProximamente: 'Más opciones próximamente',
     perfilActualizado: 'Perfil actualizado',
+    miResumen: 'Mi Resumen',
+    estadisticasDelMes: 'Estadísticas del mes',
+    totalAlumnosActivos: 'Alumnos activos',
+    fuenteMasRentable: 'Fuente más rentable',
+    ingresoMedioPorClase: 'Ingreso medio por clase',
+    sinDatosEstadisticas: 'No hay datos suficientes para mostrar estadísticas',
+    plantillasMensajes: 'Plantillas de mensajes',
+    recordatorioPago:
+        'Hola, te escribo para recordarte que tenemos pendiente el pago de las clases de este mes. ¿Podrías confirmármelo? ¡Gracias!',
+    confirmarClase:
+        'Hola, solo confirmo que tenemos clase hoy a la hora habitual. ¡Nos vemos!',
+    cancelarClase:
+        'Hola, lamento informarte que tengo que cancelar la clase de hoy. ¿Te viene bien recuperarla otro día?',
+    cambioHorario:
+        'Hola, necesito cambiar el horario de nuestra próxima clase. ¿Te vendría bien el [día/hora]?',
+    pagoConfirmado: '¡Perfecto! Pago recibido y confirmado. ¡Gracias!',
+    nuevaTarifa:
+        'Hola, te informo que a partir del próximo mes la tarifa será de [cantidad]€/hora. Cualquier duda, avísame.',
+    claseExtra:
+        'Hola, ¿te interesaría tener una clase extra esta semana? Tengo disponibilidad el [día/hora].',
+    materialesNecesarios:
+        'Hola, para la próxima clase necesitarás traer [materiales]. ¡Nos vemos!',
+    copiado: 'Copiado',
     tarifasTitle: 'Tarifas',
     comoFunciona: '¿Cómo funciona?',
     jerarquiaTarifas:
@@ -1464,6 +1519,29 @@ class AppLocalizations {
     moneda: 'Currency',
     masOpcionesProximamente: 'More options coming soon',
     perfilActualizado: 'Profile updated',
+    miResumen: 'My Summary',
+    estadisticasDelMes: 'Month statistics',
+    totalAlumnosActivos: 'Active students',
+    fuenteMasRentable: 'Most profitable source',
+    ingresoMedioPorClase: 'Average income per class',
+    sinDatosEstadisticas: 'Not enough data to display statistics',
+    plantillasMensajes: 'Message templates',
+    recordatorioPago:
+        'Hi, I\'m writing to remind you about the pending payment for this month\'s classes. Could you confirm? Thanks!',
+    confirmarClase:
+        'Hi, just confirming we have class today at the usual time. See you!',
+    cancelarClase:
+        'Hi, I\'m sorry to inform you that I need to cancel today\'s class. Would it be okay to reschedule?',
+    cambioHorario:
+        'Hi, I need to change the schedule for our next class. Would [day/time] work for you?',
+    pagoConfirmado: 'Perfect! Payment received and confirmed. Thank you!',
+    nuevaTarifa:
+        'Hi, I\'m letting you know that starting next month, the rate will be [amount]€/hour. Let me know if you have any questions.',
+    claseExtra:
+        'Hi, would you be interested in an extra class this week? I\'m available on [day/time].',
+    materialesNecesarios:
+        'Hi, for the next class you\'ll need to bring [materials]. See you!',
+    copiado: 'Copied',
     tarifasTitle: 'Rates',
     comoFunciona: 'How does it work?',
     jerarquiaTarifas:
@@ -1832,6 +1910,30 @@ class AppLocalizations {
     moneda: 'Valuta',
     masOpcionesProximamente: 'Altre opzioni prossimamente',
     perfilActualizado: 'Profilo aggiornato',
+    miResumen: 'Il mio riepilogo',
+    estadisticasDelMes: 'Statistiche del mese',
+    totalAlumnosActivos: 'Studenti attivi',
+    fuenteMasRentable: 'Fonte più redditizia',
+    ingresoMedioPorClase: 'Reddito medio per lezione',
+    sinDatosEstadisticas:
+        'Non ci sono abbastanza dati per mostrare le statistiche',
+    plantillasMensajes: 'Modelli di messaggio',
+    recordatorioPago:
+        'Ciao, ti scrivo per ricordarti il pagamento in sospeso per le lezioni di questo mese. Potresti confermarlo? Grazie!',
+    confirmarClase:
+        'Ciao, solo per confermare che abbiamo lezione oggi all\'ora abituale. Ci vediamo!',
+    cancelarClase:
+        'Ciao, mi dispiace informarti che devo cancellare la lezione di oggi. Ti andrebbe bene recuperarla un altro giorno?',
+    cambioHorario:
+        'Ciao, devo cambiare l\'orario della nostra prossima lezione. Ti andrebbe bene [giorno/ora]?',
+    pagoConfirmado: 'Perfetto! Pagamento ricevuto e confermato. Grazie!',
+    nuevaTarifa:
+        'Ciao, ti informo che dal prossimo mese la tariffa sarà di [importo]€/ora. Per qualsiasi dubbio, fammi sapere.',
+    claseExtra:
+        'Ciao, ti interesserebbe una lezione extra questa settimana? Sono disponibile [giorno/ora].',
+    materialesNecesarios:
+        'Ciao, per la prossima lezione dovrai portare [materiali]. Ci vediamo!',
+    copiado: 'Copiato',
     tarifasTitle: 'Tariffe',
     comoFunciona: 'Come funziona?',
     jerarquiaTarifas:
