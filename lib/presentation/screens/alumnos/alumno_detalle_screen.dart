@@ -443,14 +443,11 @@ class AlumnoDetalleScreen extends ConsumerWidget {
                                     label: Text(
                                       'Pendiente',
                                       style: AppTextStyles.caption.copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSecondaryContainer,
+                                        color: Colors.orange.shade800,
                                       ),
                                     ),
-                                    backgroundColor: Theme.of(context)
-                                        .colorScheme
-                                        .secondaryContainer,
+                                    backgroundColor:
+                                        AppColors.warning.withOpacity(0.15),
                                     padding: EdgeInsets.zero,
                                     visualDensity: VisualDensity.compact,
                                   ),
@@ -493,14 +490,19 @@ class AlumnoDetalleScreen extends ConsumerWidget {
                                     label: Text(
                                       s.cobro > 0 ? 'Pagada' : 'Confirmada',
                                       style: AppTextStyles.caption.copyWith(
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onTertiaryContainer,
+                                        color: s.cobro > 0
+                                            ? AppColors.sesionParticular
+                                            : Theme.of(context)
+                                                .colorScheme
+                                                .primary,
                                       ),
                                     ),
-                                    backgroundColor: Theme.of(context)
-                                        .colorScheme
-                                        .tertiaryContainer,
+                                    backgroundColor: s.cobro > 0
+                                        ? AppColors.sesionParticular
+                                            .withOpacity(0.15)
+                                        : Theme.of(context)
+                                            .colorScheme
+                                            .primaryContainer,
                                     padding: EdgeInsets.zero,
                                     visualDensity: VisualDensity.compact,
                                   ),
