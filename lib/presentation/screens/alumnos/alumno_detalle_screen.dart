@@ -30,6 +30,7 @@ class AlumnoDetalleScreen extends ConsumerWidget {
     final alumnoAsync = ref.watch(alumnoByIdProvider(alumnoId));
     final periodoMes = DateTime.now().periodoMes;
     final sesionesAsync = ref.watch(sesionesRealizadasMesProvider(periodoMes));
+    final sesionesRecurrentesAsync = ref.watch(sesionesRecurrentesProvider);
 
     return alumnoAsync.when(
       loading: () =>
@@ -224,42 +225,125 @@ class AlumnoDetalleScreen extends ConsumerWidget {
                 loading: () => const LinearProgressIndicator(),
                 error: (e, _) => Text('Error: $e'),
                 data: (sesiones) {
-                  final mias =
+                  final realizadas =
                       sesiones.where((s) => s.alumnoId == alumnoId).toList();
-                  if (mias.isEmpty) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(24),
-                        child: Text(
-                          l.sinSesionesEsteMes,
-                          style: AppTextStyles.bodySmall,
-                        ),
-                      ),
-                    );
-                  }
-                  return Column(
-                    children: mias
-                        .map(
-                          (s) => Card(
-                            margin: const EdgeInsets.only(bottom: 6),
-                            child: ListTile(
-                              title: Text(
-                                AppDateUtils.formatFullDate(
-                                    DateTime.parse(s.fecha)),
-                                style: AppTextStyles.bodyMedium,
-                              ),
-                              trailing: Text(
-                                CurrencyUtils.formatCompact(s.cobro),
-                                style: AppTextStyles.amountSmall,
-                              ),
-                              subtitle: Text(
-                                s.estado.value,
-                                style: AppTextStyles.caption,
-                              ),
+
+                  return sesionesRecurrentesAsync.when(
+                    loading: () => const LinearProgressIndicator(),
+                    error: (e, _) => Text('Error: $e'),
+                    data: (recurrentes) {
+                      // Filtrar sesiones recurrentes del alumno
+                      final recurrentesAlumno = recurrentes
+                          .where((r) => r.alumnoId == alumnoId && r.activa)
+                          .toList();
+
+                      if (realizadas.isEmpty && recurrentesAlumno.isEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Text(
+                              l.sinSesionesEsteMes,
+                              style: AppTextStyles.bodySmall,
                             ),
                           ),
-                        )
-                        .toList(),
+                        );
+                      }
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Sesiones planificadas (recurrentes)
+                          if (recurrentesAlumno.isNotEmpty) ...[
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Text(
+                                'Sesiones planificadas',
+                                style: AppTextStyles.labelMedium.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                            ...recurrentesAlumno.map((r) {
+                              final diasStr = r.diasSemana
+                                  .map((d) => [
+                                        '',
+                                        'Lun.',
+                                        'Mar.',
+                                        'Mié.',
+                                        'Jue.',
+                                        'Vie.',
+                                        'Sáb.',
+                                        'Dom.'
+                                      ][d])
+                                  .join(', ');
+                              return Card(
+                                margin: const EdgeInsets.only(bottom: 6),
+                                child: ListTile(
+                                  leading: Icon(
+                                    r.esPuntual
+                                        ? Icons.event_outlined
+                                        : Icons.repeat,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                  ),
+                                  title: Text(
+                                    r.esPuntual ? r.fechaInicio : diasStr,
+                                    style: AppTextStyles.bodyMedium,
+                                  ),
+                                  subtitle: Text(
+                                    '${r.horaInicio} - ${r.horaFin}',
+                                    style: AppTextStyles.caption,
+                                  ),
+                                  trailing: Icon(
+                                    Icons.schedule_outlined,
+                                    size: 16,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurfaceVariant,
+                                  ),
+                                ),
+                              );
+                            }),
+                            const SizedBox(height: 16),
+                          ],
+
+                          // Sesiones realizadas
+                          if (realizadas.isNotEmpty) ...[
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Text(
+                                'Sesiones registradas',
+                                style: AppTextStyles.labelMedium.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                            ...realizadas.map(
+                              (s) => Card(
+                                margin: const EdgeInsets.only(bottom: 6),
+                                child: ListTile(
+                                  title: Text(
+                                    AppDateUtils.formatFullDate(
+                                        DateTime.parse(s.fecha)),
+                                    style: AppTextStyles.bodyMedium,
+                                  ),
+                                  trailing: s.cobro > 0
+                                      ? Text(
+                                          CurrencyUtils.formatCompact(s.cobro),
+                                          style: AppTextStyles.amountSmall,
+                                        )
+                                      : null,
+                                  subtitle: Text(
+                                    s.estado.value,
+                                    style: AppTextStyles.caption,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      );
+                    },
                   );
                 },
               ),
