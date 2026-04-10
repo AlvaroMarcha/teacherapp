@@ -377,19 +377,32 @@ class AlumnoDetalleScreen extends ConsumerWidget {
                                   .join(', ');
                               return Card(
                                 margin: const EdgeInsets.only(bottom: 6),
-                                child: ListTile(
-                                  leading: Icon(
-                                    Icons.repeat,
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      left: BorderSide(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                        width: 4,
+                                      ),
+                                    ),
                                   ),
-                                  title: Text(
-                                    diasStr,
-                                    style: AppTextStyles.bodyMedium,
-                                  ),
-                                  subtitle: Text(
-                                    '${r.horaInicio} - ${r.horaFin}',
-                                    style: AppTextStyles.caption,
+                                  child: ListTile(
+                                    title: Text(
+                                      diasStr,
+                                      style: AppTextStyles.bodyMedium,
+                                    ),
+                                    subtitle: Text(
+                                      '${r.horaInicio} - ${r.horaFin}',
+                                      style: AppTextStyles.caption,
+                                    ),
+                                    trailing: Icon(
+                                      Icons.repeat,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                      size: 20,
+                                    ),
                                   ),
                                 ),
                               );
@@ -400,7 +413,7 @@ class AlumnoDetalleScreen extends ConsumerWidget {
                           // 2. Sesiones pendientes (virtuales + realizadas pendientes)
                           if (todasPendientes.isNotEmpty) ...[
                             Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
+                              padding: const EdgeInsets.only(top: 4, bottom: 8),
                               child: Text(
                                 'Sesiones pendientes',
                                 style: AppTextStyles.labelMedium.copyWith(
@@ -414,42 +427,36 @@ class AlumnoDetalleScreen extends ConsumerWidget {
                                   ? item.fecha
                                   : (item as SesionRealizada).fecha;
 
-                              String subtitle = '';
-                              if (isVirtual) {
-                                subtitle =
-                                    '${item.horaInicio} - ${item.horaFin}';
-                              } else {
-                                subtitle = '${item.horas} h';
-                              }
-
                               return Card(
                                 margin: const EdgeInsets.only(bottom: 6),
-                                child: ListTile(
-                                  leading: Icon(
-                                    Icons.schedule_outlined,
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    border: Border(
+                                      left: BorderSide(
+                                        color: AppColors.warning,
+                                        width: 4,
+                                      ),
+                                    ),
                                   ),
-                                  title: Text(
-                                    AppDateUtils.formatFullDate(
-                                        DateTime.parse(fecha)),
-                                    style: AppTextStyles.bodyMedium,
-                                  ),
-                                  subtitle: Text(
-                                    subtitle,
-                                    style: AppTextStyles.caption,
-                                  ),
-                                  trailing: Chip(
-                                    label: Text(
-                                      'Pendiente',
+                                  child: ListTile(
+                                    title: Text(
+                                      AppDateUtils.formatFullDate(
+                                          DateTime.parse(fecha)),
+                                      style: AppTextStyles.bodyMedium,
+                                    ),
+                                    subtitle: Text(
+                                      'pendiente',
                                       style: AppTextStyles.caption.copyWith(
                                         color: Colors.orange.shade800,
                                       ),
                                     ),
-                                    backgroundColor:
-                                        AppColors.warning.withOpacity(0.15),
-                                    padding: EdgeInsets.zero,
-                                    visualDensity: VisualDensity.compact,
+                                    trailing: Text(
+                                      isVirtual
+                                          ? '${item.horaInicio} - ${item.horaFin}'
+                                          : CurrencyUtils.formatCompact(
+                                              item.cobro),
+                                      style: AppTextStyles.titleSmall,
+                                    ),
                                   ),
                                 ),
                               );
@@ -460,7 +467,7 @@ class AlumnoDetalleScreen extends ConsumerWidget {
                           // 3. Sesiones confirmadas
                           if (confirmadasRealizadas.isNotEmpty) ...[
                             Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
+                              padding: const EdgeInsets.only(top: 4, bottom: 8),
                               child: Text(
                                 'Sesiones confirmadas',
                                 style: AppTextStyles.labelMedium.copyWith(
@@ -469,45 +476,47 @@ class AlumnoDetalleScreen extends ConsumerWidget {
                               ),
                             ),
                             ...confirmadasRealizadas.map(
-                              (s) => Card(
-                                margin: const EdgeInsets.only(bottom: 6),
-                                child: ListTile(
-                                  leading: Icon(
-                                    Icons.check_circle_outline,
-                                    color:
-                                        Theme.of(context).colorScheme.tertiary,
-                                  ),
-                                  title: Text(
-                                    AppDateUtils.formatFullDate(
-                                        DateTime.parse(s.fecha)),
-                                    style: AppTextStyles.bodyMedium,
-                                  ),
-                                  subtitle: Text(
-                                    '${s.horas} h',
-                                    style: AppTextStyles.caption,
-                                  ),
-                                  trailing: Chip(
-                                    label: Text(
-                                      s.cobro > 0 ? 'Pagada' : 'Confirmada',
-                                      style: AppTextStyles.caption.copyWith(
-                                        color: s.cobro > 0
-                                            ? AppColors.sesionParticular
-                                            : Theme.of(context)
-                                                .colorScheme
-                                                .primary,
+                              (s) {
+                                final isPagada = s.cobro > 0;
+                                return Card(
+                                  margin: const EdgeInsets.only(bottom: 6),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      border: Border(
+                                        left: BorderSide(
+                                          color: isPagada
+                                              ? AppColors.sesionParticular
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
+                                          width: 4,
+                                        ),
                                       ),
                                     ),
-                                    backgroundColor: s.cobro > 0
-                                        ? AppColors.sesionParticular
-                                            .withOpacity(0.15)
-                                        : Theme.of(context)
-                                            .colorScheme
-                                            .primaryContainer,
-                                    padding: EdgeInsets.zero,
-                                    visualDensity: VisualDensity.compact,
+                                    child: ListTile(
+                                      title: Text(
+                                        AppDateUtils.formatFullDate(
+                                            DateTime.parse(s.fecha)),
+                                        style: AppTextStyles.bodyMedium,
+                                      ),
+                                      subtitle: Text(
+                                        isPagada ? 'pagada' : 'confirmada',
+                                        style: AppTextStyles.caption.copyWith(
+                                          color: isPagada
+                                              ? AppColors.sesionParticular
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
+                                        ),
+                                      ),
+                                      trailing: Text(
+                                        CurrencyUtils.formatCompact(s.cobro),
+                                        style: AppTextStyles.titleSmall,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                              ),
+                                );
+                              },
                             ),
                           ],
                         ],
