@@ -9,6 +9,7 @@ import '../../../core/utils/currency_utils.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../../providers/frase_diaria_provider.dart';
 import '../../../domain/models/fuente.dart';
 import 'widgets/resumen_mes_card.dart';
 import 'widgets/cobros_pendientes_card.dart';
@@ -23,6 +24,7 @@ class DashboardScreen extends ConsumerWidget {
     final l = ref.watch(appLocalizationsProvider);
     final locale = ref.watch(localeProvider);
     final dashAsync = ref.watch(dashboardProvider);
+    final fraseAsync = ref.watch(fraseDiariaProvider);
 
     // Programar notificaciones de clase del día
     ref.watch(scheduleNotificationsProvider);
@@ -59,6 +61,86 @@ class DashboardScreen extends ConsumerWidget {
           child: ListView(
             padding: const EdgeInsets.symmetric(vertical: 8),
             children: [
+              // Frase motivacional del día
+              fraseAsync.when(
+                data: (frase) => Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  margin: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Theme.of(context)
+                            .colorScheme
+                            .primaryContainer
+                            .withOpacity(0.6),
+                        Theme.of(context)
+                            .colorScheme
+                            .secondaryContainer
+                            .withOpacity(0.4),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withOpacity(0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Icon(
+                          Icons.format_quote,
+                          size: 20,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withOpacity(0.7),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          frase,
+                          style: AppTextStyles.bodySmall.copyWith(
+                            fontStyle: FontStyle.italic,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withOpacity(0.85),
+                            height: 1.4,
+                          ),
+                          textAlign: TextAlign.center,
+                          softWrap: true,
+                          maxLines: null,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: Icon(
+                          Icons.format_quote,
+                          size: 20,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withOpacity(0.7),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+              ),
               const ClasesHoyCard(),
               ResumenMesCard(data: data),
               CobrosPendientesCard(
