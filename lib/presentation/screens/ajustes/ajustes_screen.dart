@@ -7,6 +7,7 @@ import '../../../core/constants/app_text_styles.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/services/backup_service.dart';
 import '../../../core/services/cobro_auto_service.dart';
+import '../../../core/services/frase_diaria_service.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/services/scheduled_backup_service.dart';
 import '../../../core/utils/date_utils.dart';
@@ -15,6 +16,7 @@ import '../../providers/backup_provider.dart';
 import '../../providers/cobros_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../providers/database_provider.dart';
+import '../../providers/frase_diaria_provider.dart';
 import '../../providers/fuentes_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/sesiones_provider.dart';
@@ -1133,6 +1135,9 @@ class _DangerZoneSectionState extends ConsumerState<_DangerZoneSection> {
       final database = ref.read(databaseProvider);
       await database.clearAllData();
 
+      // Resetear sistema de frases motivacionales
+      await FraseDiariaService.reset();
+
       if (!mounted) return;
 
       // 3. Invalidar todos los providers
@@ -1142,6 +1147,7 @@ class _DangerZoneSectionState extends ConsumerState<_DangerZoneSection> {
       ref.invalidate(dashboardProvider);
       ref.invalidate(cobrosProvider);
       ref.invalidate(cobrosPendientesProvider);
+      ref.invalidate(fraseDiariaProvider);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
