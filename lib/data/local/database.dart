@@ -353,6 +353,52 @@ class AppDatabase extends _$AppDatabase {
     });
   }
 
+  /// Actualiza el cobro de todas las SesionesRealizadas pendientes
+  /// de un alumno (desde hoy) y sus Cobros asociados.
+  /// Usado cuando se edita la tarifa de un alumno.
+  Future<int> actualizarTarifaPendientesAlumno(
+    String alumnoId,
+    double nuevaTarifa,
+  ) async {
+    final hoy = DateTime.now();
+    final fechaHoy =
+        '${hoy.year}-${hoy.month.toString().padLeft(2, '0')}-${hoy.day.toString().padLeft(2, '0')}';
+
+    return await transaction(() async {
+      final sesiones = await (select(sesionesRealizadasTable)
+            ..where(
+              (t) =>
+                  t.alumnoId.equals(alumnoId) &
+                  t.estado.equals('pendiente') &
+                  t.fecha.isBiggerOrEqualValue(fechaHoy),
+            ))
+          .get();
+
+      if (sesiones.isEmpty) return 0;
+
+      for (final sesion in sesiones) {
+        final nuevoImporte = nuevaTarifa * sesion.horas;
+
+        await (update(sesionesRealizadasTable)
+              ..where((t) => t.id.equals(sesion.id)))
+            .write(SesionesRealizadasTableCompanion(
+          cobro: Value(nuevoImporte),
+        ));
+
+        await (update(cobrosTable)
+              ..where(
+                (t) =>
+                    t.sesionId.equals(sesion.id) & t.estado.equals('pendiente'),
+              ))
+            .write(CobrosTableCompanion(
+          monto: Value(nuevoImporte),
+        ));
+      }
+
+      return sesiones.length;
+    });
+  }
+
   Future<List<SesionesRealizadasTableData>>
       getSesionesRealizadasBySesionRecurrenteId(
     String sesionRecurrenteId,
@@ -360,6 +406,45 @@ class AppDatabase extends _$AppDatabase {
           (select(sesionesRealizadasTable)
                 ..where((t) => t.sesionRecurrenteId.equals(sesionRecurrenteId)))
               .get();
+
+  /// Actualiza el cobro de todas las SesionesRealizadas pendientes
+  /// de una sesión recurrente y sus Cobros asociados.
+  /// Usado cuando se edita el importe desde el formulario de sesión.
+  Future<int> actualizarTarifaPendientesByRecurrente(
+    String sesionRecurrenteId,
+    double nuevoImporte,
+  ) async {
+    return await transaction(() async {
+      final sesiones = await (select(sesionesRealizadasTable)
+            ..where(
+              (t) =>
+                  t.sesionRecurrenteId.equals(sesionRecurrenteId) &
+                  t.estado.equals('pendiente'),
+            ))
+          .get();
+
+      if (sesiones.isEmpty) return 0;
+
+      for (final sesion in sesiones) {
+        await (update(sesionesRealizadasTable)
+              ..where((t) => t.id.equals(sesion.id)))
+            .write(SesionesRealizadasTableCompanion(
+          cobro: Value(nuevoImporte),
+        ));
+
+        await (update(cobrosTable)
+              ..where(
+                (t) =>
+                    t.sesionId.equals(sesion.id) & t.estado.equals('pendiente'),
+              ))
+            .write(CobrosTableCompanion(
+          monto: Value(nuevoImporte),
+        ));
+      }
+
+      return sesiones.length;
+    });
+  }
 
   /// Busca si ya existe una SesionRealizada para un recurrenteId + fecha.
   Future<SesionesRealizadasTableData?> getSesionRealizadaByRecurrenteAndFecha(

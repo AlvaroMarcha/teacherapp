@@ -457,12 +457,30 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
 
       // Regenerar cobros
       await CobroAutoService.generarCobrosPendientes(db);
+
+      // Actualizar importe de sesiones pendientes con el valor del formulario
+      final tarifa = double.tryParse(_importeCtrl.text) ?? 0.0;
+      if (tarifa > 0) {
+        await db.actualizarTarifaPendientesByRecurrente(recurrenteId, tarifa);
+      }
+
       ref.invalidate(cobrosProvider);
+      ref.invalidate(cobrosPendientesProvider);
       ref.invalidate(sesionesRecurrentesProvider);
     }
 
     // Crear SesionRealizada + Cobro/HoraExtra solo para sesiones puntuales
     if (_esPuntual) {
+      final db = ref.read(databaseProvider);
+
+      // Si es edición, eliminar SesionRealizada + Cobro pendientes existentes
+      if (widget.existing != null) {
+        await db.deleteSesionesRealizadasPendientesFuturas(
+          recurrenteId,
+          '2000-01-01',
+        );
+      }
+
       final sesionId = _uuid.v4();
 
       if (esEmpleo) {
@@ -537,6 +555,7 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
 
         // Invalidar providers para actualizar toda la app
         ref.invalidate(cobrosProvider);
+        ref.invalidate(cobrosPendientesProvider);
         ref.invalidate(dashboardProvider);
         ref.invalidate(sesionesRecurrentesProvider);
         ref.invalidate(sesionesRealizadasFechaProvider(fechaBase));

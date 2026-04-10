@@ -273,7 +273,7 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
     });
   }
 
-  void _guardar() {
+  Future<void> _guardar() async {
     if (!_formKey.currentState!.validate()) return;
     final alumno = Alumno(
       id: widget.alumnoId ?? _uuid.v4(),
@@ -286,16 +286,27 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
       nivel: _nivelCtrl.text.trim(),
       materiales: _materiales,
     );
-    ref.read(alumnoRepositoryProvider).saveAlumno(alumno).then((_) {
-      ref.invalidate(alumnosProvider);
-      ref.invalidate(alumnosByFuenteProvider);
-      if (widget.alumnoId != null) {
-        ref.invalidate(alumnoByIdProvider(widget.alumnoId!));
-      }
-      ref.invalidate(dashboardProvider);
-      ref.invalidate(cobrosPendientesProvider);
-      if (mounted) context.pop();
-    });
+
+    await ref.read(alumnoRepositoryProvider).saveAlumno(alumno);
+
+    // Si es edición, actualizar sesiones pendientes con la nueva tarifa
+    if (widget.alumnoId != null) {
+      final db = ref.read(databaseProvider);
+      await db.actualizarTarifaPendientesAlumno(
+        widget.alumnoId!,
+        alumno.tarifaSesion,
+      );
+    }
+
+    ref.invalidate(alumnosProvider);
+    ref.invalidate(alumnosByFuenteProvider);
+    if (widget.alumnoId != null) {
+      ref.invalidate(alumnoByIdProvider(widget.alumnoId!));
+    }
+    ref.invalidate(dashboardProvider);
+    ref.invalidate(cobrosPendientesProvider);
+    ref.invalidate(cobrosProvider);
+    if (mounted) context.pop();
   }
 
   Future<void> _confirmarEliminar(BuildContext context) async {
