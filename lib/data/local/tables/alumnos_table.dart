@@ -4,7 +4,7 @@ import 'package:drift/drift.dart';
 /// Converter para almacenar List<String> como JSON en SQLite.
 class StringListConverter extends TypeConverter<List<String>, String> {
   const StringListConverter();
-  
+
   @override
   List<String> fromSql(String fromDb) {
     if (fromDb.isEmpty || fromDb == '[]') return [];
@@ -14,7 +14,7 @@ class StringListConverter extends TypeConverter<List<String>, String> {
       return [];
     }
   }
-  
+
   @override
   String toSql(List<String> value) {
     return jsonEncode(value);
@@ -34,7 +34,9 @@ class AlumnosTable extends Table {
   TextColumn get notas => text().withDefault(const Constant(''))();
   TextColumn get materia => text().withDefault(const Constant(''))();
   TextColumn get nivel => text().withDefault(const Constant(''))();
-  TextColumn get materiales => text().map(const StringListConverter()).withDefault(const Constant('[]'))();
+  TextColumn get materiales => text()
+      .map(const StringListConverter())
+      .withDefault(const Constant('[]'))();
   TextColumn get syncStatus => text().withDefault(const Constant('pending'))();
 
   @override
