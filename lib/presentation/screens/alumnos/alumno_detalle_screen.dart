@@ -237,7 +237,106 @@ class AlumnoDetalleScreen extends ConsumerWidget {
                           .where((r) => r.alumnoId == alumnoId && r.activa)
                           .toList();
 
-                      if (realizadas.isEmpty && recurrentesAlumno.isEmpty) {
+                      // Separar recurrentes verdaderas (repetitivas) de puntuales
+                      final recurrentesVerdaderas =
+                          recurrentesAlumno.where((r) => !r.esPuntual).toList();
+
+                      // Separar sesiones realizadas en pendientes y confirmadas
+                      final pendientesRealizadas = realizadas
+                          .where((s) => s.estado.value == 'pendiente')
+                          .toList();
+                      final confirmadasRealizadas = realizadas
+                          .where((s) => s.estado.value == 'confirmada')
+                          .toList();
+
+                      // Generar sesiones pendientes virtuales del mes basadas en recurrentes
+                      final now = DateTime.now();
+                      final firstDay = DateTime(now.year, now.month, 1);
+                      final lastDay = DateTime(now.year, now.month + 1, 0);
+                      final List<_SesionPendienteVirtual> pendientesVirtuales =
+                          [];
+
+                      for (final r in recurrentesAlumno) {
+                        if (r.esPuntual) {
+                          // Puntual: chequear si cae en el mes
+                          final fecha = DateTime.tryParse(r.fechaInicio);
+                          if (fecha != null &&
+                              fecha.month == now.month &&
+                              fecha.year == now.year) {
+                            // Ver si ya existe una sesión realizada para esta fecha
+                            final yaExiste = realizadas.any((s) =>
+                                s.fecha == r.fechaInicio &&
+                                s.sesionRecurrenteId == r.id);
+                            if (!yaExiste) {
+                              pendientesVirtuales.add(_SesionPendienteVirtual(
+                                fecha: r.fechaInicio,
+                                horaInicio: r.horaInicio,
+                                horaFin: r.horaFin,
+                              ));
+                            }
+                          }
+                        } else {
+                          // Recurrente: generar para cada día del mes que coincida
+                          final fechaInicio = DateTime.tryParse(r.fechaInicio);
+                          final fechaFin = r.fechaFin != null
+                              ? DateTime.tryParse(r.fechaFin!)
+                              : null;
+
+                          if (fechaInicio == null) continue;
+
+                          for (var d = firstDay;
+                              d.isBefore(lastDay.add(const Duration(days: 1)));
+                              d = d.add(const Duration(days: 1))) {
+                            // Verificar si el día está en diasSemana
+                            if (!r.diasSemana.contains(d.weekday)) continue;
+
+                            // Verificar si está dentro del rango de la recurrente
+                            if (d.isBefore(fechaInicio)) continue;
+                            if (fechaFin != null && d.isAfter(fechaFin))
+                              continue;
+
+                            final fechaStr =
+                                '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
+                            // Ver si ya existe una sesión realizada para esta fecha
+                            final yaExiste = realizadas.any((s) =>
+                                s.fecha == fechaStr &&
+                                s.sesionRecurrenteId == r.id);
+
+                            if (!yaExiste &&
+                                !d.isBefore(DateTime.now()
+                                    .subtract(const Duration(days: 7)))) {
+                              pendientesVirtuales.add(_SesionPendienteVirtual(
+                                fecha: fechaStr,
+                                horaInicio: r.horaInicio,
+                                horaFin: r.horaFin,
+                              ));
+                            }
+                          }
+                        }
+                      }
+
+                      pendientesVirtuales
+                          .sort((a, b) => a.fecha.compareTo(b.fecha));
+
+                      // Combinar pendientes: virtuales + realizadas pendientes
+                      final todasPendientes = <dynamic>[
+                        ...pendientesVirtuales,
+                        ...pendientesRealizadas,
+                      ];
+                      todasPendientes.sort((a, b) {
+                        final fechaA = a is _SesionPendienteVirtual
+                            ? a.fecha
+                            : (a as SesionRealizada).fecha;
+                        final fechaB = b is _SesionPendienteVirtual
+                            ? b.fecha
+                            : (b as SesionRealizada).fecha;
+                        return fechaA.compareTo(fechaB);
+                      });
+
+                      if (recurrentesVerdaderas.isEmpty &&
+                          todasPendientes.isEmpty &&
+                          confirmadasRealizadas.isEmpty) {
                         return Center(
                           child: Padding(
                             padding: const EdgeInsets.all(24),
@@ -252,18 +351,18 @@ class AlumnoDetalleScreen extends ConsumerWidget {
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Sesiones planificadas (recurrentes)
-                          if (recurrentesAlumno.isNotEmpty) ...[
+                          // 1. Horario recurrente (solo sesiones NO puntuales)
+                          if (recurrentesVerdaderas.isNotEmpty) ...[
                             Padding(
                               padding: const EdgeInsets.only(bottom: 8),
                               child: Text(
-                                'Sesiones planificadas',
+                                'Horario recurrente',
                                 style: AppTextStyles.labelMedium.copyWith(
                                   color: Theme.of(context).colorScheme.primary,
                                 ),
                               ),
                             ),
-                            ...recurrentesAlumno.map((r) {
+                            ...recurrentesVerdaderas.map((r) {
                               final diasStr = r.diasSemana
                                   .map((d) => [
                                         '',
@@ -280,26 +379,17 @@ class AlumnoDetalleScreen extends ConsumerWidget {
                                 margin: const EdgeInsets.only(bottom: 6),
                                 child: ListTile(
                                   leading: Icon(
-                                    r.esPuntual
-                                        ? Icons.event_outlined
-                                        : Icons.repeat,
+                                    Icons.repeat,
                                     color:
                                         Theme.of(context).colorScheme.primary,
                                   ),
                                   title: Text(
-                                    r.esPuntual ? r.fechaInicio : diasStr,
+                                    diasStr,
                                     style: AppTextStyles.bodyMedium,
                                   ),
                                   subtitle: Text(
                                     '${r.horaInicio} - ${r.horaFin}',
                                     style: AppTextStyles.caption,
-                                  ),
-                                  trailing: Icon(
-                                    Icons.schedule_outlined,
-                                    size: 16,
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .onSurfaceVariant,
                                   ),
                                 ),
                               );
@@ -307,35 +397,112 @@ class AlumnoDetalleScreen extends ConsumerWidget {
                             const SizedBox(height: 16),
                           ],
 
-                          // Sesiones realizadas
-                          if (realizadas.isNotEmpty) ...[
+                          // 2. Sesiones pendientes (virtuales + realizadas pendientes)
+                          if (todasPendientes.isNotEmpty) ...[
                             Padding(
                               padding: const EdgeInsets.only(bottom: 8),
                               child: Text(
-                                'Sesiones registradas',
+                                'Sesiones pendientes',
                                 style: AppTextStyles.labelMedium.copyWith(
                                   color: Theme.of(context).colorScheme.primary,
                                 ),
                               ),
                             ),
-                            ...realizadas.map(
+                            ...todasPendientes.map((item) {
+                              final isVirtual = item is _SesionPendienteVirtual;
+                              final fecha = isVirtual
+                                  ? item.fecha
+                                  : (item as SesionRealizada).fecha;
+
+                              String subtitle = '';
+                              if (isVirtual) {
+                                subtitle =
+                                    '${item.horaInicio} - ${item.horaFin}';
+                              } else {
+                                subtitle = '${item.horas} h';
+                              }
+
+                              return Card(
+                                margin: const EdgeInsets.only(bottom: 6),
+                                child: ListTile(
+                                  leading: Icon(
+                                    Icons.schedule_outlined,
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                  ),
+                                  title: Text(
+                                    AppDateUtils.formatFullDate(
+                                        DateTime.parse(fecha)),
+                                    style: AppTextStyles.bodyMedium,
+                                  ),
+                                  subtitle: Text(
+                                    subtitle,
+                                    style: AppTextStyles.caption,
+                                  ),
+                                  trailing: Chip(
+                                    label: Text(
+                                      'Pendiente',
+                                      style: AppTextStyles.caption.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSecondaryContainer,
+                                      ),
+                                    ),
+                                    backgroundColor: Theme.of(context)
+                                        .colorScheme
+                                        .secondaryContainer,
+                                    padding: EdgeInsets.zero,
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                                ),
+                              );
+                            }),
+                            const SizedBox(height: 16),
+                          ],
+
+                          // 3. Sesiones confirmadas
+                          if (confirmadasRealizadas.isNotEmpty) ...[
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Text(
+                                'Sesiones confirmadas',
+                                style: AppTextStyles.labelMedium.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                            ),
+                            ...confirmadasRealizadas.map(
                               (s) => Card(
                                 margin: const EdgeInsets.only(bottom: 6),
                                 child: ListTile(
+                                  leading: Icon(
+                                    Icons.check_circle_outline,
+                                    color:
+                                        Theme.of(context).colorScheme.tertiary,
+                                  ),
                                   title: Text(
                                     AppDateUtils.formatFullDate(
                                         DateTime.parse(s.fecha)),
                                     style: AppTextStyles.bodyMedium,
                                   ),
-                                  trailing: s.cobro > 0
-                                      ? Text(
-                                          CurrencyUtils.formatCompact(s.cobro),
-                                          style: AppTextStyles.amountSmall,
-                                        )
-                                      : null,
                                   subtitle: Text(
-                                    s.estado.value,
+                                    '${s.horas} h',
                                     style: AppTextStyles.caption,
+                                  ),
+                                  trailing: Chip(
+                                    label: Text(
+                                      s.cobro > 0 ? 'Pagada' : 'Confirmada',
+                                      style: AppTextStyles.caption.copyWith(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onTertiaryContainer,
+                                      ),
+                                    ),
+                                    backgroundColor: Theme.of(context)
+                                        .colorScheme
+                                        .tertiaryContainer,
+                                    padding: EdgeInsets.zero,
+                                    visualDensity: VisualDensity.compact,
                                   ),
                                 ),
                               ),
@@ -507,4 +674,18 @@ void _showEliminarDialog(
       ],
     ),
   );
+}
+
+/// Clase auxiliar para representar sesiones pendientes virtuales
+/// generadas a partir de sesiones recurrentes.
+class _SesionPendienteVirtual {
+  final String fecha; // 'yyyy-MM-dd'
+  final String horaInicio;
+  final String horaFin;
+
+  const _SesionPendienteVirtual({
+    required this.fecha,
+    required this.horaInicio,
+    required this.horaFin,
+  });
 }
