@@ -21,7 +21,7 @@ class BackupService {
     final dbPath = await getDbPath();
     final dbFile = File(dbPath);
     if (!await dbFile.exists()) {
-      throw BackupException('No se encontró la base de datos');
+      throw const BackupException('No se encontró la base de datos');
     }
 
     // Copiar a tmp con nombre legible
@@ -59,7 +59,7 @@ class BackupService {
   /// Comparte el archivo de backup automático vía share sheet.
   Future<void> shareAutoBackup() async {
     final path = await getAutoBackupPath();
-    if (path == null) throw BackupException('no_auto_backup');
+    if (path == null) throw const BackupException('no_auto_backup');
     await Share.shareXFiles([XFile(path)]);
   }
 
@@ -77,7 +77,7 @@ class BackupService {
 
     final pickedFile = File(pickedPath);
     if (!await _isValidSqlite(pickedFile)) {
-      throw BackupException('invalid_file');
+      throw const BackupException('invalid_file');
     }
 
     // Cerrar DB antes de sobrescribir

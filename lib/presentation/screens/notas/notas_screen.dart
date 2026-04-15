@@ -48,7 +48,7 @@ class _NotasScreenState extends ConsumerState<NotasScreen>
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
+        children: const [
           _NotasList(tipo: null),
           _NotasList(tipo: TipoNota.nota),
           _NotasList(tipo: TipoNota.recordatorio),
@@ -221,7 +221,7 @@ class _NotaCard extends ConsumerWidget {
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          Icon(Icons.schedule,
+                          const Icon(Icons.schedule,
                               size: 14, color: AppColors.textSecondary),
                           const SizedBox(width: 4),
                           Text(
@@ -232,7 +232,7 @@ class _NotaCard extends ConsumerWidget {
                           ),
                           if (nota.recurrencia != Recurrencia.ninguna) ...[
                             const SizedBox(width: 8),
-                            Icon(Icons.repeat,
+                            const Icon(Icons.repeat,
                                 size: 14, color: AppColors.textSecondary),
                             const SizedBox(width: 4),
                             Text(

@@ -71,6 +71,9 @@ dependencies:
   # Scheduled background tasks
   workmanager: ^0.9.0
 
+  # Splash screen
+  flutter_native_splash: ^2.4.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -79,7 +82,6 @@ dev_dependencies:
   riverpod_generator: ^2.4.0
   flutter_lints: ^4.0.0
   flutter_launcher_icons: ^0.14.3
-  flutter_native_splash: ^2.4.0
 
 flutter_launcher_icons:
   android: true

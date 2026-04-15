@@ -133,13 +133,13 @@ class AppTheme {
         ),
 
         // ── Chip ─────────────────────────────────────────────────
-        chipTheme: ChipThemeData(
+        chipTheme: const ChipThemeData(
           backgroundColor: AppColors.surfaceVariant,
           selectedColor: AppColors.primaryLight,
           labelStyle: AppTextStyles.labelMedium,
-          side: const BorderSide(color: AppColors.border),
-          shape: const StadiumBorder(),
-          padding: const EdgeInsets.symmetric(horizontal: 4),
+          side: BorderSide(color: AppColors.border),
+          shape: StadiumBorder(),
+          padding: EdgeInsets.symmetric(horizontal: 4),
         ),
 
         // ── Divider ──────────────────────────────────────────────
@@ -435,9 +435,9 @@ class AppTheme {
           }),
           iconTheme: WidgetStateProperty.resolveWith((states) {
             if (states.contains(WidgetState.selected)) {
-              return IconThemeData(color: AppColors.primaryPastel, size: 24);
+              return const IconThemeData(color: AppColors.primaryPastel, size: 24);
             }
-            return IconThemeData(
+            return const IconThemeData(
                 color: AppColors.textSecondaryPastel, size: 24);
           }),
           elevation: 8,

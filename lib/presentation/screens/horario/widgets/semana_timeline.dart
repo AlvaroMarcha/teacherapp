@@ -35,7 +35,7 @@ class SemanaTimeline extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dias = List.generate(7, (i) => semanaInicio.add(Duration(days: i)));
-    final totalHeight = (_endHour - _startHour) * _hourHeight;
+    const totalHeight = (_endHour - _startHour) * _hourHeight;
 
     return Column(
       children: [
@@ -55,7 +55,7 @@ class SemanaTimeline extends ConsumerWidget {
               child: Stack(
                 children: [
                   // ── Grid de fondo (líneas horizontales + verticales) ──
-                  Positioned(
+                  const Positioned(
                     top: _topPadding,
                     bottom: 0,
                     left: _timeAxisWidth,
@@ -72,7 +72,7 @@ class SemanaTimeline extends ConsumerWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(
+                        const SizedBox(
                           width: _timeAxisWidth,
                           child: _TimeAxis(
                             startHour: _startHour,

@@ -189,7 +189,7 @@ class _FullContent extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 4),
-              Text('·', style: AppTextStyles.caption),
+              const Text('·', style: AppTextStyles.caption),
               const SizedBox(width: 4),
             ],
             Flexible(

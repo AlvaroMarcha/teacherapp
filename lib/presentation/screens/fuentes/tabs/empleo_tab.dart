@@ -103,7 +103,7 @@ class EmpleoTab extends ConsumerWidget {
             ),
             const SizedBox(height: 24),
             // ── Alumnos ───────────────────────────────────────────
-            Text('Alumnos', style: AppTextStyles.titleSmall),
+            const Text('Alumnos', style: AppTextStyles.titleSmall),
             const SizedBox(height: 8),
             Consumer(
               builder: (context, ref, _) {

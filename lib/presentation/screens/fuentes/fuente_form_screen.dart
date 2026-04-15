@@ -247,7 +247,7 @@ class _FuenteFormScreenState extends ConsumerState<FuenteFormScreen> {
               controller: _nombreCtrl,
               decoration: InputDecoration(
                 labelText: l.nombreFuente,
-                prefixIcon: Icon(Icons.label_outline),
+                prefixIcon: const Icon(Icons.label_outline),
               ),
               textCapitalization: TextCapitalization.words,
               validator: (v) =>
@@ -428,7 +428,7 @@ class _EmpleoConfigSection extends ConsumerWidget {
         ),
         const SizedBox(height: 16),
         DropdownButtonFormField<int>(
-          value: diaCobro,
+          initialValue: diaCobro,
           decoration: InputDecoration(
             labelText: l.diaCobro,
             prefixIcon: const Icon(Icons.calendar_today_rounded),

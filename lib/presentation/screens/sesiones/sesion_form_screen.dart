@@ -138,7 +138,7 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
                   Text(l.fuenteIngreso, style: AppTextStyles.labelMedium),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    value: _fuenteId,
+                    initialValue: _fuenteId,
                     decoration: InputDecoration(labelText: l.navFuentes),
                     items: fuentes
                         .map((f) => DropdownMenuItem(
@@ -153,7 +153,7 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
                   const SizedBox(height: 12),
                   if (_fuenteId != null) ...[
                     DropdownButtonFormField<String>(
-                      value: _alumnoId,
+                      initialValue: _alumnoId,
                       decoration: InputDecoration(labelText: l.alumnoOpcional),
                       items: [
                         DropdownMenuItem(
@@ -301,7 +301,7 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<double>(
-                    value: _duracion,
+                    initialValue: _duracion,
                     decoration: InputDecoration(labelText: l.duracion),
                     items: [0.5, 0.75, 1.0, 1.5, 2.0]
                         .map((h) => DropdownMenuItem(
@@ -339,8 +339,9 @@ class _SesionFormScreenState extends ConsumerState<SesionFormScreen> {
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty)
+                        if (v == null || v.trim().isEmpty) {
                           return l.introduceImporte;
+                        }
                         if (double.tryParse(v) == null) return l.numeroInvalido;
                         return null;
                       },

@@ -174,7 +174,7 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _fuenteIdSeleccionada,
+                initialValue: _fuenteIdSeleccionada,
                 decoration: InputDecoration(
                   labelText: l.fuenteIngreso,
                   prefixIcon: const Icon(Icons.account_balance_wallet_outlined),
@@ -209,7 +209,7 @@ class _AlumnoFormScreenState extends ConsumerState<AlumnoFormScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<int>(
-                value: _duracionMinutos,
+                initialValue: _duracionMinutos,
                 decoration: InputDecoration(
                   labelText: l.duracionDefecto,
                   prefixIcon: const Icon(Icons.timer_outlined),

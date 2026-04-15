@@ -370,7 +370,7 @@ class _HorasExtraBodyState extends ConsumerState<_HorasExtraBody> {
                 // Alumno (opcional)
                 if (alumnos.isNotEmpty)
                   DropdownButtonFormField<String?>(
-                    value: selectedAlumnoId,
+                    initialValue: selectedAlumnoId,
                     decoration: InputDecoration(
                       labelText: l.alumnoOpcional,
                     ),

@@ -69,7 +69,7 @@ class DriveBackupService {
   /// Crea un cliente HTTP autenticado con el token del usuario.
   Future<drive.DriveApi> _getDriveApi() async {
     final account = _googleSignIn.currentUser;
-    if (account == null) throw BackupException('not_signed_in');
+    if (account == null) throw const BackupException('not_signed_in');
 
     final authHeaders = await account.authHeaders;
     final client = _AuthClient(http.Client(), authHeaders);
@@ -96,7 +96,7 @@ class DriveBackupService {
     final dbFile = File(dbPath);
 
     if (!await dbFile.exists()) {
-      throw BackupException('db_not_found');
+      throw const BackupException('db_not_found');
     }
 
     final media = drive.Media(dbFile.openRead(), await dbFile.length());
@@ -130,7 +130,7 @@ class DriveBackupService {
     final existing = await _findBackupFile(api);
 
     if (existing == null || existing.id == null) {
-      throw BackupException('no_backup_found');
+      throw const BackupException('no_backup_found');
     }
 
     // Descargar archivo completo

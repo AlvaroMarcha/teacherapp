@@ -215,17 +215,17 @@ class AjustesScreen extends ConsumerWidget {
           _Section(
             title: l.datos,
             items: const [],
-            customContent: _BackupSection(),
+            customContent: const _BackupSection(),
           ),
-          _Section(
+          const _Section(
             title: 'Cobros automáticos',
-            items: const [],
+            items: [],
             customContent: _CobroAutoSection(),
           ),
           _Section(
             title: l.zonaPeligro,
             items: const [],
-            customContent: _DangerZoneSection(),
+            customContent: const _DangerZoneSection(),
           ),
           const SizedBox(height: 32),
           Padding(

@@ -62,7 +62,7 @@ class _MesCalendarState extends ConsumerState<MesCalendar> {
             },
           ),
           calendarStyle: CalendarStyle(
-            todayDecoration: BoxDecoration(
+            todayDecoration: const BoxDecoration(
               color: AppColors.primaryLight,
               shape: BoxShape.circle,
             ),
@@ -79,11 +79,11 @@ class _MesCalendarState extends ConsumerState<MesCalendar> {
             ),
             markersMaxCount: 0, // usamos calendarBuilders.markerBuilder
           ),
-          headerStyle: HeaderStyle(
+          headerStyle: const HeaderStyle(
             formatButtonVisible: false,
             titleTextStyle: AppTextStyles.titleSmall,
-            leftChevronIcon: const Icon(Icons.chevron_left),
-            rightChevronIcon: const Icon(Icons.chevron_right),
+            leftChevronIcon: Icon(Icons.chevron_left),
+            rightChevronIcon: Icon(Icons.chevron_right),
           ),
           locale: locale.locale.toString(),
         ),

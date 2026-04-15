@@ -292,8 +292,9 @@ class AlumnoDetalleScreen extends ConsumerWidget {
 
                             // Verificar si está dentro del rango de la recurrente
                             if (d.isBefore(fechaInicio)) continue;
-                            if (fechaFin != null && d.isAfter(fechaFin))
+                            if (fechaFin != null && d.isAfter(fechaFin)) {
                               continue;
+                            }
 
                             final fechaStr =
                                 '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
@@ -430,7 +431,7 @@ class AlumnoDetalleScreen extends ConsumerWidget {
                               return Card(
                                 margin: const EdgeInsets.only(bottom: 6),
                                 child: Container(
-                                  decoration: BoxDecoration(
+                                  decoration: const BoxDecoration(
                                     border: Border(
                                       left: BorderSide(
                                         color: AppColors.warning,
@@ -596,10 +597,10 @@ void _showTraspasoDialog(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             DropdownButtonFormField<String>(
-              value: seleccionada,
+              initialValue: seleccionada,
               decoration: InputDecoration(
                 labelText: l.nuevaFuenteLabel,
-                prefixIcon: Icon(Icons.account_balance_wallet_outlined),
+                prefixIcon: const Icon(Icons.account_balance_wallet_outlined),
               ),
               items: disponibles
                   .map((f) =>

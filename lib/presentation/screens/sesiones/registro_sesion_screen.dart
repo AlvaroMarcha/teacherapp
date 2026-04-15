@@ -144,7 +144,7 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
 
                   // Fuente
                   DropdownButtonFormField<String>(
-                    value: _fuenteId,
+                    initialValue: _fuenteId,
                     decoration: InputDecoration(
                       labelText: l.navFuentes,
                       prefixIcon:
@@ -168,7 +168,7 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
                   // Alumno (filtrado por fuente)
                   if (_fuenteId != null)
                     DropdownButtonFormField<String>(
-                      value: _alumnoId,
+                      initialValue: _alumnoId,
                       decoration: InputDecoration(
                         labelText: l.alumnoOpcional,
                         prefixIcon: const Icon(Icons.person_outline),
@@ -299,7 +299,7 @@ class _RegistroSesionScreenState extends ConsumerState<RegistroSesionScreen> {
 
                   // Duración
                   DropdownButtonFormField<double>(
-                    value: _horas,
+                    initialValue: _horas,
                     decoration: InputDecoration(
                       labelText: l.duracion,
                       prefixIcon: const Icon(Icons.access_time_rounded),

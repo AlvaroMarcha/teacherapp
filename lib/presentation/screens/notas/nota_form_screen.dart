@@ -216,7 +216,7 @@ class _NotaFormScreenState extends ConsumerState<NotaFormScreen> {
                     Text(l.recurrencia, style: AppTextStyles.labelMedium),
                     const SizedBox(height: 8),
                     DropdownButtonFormField<Recurrencia>(
-                      value: _recurrencia,
+                      initialValue: _recurrencia,
                       borderRadius: BorderRadius.circular(12),
                       items: [
                         DropdownMenuItem(
