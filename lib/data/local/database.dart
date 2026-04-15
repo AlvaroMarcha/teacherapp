@@ -475,6 +475,150 @@ class AppDatabase extends _$AppDatabase {
             ..where((t) => t.sesionRecurrenteId.equals(sesionRecurrenteId)))
           .go();
 
+  /// Elimina TODAS las SesionesRealizadas vinculadas a una sesión recurrente
+  /// junto con sus cobros asociados, independientemente del estado del cobro.
+  Future<void> deleteAllSesionesRealizadasByRecurrente(
+    String sesionRecurrenteId,
+  ) async {
+    await transaction(() async {
+      // 1. Obtener todas las sesiones realizadas vinculadas
+      final sesiones = await (select(sesionesRealizadasTable)
+            ..where((t) => t.sesionRecurrenteId.equals(sesionRecurrenteId)))
+          .get();
+
+      if (sesiones.isEmpty) return;
+
+      final ids = sesiones.map((s) => s.id).toList();
+
+      // 2. Eliminar todos los cobros asociados
+      await (delete(cobrosTable)..where((t) => t.sesionId.isIn(ids))).go();
+
+      // 3. Eliminar todas las sesiones realizadas
+      await (delete(sesionesRealizadasTable)..where((t) => t.id.isIn(ids)))
+          .go();
+    });
+  }
+
+  /// Resetea COMPLETAMENTE los datos del mes actual de una fuente.
+  /// Estrategia directa sin depender de joins: borra primero cobros por fuenteId
+  /// y luego sesiones por fuenteId+mes. Finalmente limpia cobros huérfanos.
+  Future<int> resetSesionesMesByFuente(
+    String fuenteId,
+    String periodoMes,
+  ) async {
+    return await transaction(() async {
+      // 1. Obtener sesiones del mes para esta fuente
+      final sesiones = await (select(sesionesRealizadasTable)
+            ..where(
+              (t) => t.fuenteId.equals(fuenteId) & t.fecha.like('$periodoMes%'),
+            ))
+          .get();
+
+      if (sesiones.isNotEmpty) {
+        final ids = sesiones.map((s) => s.id).toList();
+        // 1a. Eliminar cobros vinculados a esas sesiones
+        await (delete(cobrosTable)..where((t) => t.sesionId.isIn(ids))).go();
+        // 1b. Eliminar las sesiones realizadas
+        await (delete(sesionesRealizadasTable)..where((t) => t.id.isIn(ids)))
+            .go();
+      }
+
+      // 2. Eliminar cobros mensuales de esta fuente para el período
+      await (delete(cobrosTable)
+            ..where(
+              (t) =>
+                  t.fuenteId.equals(fuenteId) & t.periodoMes.equals(periodoMes),
+            ))
+          .go();
+
+      // 3. Eliminar todas las sesiones RECURRENTES de esta fuente
+      //    (el patrón que aparece en el calendario/horario)
+      await (delete(sesionesRecurrentesTable)
+            ..where((t) => t.fuenteId.equals(fuenteId)))
+          .go();
+
+      // 4. Eliminar cobros huérfanos: cobros de esta fuente cuyo sesionId
+      //    ya no existe en sesiones_realizadas (por borrados previos con el bug)
+      final cobrosConSesion = await (select(cobrosTable)
+            ..where(
+              (t) => t.fuenteId.equals(fuenteId) & t.sesionId.isNotNull(),
+            ))
+          .get();
+
+      if (cobrosConSesion.isNotEmpty) {
+        final sesionesExistentes = await (select(sesionesRealizadasTable)
+              ..where((t) => t.fuenteId.equals(fuenteId)))
+            .get();
+        final idsExistentes = sesionesExistentes.map((s) => s.id).toSet();
+
+        final idsHuerfanos = cobrosConSesion
+            .where((c) =>
+                c.sesionId != null && !idsExistentes.contains(c.sesionId))
+            .map((c) => c.id)
+            .toList();
+
+        if (idsHuerfanos.isNotEmpty) {
+          await (delete(cobrosTable)..where((t) => t.id.isIn(idsHuerfanos)))
+              .go();
+        }
+      }
+
+      return sesiones.length;
+    });
+  }
+
+  /// Elimina duplicados huérfanos: SesionesRealizadas con sesionRecurrenteId=null
+  /// cuya combinación (fuenteId, alumnoId, fecha) ya tiene otro registro activo
+  /// con sesionRecurrenteId != null. Se generan cuando se borra y recrea
+  /// una sesión recurrente antes de que existiera el fix.
+  Future<int> cleanupOrphanedSesionesRealizadas() async {
+    int eliminados = 0;
+    await transaction(() async {
+      // Candidatas: huérfanas (sin recurrente) que no fueron canceladas
+      final huerfanas = await (select(sesionesRealizadasTable)
+            ..where(
+              (t) =>
+                  t.sesionRecurrenteId.isNull() &
+                  t.estado.equals('cancelada').not(),
+            ))
+          .get();
+
+      if (huerfanas.isEmpty) return;
+
+      // Obtener todas las sesiones con recurrente para comparar
+      final conRecurrente = await (select(sesionesRealizadasTable)
+            ..where((t) => t.sesionRecurrenteId.isNotNull()))
+          .get();
+
+      // Índice rápido: "fuenteId|alumnoId|fecha" → true
+      final activas = <String>{};
+      for (final s in conRecurrente) {
+        activas.add('${s.fuenteId}|${s.alumnoId ?? ''}|${s.fecha}');
+      }
+
+      final idsHuerfanasABorrar = <String>[];
+      for (final h in huerfanas) {
+        final key = '${h.fuenteId}|${h.alumnoId ?? ''}|${h.fecha}';
+        if (!activas.contains(key)) continue; // no es duplicado, saltar
+
+        idsHuerfanasABorrar.add(h.id);
+      }
+
+      if (idsHuerfanasABorrar.isEmpty) return;
+
+      // Eliminar cobros asociados
+      await (delete(cobrosTable)
+            ..where((t) => t.sesionId.isIn(idsHuerfanasABorrar)))
+          .go();
+
+      // Eliminar las sesiones huérfanas
+      eliminados = await (delete(sesionesRealizadasTable)
+            ..where((t) => t.id.isIn(idsHuerfanasABorrar)))
+          .go();
+    });
+    return eliminados;
+  }
+
   Future<int> deleteHoraExtraByFechaAndFuente(
     String fecha,
     String fuenteId,

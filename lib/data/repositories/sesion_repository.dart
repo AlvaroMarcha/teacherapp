@@ -112,6 +112,14 @@ class SesionRepository {
   ) =>
       _db.deleteSesionesRealizadasBySesionRecurrenteId(sesionRecurrenteId);
 
+  /// Limpia todas las SesionesRealizadas de una recurrente antes de borrarla:
+  ///   - Con cobro cobrado → desvincula (conserva historial financiero).
+  ///   - Sin cobro o cobro no cobrado → elimina cobro + sesión.
+  Future<void> deleteAllSesionesRealizadasByRecurrente(
+    String sesionRecurrenteId,
+  ) =>
+      _db.deleteAllSesionesRealizadasByRecurrente(sesionRecurrenteId);
+
   // ── Sesiones Realizadas ──────────────────────────────────────────
 
   Stream<List<SesionRealizada>> watchSesionesRealizadas() => _db

@@ -4,10 +4,14 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/extensions/datetime_extension.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/utils/currency_utils.dart';
+import '../../providers/cobros_provider.dart';
 import '../../providers/dashboard_provider.dart';
+import '../../providers/database_provider.dart';
 import '../../providers/notification_provider.dart';
+import '../../providers/sesiones_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/frase_diaria_provider.dart';
 import '../../../domain/models/fuente.dart';
@@ -144,8 +148,8 @@ class DashboardScreen extends ConsumerWidget {
               const ClasesHoyCard(),
               ResumenMesCard(data: data),
               CobrosPendientesCard(
-                pendientes: data.cobrosPendientes,
-                totalPendiente: data.totalPendienteMes,
+                pendientes: data.cobrosPendientesGlobal,
+                totalPendiente: data.totalPendienteGlobal,
               ),
               // Una tarjeta de horas extra por cada fuente de tipo empleo
               ...data.fuentesResumen.values
@@ -162,7 +166,10 @@ class DashboardScreen extends ConsumerWidget {
                   child: Text(l.porFuente, style: AppTextStyles.titleSmall),
                 ),
                 ...data.fuentesResumen.values.map(
-                  (resumen) => _FuenteResumenTile(resumen: resumen),
+                  (resumen) => _FuenteResumenTile(
+                    resumen: resumen,
+                    onReset: () => _resetFuente(context, ref, resumen.fuente),
+                  ),
                 ),
               ],
               const SizedBox(height: 24),
@@ -177,12 +184,72 @@ class DashboardScreen extends ConsumerWidget {
       ),
     );
   }
+
+  Future<void> _resetFuente(
+    BuildContext context,
+    WidgetRef ref,
+    Fuente fuente,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        icon: const Icon(
+          Icons.warning_amber_rounded,
+          color: Colors.orange,
+          size: 36,
+        ),
+        title: const Text('Limpiar sesiones del mes'),
+        content: Text(
+          'Se eliminarán TODAS las sesiones recurrentes, sesiones '
+          'realizadas y cobros de la fuente "${fuente.nombre}".\n\n'
+          'Las sesiones volverán a desaparecer del horario.\n\n'
+          'Esta acción no se puede deshacer.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.orange,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Limpiar'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    final db = ref.read(databaseProvider);
+    final periodoMes = DateTime.now().periodoMes;
+    await db.resetSesionesMesByFuente(fuente.id, periodoMes);
+
+    ref.invalidate(dashboardProvider);
+    ref.invalidate(cobrosProvider);
+    ref.invalidate(cobrosPendientesProvider);
+    ref.invalidate(sesionesRealizadasMesProvider);
+    ref.invalidate(sesionesRecurrentesProvider);
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Datos del mes limpiados para "${fuente.nombre}"'),
+        ),
+      );
+    }
+  }
 }
 
 class _FuenteResumenTile extends StatelessWidget {
-  const _FuenteResumenTile({required this.resumen});
+  const _FuenteResumenTile({
+    required this.resumen,
+    required this.onReset,
+  });
 
   final FuenteResumen resumen;
+  final VoidCallback onReset;
 
   @override
   Widget build(BuildContext context) {
@@ -226,6 +293,28 @@ class _FuenteResumenTile extends StatelessWidget {
                 side: BorderSide.none,
                 padding: EdgeInsets.zero,
               ),
+            PopupMenuButton<String>(
+              icon: Icon(
+                Icons.more_vert,
+                size: 20,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+              onSelected: (value) {
+                if (value == 'reset') onReset();
+              },
+              itemBuilder: (_) => [
+                const PopupMenuItem(
+                  value: 'reset',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_sweep_outlined, color: Colors.orange),
+                      SizedBox(width: 8),
+                      Text('Limpiar mes actual'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),

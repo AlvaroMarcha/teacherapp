@@ -18,6 +18,8 @@ void main() async {
   // Auto-generar cobros pendientes para sesiones recurrentes
   final db = AppDatabase();
   await CobroAutoService.generarCobrosPendientes(db);
+  // Eliminar duplicados huérfanos generados por el bug de borrado+recreación
+  await db.cleanupOrphanedSesionesRealizadas();
   await db.close();
 
   FlutterNativeSplash.remove();

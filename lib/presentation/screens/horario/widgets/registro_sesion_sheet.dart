@@ -734,17 +734,12 @@ class _RegistroSesionSheetState extends ConsumerState<_RegistroSesionSheet> {
     );
     if (confirmed != true || !mounted) return;
 
-    // 1. Eliminar sesiones realizadas pendientes y sus cobros
+    // 1. Eliminar TODAS las sesiones realizadas + cobros (incluidos cobrados)
     await ref
         .read(sesionRepositoryProvider)
-        .deleteSesionesRealizadasPendientesByRecurrente(sesionRecId);
+        .deleteAllSesionesRealizadasByRecurrente(sesionRecId);
 
-    // 2. Desvincular sesiones confirmadas (conserva historial)
-    await ref
-        .read(sesionRepositoryProvider)
-        .desvincularSesionesRealizadas(sesionRecId);
-
-    // 3. Eliminar la sesión recurrente
+    // 2. Eliminar la sesión recurrente
     await ref
         .read(sesionRepositoryProvider)
         .deleteSesionRecurrente(sesionRecId);

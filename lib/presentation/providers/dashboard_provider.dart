@@ -15,6 +15,8 @@ class DashboardData {
     required this.totalPendienteMes,
     required this.totalHorasMes,
     required this.cobrosPendientes,
+    required this.totalPendienteGlobal,
+    required this.cobrosPendientesGlobal,
     required this.fuentesResumen,
     required this.horasExtraMes,
   });
@@ -22,16 +24,22 @@ class DashboardData {
   /// Total € cobrado en el mes actual (cobros con estado=cobrado).
   final double totalIngresadoMes;
 
-  /// Total € pendiente de cobro (estado=pendiente + estado=parcial).
+  /// Total € pendiente de cobro del mes actual (estado=pendiente + estado=parcial).
   final double totalPendienteMes;
 
-  /// Total de horas de sesiones del mes.
+  /// Total de horas de sesiones confirmadas del mes.
   final double totalHorasMes;
 
-  /// Número de cobros en estado pendiente o parcial.
+  /// Número de cobros pendientes/parciales del mes actual.
   final int cobrosPendientes;
 
-  /// Resumen por fuente: fuenteId → { ingresado, pendiente, horas }
+  /// Total € pendiente de todos los meses (alerta global para CobrosPendientesCard).
+  final double totalPendienteGlobal;
+
+  /// Número de cobros pendientes/parciales de todos los meses (alerta global).
+  final int cobrosPendientesGlobal;
+
+  /// Resumen por fuente: fuenteId → { ingresado, pendiente, horas } — solo mes actual.
   final Map<String, FuenteResumen> fuentesResumen;
 
   /// Horas extra del mes por fuenteId (solo fuentes tipo empleo).
@@ -65,28 +73,36 @@ final dashboardProvider = Provider<AsyncValue<DashboardData>>((ref) {
       data: (sesiones) => fuentesAsync.when(
         data: (fuentes) => horasExtraAsync.when(
           data: (todasHorasExtra) {
-            // Filtra cobros del mes actual
+            // IDs de sesiones del mes (excluye canceladas) para acotar cobros
+            final sesionIdsDelMes = sesiones
+                .where((s) => s.estado != EstadoSesion.cancelada)
+                .map((s) => s.id)
+                .toSet();
+
+            // Filtra cobros del mes actual:
+            //   - Mensuales: por periodoMes
+            //   - Por sesión: solo si la sesión pertenece al mes actual
             final cobrosMes = cobros.where((c) {
               if (c.modoCobro == ModoCobro.mensual) {
                 return c.periodoMes == periodoMes;
               }
-              return true; // sesiones: aproximación por mes
+              return c.sesionId != null && sesionIdsDelMes.contains(c.sesionId);
             }).toList();
 
-            final pendientes = cobrosMes.where(
+            final pendientesMes = cobrosMes.where(
               (c) =>
                   c.estado == EstadoCobro.pendiente ||
                   c.estado == EstadoCobro.parcial,
             );
-            final cobrados = cobrosMes.where(
+            final cobradosMes = cobrosMes.where(
               (c) => c.estado == EstadoCobro.cobrado,
             );
 
-            final totalIngresado = cobrados.fold<double>(
+            final totalIngresado = cobradosMes.fold<double>(
               0,
               (a, c) => a + c.monto,
             );
-            final totalPendiente = pendientes.fold<double>(
+            final totalPendienteMes = pendientesMes.fold<double>(
               0,
               (a, c) => a + c.montoPendiente,
             );
@@ -94,7 +110,18 @@ final dashboardProvider = Provider<AsyncValue<DashboardData>>((ref) {
                 .where((s) => s.estado == EstadoSesion.confirmada)
                 .fold<double>(0, (a, s) => a + s.horas);
 
-            // Resumen por fuente
+            // Pendientes globales (todos los meses) para la alerta de CobrosPendientesCard
+            final pendientesGlobal = cobros.where(
+              (c) =>
+                  c.estado == EstadoCobro.pendiente ||
+                  c.estado == EstadoCobro.parcial,
+            );
+            final totalPendienteGlobal = pendientesGlobal.fold<double>(
+              0,
+              (a, c) => a + c.montoPendiente,
+            );
+
+            // Resumen por fuente (solo mes actual)
             final resumenMap = <String, FuenteResumen>{};
             for (final fuente in fuentes) {
               final fCobrosMes =
@@ -132,9 +159,11 @@ final dashboardProvider = Provider<AsyncValue<DashboardData>>((ref) {
             return AsyncValue.data(
               DashboardData(
                 totalIngresadoMes: totalIngresado,
-                totalPendienteMes: totalPendiente,
+                totalPendienteMes: totalPendienteMes,
                 totalHorasMes: totalHoras,
-                cobrosPendientes: pendientes.length,
+                cobrosPendientes: pendientesMes.length,
+                totalPendienteGlobal: totalPendienteGlobal,
+                cobrosPendientesGlobal: pendientesGlobal.length,
                 fuentesResumen: resumenMap,
                 horasExtraMes: horasExtraLocal,
               ),
