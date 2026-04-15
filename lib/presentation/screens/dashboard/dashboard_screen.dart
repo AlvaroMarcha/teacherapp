@@ -10,6 +10,7 @@ import '../../../core/utils/currency_utils.dart';
 import '../../providers/cobros_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../providers/database_provider.dart';
+import '../../providers/horas_extra_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/sesiones_provider.dart';
 import '../../providers/theme_provider.dart';
@@ -231,6 +232,7 @@ class DashboardScreen extends ConsumerWidget {
     ref.invalidate(cobrosPendientesProvider);
     ref.invalidate(sesionesRealizadasMesProvider);
     ref.invalidate(sesionesRecurrentesProvider);
+    ref.invalidate(horasExtraProvider);
 
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

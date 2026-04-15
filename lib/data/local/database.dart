@@ -489,11 +489,20 @@ class AppDatabase extends _$AppDatabase {
       if (sesiones.isEmpty) return;
 
       final ids = sesiones.map((s) => s.id).toList();
+      final fechas = sesiones.map((s) => s.fecha).toSet().toList();
+      final fuenteId = sesiones.first.fuenteId;
 
       // 2. Eliminar todos los cobros asociados
       await (delete(cobrosTable)..where((t) => t.sesionId.isIn(ids))).go();
 
-      // 3. Eliminar todas las sesiones realizadas
+      // 3. Eliminar horas extra vinculadas por fuenteId + fecha (fuentes empleo)
+      await (delete(horasExtraTable)
+            ..where(
+              (t) => t.fuenteId.equals(fuenteId) & t.fecha.isIn(fechas),
+            ))
+          .go();
+
+      // 4. Eliminar todas las sesiones realizadas
       await (delete(sesionesRealizadasTable)..where((t) => t.id.isIn(ids)))
           .go();
     });
@@ -531,7 +540,14 @@ class AppDatabase extends _$AppDatabase {
             ))
           .go();
 
-      // 3. Eliminar todas las sesiones RECURRENTES de esta fuente
+      // 3. Eliminar horas extra del mes para esta fuente (fuentes empleo)
+      await (delete(horasExtraTable)
+            ..where(
+              (t) => t.fuenteId.equals(fuenteId) & t.fecha.like('$periodoMes%'),
+            ))
+          .go();
+
+      // 4. Eliminar todas las sesiones RECURRENTES de esta fuente
       //    (el patrón que aparece en el calendario/horario)
       await (delete(sesionesRecurrentesTable)
             ..where((t) => t.fuenteId.equals(fuenteId)))
