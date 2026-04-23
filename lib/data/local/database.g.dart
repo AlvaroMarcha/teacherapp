@@ -4297,6 +4297,395 @@ class NotasEtiquetasTableCompanion
   }
 }
 
+class $EmpleoNominasTableTable extends EmpleoNominasTable
+    with TableInfo<$EmpleoNominasTableTable, EmpleoNominasTableData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $EmpleoNominasTableTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _fuenteIdMeta =
+      const VerificationMeta('fuenteId');
+  @override
+  late final GeneratedColumn<String> fuenteId = GeneratedColumn<String>(
+      'fuente_id', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _anioMeta = const VerificationMeta('anio');
+  @override
+  late final GeneratedColumn<int> anio = GeneratedColumn<int>(
+      'anio', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _mesMeta = const VerificationMeta('mes');
+  @override
+  late final GeneratedColumn<int> mes = GeneratedColumn<int>(
+      'mes', aliasedName, false,
+      type: DriftSqlType.int, requiredDuringInsert: true);
+  static const VerificationMeta _salarioMeta =
+      const VerificationMeta('salario');
+  @override
+  late final GeneratedColumn<double> salario = GeneratedColumn<double>(
+      'salario', aliasedName, false,
+      type: DriftSqlType.double, requiredDuringInsert: true);
+  static const VerificationMeta _notasMeta = const VerificationMeta('notas');
+  @override
+  late final GeneratedColumn<String> notas = GeneratedColumn<String>(
+      'notas', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
+  static const VerificationMeta _syncStatusMeta =
+      const VerificationMeta('syncStatus');
+  @override
+  late final GeneratedColumn<String> syncStatus = GeneratedColumn<String>(
+      'sync_status', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('pending'));
+  static const VerificationMeta _creadaEnMeta =
+      const VerificationMeta('creadaEn');
+  @override
+  late final GeneratedColumn<String> creadaEn = GeneratedColumn<String>(
+      'creada_en', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [fuenteId, anio, mes, salario, notas, syncStatus, creadaEn];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'empleo_nominas';
+  @override
+  VerificationContext validateIntegrity(
+      Insertable<EmpleoNominasTableData> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('fuente_id')) {
+      context.handle(_fuenteIdMeta,
+          fuenteId.isAcceptableOrUnknown(data['fuente_id']!, _fuenteIdMeta));
+    } else if (isInserting) {
+      context.missing(_fuenteIdMeta);
+    }
+    if (data.containsKey('anio')) {
+      context.handle(
+          _anioMeta, anio.isAcceptableOrUnknown(data['anio']!, _anioMeta));
+    } else if (isInserting) {
+      context.missing(_anioMeta);
+    }
+    if (data.containsKey('mes')) {
+      context.handle(
+          _mesMeta, mes.isAcceptableOrUnknown(data['mes']!, _mesMeta));
+    } else if (isInserting) {
+      context.missing(_mesMeta);
+    }
+    if (data.containsKey('salario')) {
+      context.handle(_salarioMeta,
+          salario.isAcceptableOrUnknown(data['salario']!, _salarioMeta));
+    } else if (isInserting) {
+      context.missing(_salarioMeta);
+    }
+    if (data.containsKey('notas')) {
+      context.handle(
+          _notasMeta, notas.isAcceptableOrUnknown(data['notas']!, _notasMeta));
+    }
+    if (data.containsKey('sync_status')) {
+      context.handle(
+          _syncStatusMeta,
+          syncStatus.isAcceptableOrUnknown(
+              data['sync_status']!, _syncStatusMeta));
+    }
+    if (data.containsKey('creada_en')) {
+      context.handle(_creadaEnMeta,
+          creadaEn.isAcceptableOrUnknown(data['creada_en']!, _creadaEnMeta));
+    } else if (isInserting) {
+      context.missing(_creadaEnMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {fuenteId, anio, mes};
+  @override
+  EmpleoNominasTableData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return EmpleoNominasTableData(
+      fuenteId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}fuente_id'])!,
+      anio: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}anio'])!,
+      mes: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}mes'])!,
+      salario: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}salario'])!,
+      notas: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}notas'])!,
+      syncStatus: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}sync_status'])!,
+      creadaEn: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}creada_en'])!,
+    );
+  }
+
+  @override
+  $EmpleoNominasTableTable createAlias(String alias) {
+    return $EmpleoNominasTableTable(attachedDatabase, alias);
+  }
+}
+
+class EmpleoNominasTableData extends DataClass
+    implements Insertable<EmpleoNominasTableData> {
+  final String fuenteId;
+  final int anio;
+  final int mes;
+
+  /// Salario real cobrado ese mes (€).
+  final double salario;
+  final String notas;
+  final String syncStatus;
+  final String creadaEn;
+  const EmpleoNominasTableData(
+      {required this.fuenteId,
+      required this.anio,
+      required this.mes,
+      required this.salario,
+      required this.notas,
+      required this.syncStatus,
+      required this.creadaEn});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['fuente_id'] = Variable<String>(fuenteId);
+    map['anio'] = Variable<int>(anio);
+    map['mes'] = Variable<int>(mes);
+    map['salario'] = Variable<double>(salario);
+    map['notas'] = Variable<String>(notas);
+    map['sync_status'] = Variable<String>(syncStatus);
+    map['creada_en'] = Variable<String>(creadaEn);
+    return map;
+  }
+
+  EmpleoNominasTableCompanion toCompanion(bool nullToAbsent) {
+    return EmpleoNominasTableCompanion(
+      fuenteId: Value(fuenteId),
+      anio: Value(anio),
+      mes: Value(mes),
+      salario: Value(salario),
+      notas: Value(notas),
+      syncStatus: Value(syncStatus),
+      creadaEn: Value(creadaEn),
+    );
+  }
+
+  factory EmpleoNominasTableData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return EmpleoNominasTableData(
+      fuenteId: serializer.fromJson<String>(json['fuenteId']),
+      anio: serializer.fromJson<int>(json['anio']),
+      mes: serializer.fromJson<int>(json['mes']),
+      salario: serializer.fromJson<double>(json['salario']),
+      notas: serializer.fromJson<String>(json['notas']),
+      syncStatus: serializer.fromJson<String>(json['syncStatus']),
+      creadaEn: serializer.fromJson<String>(json['creadaEn']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'fuenteId': serializer.toJson<String>(fuenteId),
+      'anio': serializer.toJson<int>(anio),
+      'mes': serializer.toJson<int>(mes),
+      'salario': serializer.toJson<double>(salario),
+      'notas': serializer.toJson<String>(notas),
+      'syncStatus': serializer.toJson<String>(syncStatus),
+      'creadaEn': serializer.toJson<String>(creadaEn),
+    };
+  }
+
+  EmpleoNominasTableData copyWith(
+          {String? fuenteId,
+          int? anio,
+          int? mes,
+          double? salario,
+          String? notas,
+          String? syncStatus,
+          String? creadaEn}) =>
+      EmpleoNominasTableData(
+        fuenteId: fuenteId ?? this.fuenteId,
+        anio: anio ?? this.anio,
+        mes: mes ?? this.mes,
+        salario: salario ?? this.salario,
+        notas: notas ?? this.notas,
+        syncStatus: syncStatus ?? this.syncStatus,
+        creadaEn: creadaEn ?? this.creadaEn,
+      );
+  EmpleoNominasTableData copyWithCompanion(EmpleoNominasTableCompanion data) {
+    return EmpleoNominasTableData(
+      fuenteId: data.fuenteId.present ? data.fuenteId.value : this.fuenteId,
+      anio: data.anio.present ? data.anio.value : this.anio,
+      mes: data.mes.present ? data.mes.value : this.mes,
+      salario: data.salario.present ? data.salario.value : this.salario,
+      notas: data.notas.present ? data.notas.value : this.notas,
+      syncStatus:
+          data.syncStatus.present ? data.syncStatus.value : this.syncStatus,
+      creadaEn: data.creadaEn.present ? data.creadaEn.value : this.creadaEn,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EmpleoNominasTableData(')
+          ..write('fuenteId: $fuenteId, ')
+          ..write('anio: $anio, ')
+          ..write('mes: $mes, ')
+          ..write('salario: $salario, ')
+          ..write('notas: $notas, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('creadaEn: $creadaEn')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(fuenteId, anio, mes, salario, notas, syncStatus, creadaEn);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is EmpleoNominasTableData &&
+          other.fuenteId == this.fuenteId &&
+          other.anio == this.anio &&
+          other.mes == this.mes &&
+          other.salario == this.salario &&
+          other.notas == this.notas &&
+          other.syncStatus == this.syncStatus &&
+          other.creadaEn == this.creadaEn);
+}
+
+class EmpleoNominasTableCompanion
+    extends UpdateCompanion<EmpleoNominasTableData> {
+  final Value<String> fuenteId;
+  final Value<int> anio;
+  final Value<int> mes;
+  final Value<double> salario;
+  final Value<String> notas;
+  final Value<String> syncStatus;
+  final Value<String> creadaEn;
+  final Value<int> rowid;
+  const EmpleoNominasTableCompanion({
+    this.fuenteId = const Value.absent(),
+    this.anio = const Value.absent(),
+    this.mes = const Value.absent(),
+    this.salario = const Value.absent(),
+    this.notas = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    this.creadaEn = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  EmpleoNominasTableCompanion.insert({
+    required String fuenteId,
+    required int anio,
+    required int mes,
+    required double salario,
+    this.notas = const Value.absent(),
+    this.syncStatus = const Value.absent(),
+    required String creadaEn,
+    this.rowid = const Value.absent(),
+  })  : fuenteId = Value(fuenteId),
+        anio = Value(anio),
+        mes = Value(mes),
+        salario = Value(salario),
+        creadaEn = Value(creadaEn);
+  static Insertable<EmpleoNominasTableData> custom({
+    Expression<String>? fuenteId,
+    Expression<int>? anio,
+    Expression<int>? mes,
+    Expression<double>? salario,
+    Expression<String>? notas,
+    Expression<String>? syncStatus,
+    Expression<String>? creadaEn,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (fuenteId != null) 'fuente_id': fuenteId,
+      if (anio != null) 'anio': anio,
+      if (mes != null) 'mes': mes,
+      if (salario != null) 'salario': salario,
+      if (notas != null) 'notas': notas,
+      if (syncStatus != null) 'sync_status': syncStatus,
+      if (creadaEn != null) 'creada_en': creadaEn,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  EmpleoNominasTableCompanion copyWith(
+      {Value<String>? fuenteId,
+      Value<int>? anio,
+      Value<int>? mes,
+      Value<double>? salario,
+      Value<String>? notas,
+      Value<String>? syncStatus,
+      Value<String>? creadaEn,
+      Value<int>? rowid}) {
+    return EmpleoNominasTableCompanion(
+      fuenteId: fuenteId ?? this.fuenteId,
+      anio: anio ?? this.anio,
+      mes: mes ?? this.mes,
+      salario: salario ?? this.salario,
+      notas: notas ?? this.notas,
+      syncStatus: syncStatus ?? this.syncStatus,
+      creadaEn: creadaEn ?? this.creadaEn,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (fuenteId.present) {
+      map['fuente_id'] = Variable<String>(fuenteId.value);
+    }
+    if (anio.present) {
+      map['anio'] = Variable<int>(anio.value);
+    }
+    if (mes.present) {
+      map['mes'] = Variable<int>(mes.value);
+    }
+    if (salario.present) {
+      map['salario'] = Variable<double>(salario.value);
+    }
+    if (notas.present) {
+      map['notas'] = Variable<String>(notas.value);
+    }
+    if (syncStatus.present) {
+      map['sync_status'] = Variable<String>(syncStatus.value);
+    }
+    if (creadaEn.present) {
+      map['creada_en'] = Variable<String>(creadaEn.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('EmpleoNominasTableCompanion(')
+          ..write('fuenteId: $fuenteId, ')
+          ..write('anio: $anio, ')
+          ..write('mes: $mes, ')
+          ..write('salario: $salario, ')
+          ..write('notas: $notas, ')
+          ..write('syncStatus: $syncStatus, ')
+          ..write('creadaEn: $creadaEn, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4315,6 +4704,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $EtiquetasTableTable etiquetasTable = $EtiquetasTableTable(this);
   late final $NotasEtiquetasTableTable notasEtiquetasTable =
       $NotasEtiquetasTableTable(this);
+  late final $EmpleoNominasTableTable empleoNominasTable =
+      $EmpleoNominasTableTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4329,7 +4720,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         horasExtraTable,
         notasTable,
         etiquetasTable,
-        notasEtiquetasTable
+        notasEtiquetasTable,
+        empleoNominasTable
       ];
 }
 
@@ -6051,6 +6443,167 @@ class $$NotasEtiquetasTableTableOrderingComposer
           ColumnOrderings(column, joinBuilders: joinBuilders));
 }
 
+typedef $$EmpleoNominasTableTableCreateCompanionBuilder
+    = EmpleoNominasTableCompanion Function({
+  required String fuenteId,
+  required int anio,
+  required int mes,
+  required double salario,
+  Value<String> notas,
+  Value<String> syncStatus,
+  required String creadaEn,
+  Value<int> rowid,
+});
+typedef $$EmpleoNominasTableTableUpdateCompanionBuilder
+    = EmpleoNominasTableCompanion Function({
+  Value<String> fuenteId,
+  Value<int> anio,
+  Value<int> mes,
+  Value<double> salario,
+  Value<String> notas,
+  Value<String> syncStatus,
+  Value<String> creadaEn,
+  Value<int> rowid,
+});
+
+class $$EmpleoNominasTableTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $EmpleoNominasTableTable,
+    EmpleoNominasTableData,
+    $$EmpleoNominasTableTableFilterComposer,
+    $$EmpleoNominasTableTableOrderingComposer,
+    $$EmpleoNominasTableTableCreateCompanionBuilder,
+    $$EmpleoNominasTableTableUpdateCompanionBuilder> {
+  $$EmpleoNominasTableTableTableManager(
+      _$AppDatabase db, $EmpleoNominasTableTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          filteringComposer:
+              $$EmpleoNominasTableTableFilterComposer(ComposerState(db, table)),
+          orderingComposer: $$EmpleoNominasTableTableOrderingComposer(
+              ComposerState(db, table)),
+          updateCompanionCallback: ({
+            Value<String> fuenteId = const Value.absent(),
+            Value<int> anio = const Value.absent(),
+            Value<int> mes = const Value.absent(),
+            Value<double> salario = const Value.absent(),
+            Value<String> notas = const Value.absent(),
+            Value<String> syncStatus = const Value.absent(),
+            Value<String> creadaEn = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              EmpleoNominasTableCompanion(
+            fuenteId: fuenteId,
+            anio: anio,
+            mes: mes,
+            salario: salario,
+            notas: notas,
+            syncStatus: syncStatus,
+            creadaEn: creadaEn,
+            rowid: rowid,
+          ),
+          createCompanionCallback: ({
+            required String fuenteId,
+            required int anio,
+            required int mes,
+            required double salario,
+            Value<String> notas = const Value.absent(),
+            Value<String> syncStatus = const Value.absent(),
+            required String creadaEn,
+            Value<int> rowid = const Value.absent(),
+          }) =>
+              EmpleoNominasTableCompanion.insert(
+            fuenteId: fuenteId,
+            anio: anio,
+            mes: mes,
+            salario: salario,
+            notas: notas,
+            syncStatus: syncStatus,
+            creadaEn: creadaEn,
+            rowid: rowid,
+          ),
+        ));
+}
+
+class $$EmpleoNominasTableTableFilterComposer
+    extends FilterComposer<_$AppDatabase, $EmpleoNominasTableTable> {
+  $$EmpleoNominasTableTableFilterComposer(super.$state);
+  ColumnFilters<String> get fuenteId => $state.composableBuilder(
+      column: $state.table.fuenteId,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get anio => $state.composableBuilder(
+      column: $state.table.anio,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<int> get mes => $state.composableBuilder(
+      column: $state.table.mes,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<double> get salario => $state.composableBuilder(
+      column: $state.table.salario,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get notas => $state.composableBuilder(
+      column: $state.table.notas,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get syncStatus => $state.composableBuilder(
+      column: $state.table.syncStatus,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+
+  ColumnFilters<String> get creadaEn => $state.composableBuilder(
+      column: $state.table.creadaEn,
+      builder: (column, joinBuilders) =>
+          ColumnFilters(column, joinBuilders: joinBuilders));
+}
+
+class $$EmpleoNominasTableTableOrderingComposer
+    extends OrderingComposer<_$AppDatabase, $EmpleoNominasTableTable> {
+  $$EmpleoNominasTableTableOrderingComposer(super.$state);
+  ColumnOrderings<String> get fuenteId => $state.composableBuilder(
+      column: $state.table.fuenteId,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get anio => $state.composableBuilder(
+      column: $state.table.anio,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<int> get mes => $state.composableBuilder(
+      column: $state.table.mes,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<double> get salario => $state.composableBuilder(
+      column: $state.table.salario,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get notas => $state.composableBuilder(
+      column: $state.table.notas,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get syncStatus => $state.composableBuilder(
+      column: $state.table.syncStatus,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+
+  ColumnOrderings<String> get creadaEn => $state.composableBuilder(
+      column: $state.table.creadaEn,
+      builder: (column, joinBuilders) =>
+          ColumnOrderings(column, joinBuilders: joinBuilders));
+}
+
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
@@ -6076,4 +6629,6 @@ class $AppDatabaseManager {
       $$EtiquetasTableTableTableManager(_db, _db.etiquetasTable);
   $$NotasEtiquetasTableTableTableManager get notasEtiquetasTable =>
       $$NotasEtiquetasTableTableTableManager(_db, _db.notasEtiquetasTable);
+  $$EmpleoNominasTableTableTableManager get empleoNominasTable =>
+      $$EmpleoNominasTableTableTableManager(_db, _db.empleoNominasTable);
 }

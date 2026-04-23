@@ -12,6 +12,7 @@ import 'tables/cobros_table.dart';
 import 'tables/horas_extra_table.dart';
 import 'tables/notas_table.dart';
 import 'tables/etiquetas_table.dart';
+import 'tables/empleo_nominas_table.dart';
 
 part 'database.g.dart';
 
@@ -34,6 +35,7 @@ part 'database.g.dart';
     NotasTable,
     EtiquetasTable,
     NotasEtiquetasTable,
+    EmpleoNominasTable,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -43,7 +45,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.connection);
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -108,6 +110,9 @@ class AppDatabase extends _$AppDatabase {
           if (from < 8) {
             // Migración v7→v8: Ya no es necesaria porque v7 ahora crea directamente 'materiales'
             // Esta versión se mantiene para compatibilidad futura
+          }
+          if (from < 9) {
+            await m.createTable(empleoNominasTable);
           }
         },
       );
@@ -706,6 +711,40 @@ class AppDatabase extends _$AppDatabase {
       (delete(empleoConfigTable)..where((t) => t.fuenteId.equals(fuenteId)))
           .go();
 
+  Future<void> deleteEmpleoNominasByFuente(String fuenteId) =>
+      (delete(empleoNominasTable)..where((t) => t.fuenteId.equals(fuenteId)))
+          .go();
+
+  // ── Queries — EmpleoNominas ──────────────────────────────────────
+
+  Future<EmpleoNominasTableData?> getEmpleoNomina(
+    String fuenteId,
+    int anio,
+    int mes,
+  ) =>
+      (select(empleoNominasTable)
+            ..where(
+              (t) =>
+                  t.fuenteId.equals(fuenteId) &
+                  t.anio.equals(anio) &
+                  t.mes.equals(mes),
+            ))
+          .getSingleOrNull();
+
+  Stream<List<EmpleoNominasTableData>> watchEmpleoNominasByFuente(
+    String fuenteId,
+  ) =>
+      (select(empleoNominasTable)
+            ..where((t) => t.fuenteId.equals(fuenteId))
+            ..orderBy([
+              (t) => OrderingTerm.desc(t.anio),
+              (t) => OrderingTerm.desc(t.mes),
+            ]))
+          .watch();
+
+  Future<void> upsertEmpleoNomina(EmpleoNominasTableCompanion nomina) =>
+      into(empleoNominasTable).insertOnConflictUpdate(nomina);
+
   // ── Queries — Horas Extra ────────────────────────────────────────
 
   Stream<List<HorasExtraTableData>> watchAllHorasExtra() =>
@@ -839,6 +878,7 @@ class AppDatabase extends _$AppDatabase {
       await delete(sesionesRecurrentesTable).go();
       await delete(alumnosTable).go();
       await delete(empleoConfigTable).go();
+      await delete(empleoNominasTable).go();
       await delete(fuentesTable).go();
     });
   }

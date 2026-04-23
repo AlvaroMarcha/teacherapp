@@ -15,11 +15,13 @@ import '../../providers/notification_provider.dart';
 import '../../providers/sesiones_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/frase_diaria_provider.dart';
+import '../../providers/fuentes_provider.dart';
 import '../../../domain/models/fuente.dart';
 import 'widgets/resumen_mes_card.dart';
 import 'widgets/cobros_pendientes_card.dart';
 import 'widgets/clases_hoy_card.dart';
 import 'widgets/horas_semana_card.dart';
+import 'widgets/salario_empleo_card.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -161,6 +163,10 @@ class DashboardScreen extends ConsumerWidget {
                       horasExtra: data.horasExtraMes[r.fuente.id] ?? 0,
                     ),
                   ),
+              // Una tarjeta de nómina mensual por cada fuente de tipo empleo
+              ...data.fuentesResumen.values
+                  .where((r) => r.fuente.tipo == FuenteTipo.empleo)
+                  .map((r) => _SalarioEmpleoFuenteCard(fuente: r.fuente)),
               if (data.fuentesResumen.isNotEmpty) ...[
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -320,6 +326,34 @@ class _FuenteResumenTile extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Widget que carga la nómina del mes para una fuente de empleo concreta
+/// y renderiza [SalarioEmpleoCard].
+class _SalarioEmpleoFuenteCard extends ConsumerWidget {
+  const _SalarioEmpleoFuenteCard({required this.fuente});
+
+  final Fuente fuente;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final hoy = DateTime.now();
+    final configAsync = ref.watch(empleoConfigProvider(fuente.id));
+    final nominaAsync = ref.watch(empleoNominaDelMesProvider((
+      fuenteId: fuente.id,
+      anio: hoy.year,
+      mes: hoy.month,
+    )));
+
+    final config = configAsync.valueOrNull;
+    if (config == null) return const SizedBox.shrink();
+
+    return SalarioEmpleoCard(
+      fuente: fuente,
+      salarioBase: config.salarioBase,
+      nomina: nominaAsync.valueOrNull,
     );
   }
 }

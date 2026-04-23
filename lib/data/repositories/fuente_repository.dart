@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import '../local/database.dart';
 import '../../domain/models/fuente.dart';
 import '../../domain/models/empleo_config.dart';
+import '../../domain/models/empleo_nomina.dart';
 
 class FuenteRepository {
   const FuenteRepository(this._db);
@@ -40,6 +41,16 @@ class FuenteRepository {
         diaCobro: row.diaCobro,
       );
 
+  static EmpleoNomina _mapToNomina(EmpleoNominasTableData row) => EmpleoNomina(
+        fuenteId: row.fuenteId,
+        anio: row.anio,
+        mes: row.mes,
+        salario: row.salario,
+        notas: row.notas,
+        syncStatus: row.syncStatus,
+        creadaEn: row.creadaEn,
+      );
+
   // ── Fuentes ──────────────────────────────────────────────────────
 
   Stream<List<Fuente>> watchAllFuentes() =>
@@ -68,6 +79,7 @@ class FuenteRepository {
         await _db.deleteSesionesRecurrentesByFuente(id);
         await _db.deleteAlumnosByFuente(id);
         await _db.deleteEmpleoConfigByFuente(id);
+        await _db.deleteEmpleoNominasByFuente(id);
         await _db.deleteHorasExtraByFuente(id);
         await _db.deleteFuente(id);
       });
@@ -86,6 +98,34 @@ class FuenteRepository {
           horasSemanales: Value(config.horasSemanales),
           tarifaHoraExtra: Value(config.tarifaHoraExtra),
           diaCobro: Value(config.diaCobro),
+        ),
+      );
+
+  // ── EmpleoNominas ────────────────────────────────────────────
+
+  Future<EmpleoNomina?> getEmpleoNomina(
+    String fuenteId,
+    int anio,
+    int mes,
+  ) async {
+    final row = await _db.getEmpleoNomina(fuenteId, anio, mes);
+    return row == null ? null : _mapToNomina(row);
+  }
+
+  Stream<List<EmpleoNomina>> watchEmpleoNominasByFuente(String fuenteId) =>
+      _db.watchEmpleoNominasByFuente(fuenteId).map(
+            (rows) => rows.map(_mapToNomina).toList(),
+          );
+
+  Future<void> saveEmpleoNomina(EmpleoNomina nomina) => _db.upsertEmpleoNomina(
+        EmpleoNominasTableCompanion(
+          fuenteId: Value(nomina.fuenteId),
+          anio: Value(nomina.anio),
+          mes: Value(nomina.mes),
+          salario: Value(nomina.salario),
+          notas: Value(nomina.notas),
+          syncStatus: Value(nomina.syncStatus),
+          creadaEn: Value(nomina.creadaEn),
         ),
       );
 }

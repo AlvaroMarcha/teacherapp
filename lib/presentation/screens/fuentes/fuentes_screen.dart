@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/router/app_router.dart';
 import '../../../core/utils/currency_utils.dart';
@@ -8,6 +9,7 @@ import '../../../domain/models/fuente.dart';
 import '../../providers/alumnos_provider.dart';
 import '../../providers/fuentes_provider.dart';
 import '../../providers/theme_provider.dart';
+import 'widgets/nomina_mensual_dialog.dart';
 
 class FuentesScreen extends ConsumerStatefulWidget {
   const FuentesScreen({super.key});
@@ -179,21 +181,157 @@ class _FuenteTabContent extends ConsumerWidget {
 
 // ─── Empleo ──────────────────────────────────────────────────────────────────
 
-class _EmpleoContent extends ConsumerWidget {
+class _EmpleoContent extends ConsumerStatefulWidget {
   const _EmpleoContent({required this.fuente});
 
   final Fuente fuente;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_EmpleoContent> createState() => _EmpleoContentState();
+}
+
+class _EmpleoContentState extends ConsumerState<_EmpleoContent> {
+  bool _dialogMostrado = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _checkNominaDialog();
+  }
+
+  Future<void> _checkNominaDialog() async {
+    if (_dialogMostrado) return;
+    final configAsync = ref.read(empleoConfigProvider(widget.fuente.id));
+    final config = configAsync.valueOrNull;
+    if (config == null) return;
+
+    final pendiente = await ref.read(
+      pendienteIntroducirNominaProvider(
+          (fuenteId: widget.fuente.id, diaCobro: config.diaCobro)).future,
+    );
+    if (!pendiente || !mounted) return;
+    _dialogMostrado = true;
+
+    final hoy = DateTime.now();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      final nomina = await ref.read(
+        empleoNominaDelMesProvider((
+          fuenteId: widget.fuente.id,
+          anio: hoy.year,
+          mes: hoy.month,
+        )).future,
+      );
+      if (!mounted) return;
+      await showNominaMensualDialog(
+        context,
+        fuenteId: widget.fuente.id,
+        anio: hoy.year,
+        mes: hoy.month,
+        salarioDefault: config.salarioBase,
+        nominaActual: nomina,
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l = ref.watch(appLocalizationsProvider);
-    final configAsync = ref.watch(empleoConfigProvider(fuente.id));
-    final alumnosAsync = ref.watch(alumnosByFuenteProvider(fuente.id));
+    final locale = ref.watch(localeProvider);
+    final configAsync = ref.watch(empleoConfigProvider(widget.fuente.id));
+    final alumnosAsync = ref.watch(alumnosByFuenteProvider(widget.fuente.id));
+    final hoy = DateTime.now();
+    final nominaAsync = ref.watch(empleoNominaDelMesProvider((
+      fuenteId: widget.fuente.id,
+      anio: hoy.year,
+      mes: hoy.month,
+    )));
+    final mesLabel =
+        DateFormat('MMMM yyyy', locale.locale.toString()).format(hoy);
 
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // ── Contract info ──
+        // ── Nómina del mes ────────────────────────────────────────
+        configAsync.when(
+          loading: () => const SizedBox.shrink(),
+          error: (_, __) => const SizedBox.shrink(),
+          data: (config) {
+            if (config == null) return const SizedBox.shrink();
+            return nominaAsync.when(
+              loading: () => const LinearProgressIndicator(),
+              error: (_, __) => const SizedBox.shrink(),
+              data: (nomina) {
+                final tieneNomina = nomina != null;
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        Icon(
+                          tieneNomina
+                              ? Icons.account_balance_wallet_rounded
+                              : Icons.warning_amber_rounded,
+                          color: tieneNomina
+                              ? widget.fuente.flutterColor
+                              : Colors.orange,
+                          size: 28,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${l.nominaDe} $mesLabel',
+                                style: AppTextStyles.labelMedium,
+                              ),
+                              const SizedBox(height: 2),
+                              tieneNomina
+                                  ? Text(
+                                      CurrencyUtils.formatCompact(
+                                          nomina.salario),
+                                      style: AppTextStyles.bodyMedium.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                          color: widget.fuente.flutterColor),
+                                    )
+                                  : Text(
+                                      '${l.sinNominaIntroducida} · ${CurrencyUtils.formatCompact(config.salarioBase)} ${l.valorPorDefecto}',
+                                      style: AppTextStyles.bodySmall.copyWith(
+                                          color: Colors.orange.shade700),
+                                    ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          tooltip:
+                              tieneNomina ? l.editarNomina : l.introducirNomina,
+                          icon: Icon(
+                            tieneNomina
+                                ? Icons.edit_rounded
+                                : Icons.add_rounded,
+                            size: 20,
+                          ),
+                          onPressed: () => showNominaMensualDialog(
+                            context,
+                            fuenteId: widget.fuente.id,
+                            anio: hoy.year,
+                            mes: hoy.month,
+                            salarioDefault: config.salarioBase,
+                            nominaActual: nomina,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+
+        // ── Datos del contrato ────────────────────────────────────
         configAsync.when(
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (e, _) => Center(child: Text('Error: $e')),
@@ -205,26 +343,26 @@ class _EmpleoContent extends ConsumerWidget {
                   icon: Icons.euro_rounded,
                   label: l.salarioBase,
                   value: CurrencyUtils.formatCompact(config.salarioBase),
-                  color: fuente.flutterColor,
+                  color: widget.fuente.flutterColor,
                 ),
                 _InfoTile(
                   icon: Icons.access_time_rounded,
                   label: l.horasSemanalesContratadas,
                   value: '${config.horasSemanales.toStringAsFixed(0)}h',
-                  color: fuente.flutterColor,
+                  color: widget.fuente.flutterColor,
                 ),
                 _InfoTile(
                   icon: Icons.add_circle_outline_rounded,
                   label: l.tarifaHoraExtra,
                   value:
                       '${CurrencyUtils.formatCompact(config.tarifaHoraExtra)}/h',
-                  color: fuente.flutterColor,
+                  color: widget.fuente.flutterColor,
                 ),
                 _InfoTile(
                   icon: Icons.calendar_today_rounded,
                   label: l.diaCobro,
                   value: '${config.diaCobro} ${l.diaCadaMes}',
-                  color: fuente.flutterColor,
+                  color: widget.fuente.flutterColor,
                 ),
               ],
             );
@@ -240,7 +378,7 @@ class _EmpleoContent extends ConsumerWidget {
             const Spacer(),
             TextButton.icon(
               onPressed: () => context.push(
-                '${AppRoutes.alumnos}/form?fuenteId=${fuente.id}',
+                '${AppRoutes.alumnos}/form?fuenteId=${widget.fuente.id}',
               ),
               icon: const Icon(Icons.add, size: 18),
               label: Text(l.anadirAlumno),
@@ -281,11 +419,11 @@ class _EmpleoContent extends ConsumerWidget {
                       margin: const EdgeInsets.only(bottom: 8),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor:
-                              fuente.flutterColor.withValues(alpha: 0.15),
+                          backgroundColor: widget.fuente.flutterColor
+                              .withValues(alpha: 0.15),
                           child: Text(
                             a.nombre.substring(0, 1).toUpperCase(),
-                            style: TextStyle(color: fuente.flutterColor),
+                            style: TextStyle(color: widget.fuente.flutterColor),
                           ),
                         ),
                         title: Text(a.nombre),

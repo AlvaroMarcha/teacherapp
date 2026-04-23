@@ -13,6 +13,7 @@ import '../../providers/database_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../providers/sesiones_provider.dart';
 import '../../providers/theme_provider.dart';
+import '../fuentes/widgets/nomina_mensual_dialog.dart';
 
 /// Pantalla de horas extra para una fuente concreta de tipo [FuenteTipo.empleo].
 ///
@@ -97,11 +98,22 @@ class _HorasExtraBodyState extends ConsumerState<_HorasExtraBody> {
     final horasAsync = ref.watch(horasExtraByFuenteProvider(widget.fuente.id));
     final configAsync = ref.watch(empleoConfigProvider(widget.fuente.id));
     final l = ref.watch(appLocalizationsProvider);
+    final locale = ref.watch(localeProvider);
 
     // Periodo del mes seleccionado
     final periodoMes = DateFormat('yyyy-MM').format(_selectedMonth);
     final mesActual = DateFormat('yyyy-MM').format(DateTime.now());
     final esMesActual = periodoMes == mesActual;
+
+    // Nómina del mes seleccionado
+    final nominaAsync = ref.watch(empleoNominaDelMesProvider((
+      fuenteId: widget.fuente.id,
+      anio: _selectedMonth.year,
+      mes: _selectedMonth.month,
+    )));
+
+    final mesLabel = DateFormat('MMMM yyyy', locale.locale.toString())
+        .format(_selectedMonth);
 
     return Scaffold(
       appBar: AppBar(
@@ -144,6 +156,90 @@ class _HorasExtraBodyState extends ConsumerState<_HorasExtraBody> {
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              // ── Nómina del mes ──────────────────────────────────
+              configAsync.when(
+                loading: () => const SizedBox.shrink(),
+                error: (_, __) => const SizedBox.shrink(),
+                data: (config) {
+                  if (config == null) return const SizedBox.shrink();
+                  return nominaAsync.when(
+                    loading: () => const LinearProgressIndicator(),
+                    error: (_, __) => const SizedBox.shrink(),
+                    data: (nomina) {
+                      final tieneNomina = nomina != null;
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              Icon(
+                                tieneNomina
+                                    ? Icons.account_balance_wallet_rounded
+                                    : Icons.warning_amber_rounded,
+                                color: tieneNomina
+                                    ? widget.fuente.flutterColor
+                                    : Colors.orange,
+                                size: 28,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '${l.nominaDe} $mesLabel',
+                                      style: AppTextStyles.labelMedium,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    tieneNomina
+                                        ? Text(
+                                            CurrencyUtils.formatCompact(
+                                                nomina.salario),
+                                            style: AppTextStyles.bodyMedium
+                                                .copyWith(
+                                              fontWeight: FontWeight.w600,
+                                              color: widget.fuente.flutterColor,
+                                            ),
+                                          )
+                                        : Text(
+                                            '${l.sinNominaIntroducida} · ${CurrencyUtils.formatCompact(config.salarioBase)} ${l.valorPorDefecto}',
+                                            style: AppTextStyles.bodySmall
+                                                .copyWith(
+                                                    color:
+                                                        Colors.orange.shade700),
+                                          ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                tooltip: tieneNomina
+                                    ? l.editarNomina
+                                    : l.introducirNomina,
+                                icon: Icon(
+                                  tieneNomina
+                                      ? Icons.edit_rounded
+                                      : Icons.add_rounded,
+                                  size: 20,
+                                ),
+                                onPressed: () => showNominaMensualDialog(
+                                  context,
+                                  fuenteId: widget.fuente.id,
+                                  anio: _selectedMonth.year,
+                                  mes: _selectedMonth.month,
+                                  salarioDefault: config.salarioBase,
+                                  nominaActual: nomina,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+
               // Solo mostrar resumen de contrato si es el mes actual
               if (esMesActual) ...[
                 // ── Resumen contrato ──────────────────────────────
@@ -164,9 +260,11 @@ class _HorasExtraBodyState extends ConsumerState<_HorasExtraBody> {
                     // Horas extra = horas extra registradas
                     final totalExtra = horasExtrasMes;
 
-                    // Sueldo teórico = base + extras
-                    final sueldoEsperado = config.salarioBase +
-                        totalExtra * config.tarifaHoraExtra;
+                    // Sueldo: nómina real si existe, si no base + extras
+                    final nominaReal = nominaAsync.valueOrNull?.salario;
+                    final sueldoEsperado = nominaReal ??
+                        (config.salarioBase +
+                            horasExtrasMes * config.tarifaHoraExtra);
 
                     return Card(
                       child: Padding(
@@ -192,6 +290,7 @@ class _HorasExtraBodyState extends ConsumerState<_HorasExtraBody> {
                             _InfoRow(
                               label: l.horasTrabajadasMes,
                               value: CurrencyUtils.format(sueldoEsperado),
+                              highlight: nominaAsync.valueOrNull != null,
                             ),
                             _InfoRow(
                               label: l.horasContratadasMes,

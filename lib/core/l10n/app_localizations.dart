@@ -96,6 +96,14 @@ class AppLocalizations {
     required this.diaCobro,
     required this.diaCadaMes,
     required this.configuracionContrato,
+    required this.nominaMensual,
+    required this.introducirNomina,
+    required this.editarNomina,
+    required this.sinNominaIntroducida,
+    required this.salarioDelMes,
+    required this.valorPorDefecto,
+    required this.nominaDe,
+    required this.notasNomina,
 
     // ── Alumnos ──
     required this.alumnosTitle,
@@ -517,6 +525,14 @@ class AppLocalizations {
   final String diaCobro;
   final String diaCadaMes;
   final String configuracionContrato;
+  final String nominaMensual;
+  final String introducirNomina;
+  final String editarNomina;
+  final String sinNominaIntroducida;
+  final String salarioDelMes;
+  final String valorPorDefecto;
+  final String nominaDe;
+  final String notasNomina;
 
   // ── Alumnos ──
   final String alumnosTitle;
@@ -934,6 +950,14 @@ class AppLocalizations {
     diaCobro: 'Día de cobro',
     diaCadaMes: 'de cada mes',
     configuracionContrato: 'Configuración contrato',
+    nominaMensual: 'Nómina mensual',
+    introducirNomina: 'Introducir nómina',
+    editarNomina: 'Editar nómina',
+    sinNominaIntroducida: 'Sin nómina introducida',
+    salarioDelMes: 'Salario del mes',
+    valorPorDefecto: 'valor base',
+    nominaDe: 'Nómina de',
+    notasNomina: 'Notas (opcional)',
     alumnosTitle: 'Alumnos',
     buscar: 'Buscar',
     sinResultados: 'Sin resultados',
@@ -1329,6 +1353,14 @@ class AppLocalizations {
     diaCobro: 'Payday',
     diaCadaMes: 'of each month',
     configuracionContrato: 'Contract details',
+    nominaMensual: 'Monthly payslip',
+    introducirNomina: 'Enter payslip',
+    editarNomina: 'Edit payslip',
+    sinNominaIntroducida: 'No payslip entered',
+    salarioDelMes: 'Monthly salary',
+    valorPorDefecto: 'base value',
+    nominaDe: 'Payslip for',
+    notasNomina: 'Notes (optional)',
     alumnosTitle: 'Students',
     buscar: 'Search',
     sinResultados: 'No results',
@@ -1720,6 +1752,14 @@ class AppLocalizations {
     diaCobro: 'Giorno di paga',
     diaCadaMes: 'di ogni mese',
     configuracionContrato: 'Dettagli contratto',
+    nominaMensual: 'Busta paga mensile',
+    introducirNomina: 'Inserisci busta paga',
+    editarNomina: 'Modifica busta paga',
+    sinNominaIntroducida: 'Nessuna busta paga inserita',
+    salarioDelMes: 'Stipendio del mese',
+    valorPorDefecto: 'valore base',
+    nominaDe: 'Busta paga di',
+    notasNomina: 'Note (opzionale)',
     alumnosTitle: 'Studenti',
     buscar: 'Cerca',
     sinResultados: 'Nessun risultato',
