@@ -85,6 +85,7 @@ class _MesCalendarState extends ConsumerState<MesCalendar> {
             leftChevronIcon: Icon(Icons.chevron_left),
             rightChevronIcon: Icon(Icons.chevron_right),
           ),
+          startingDayOfWeek: StartingDayOfWeek.monday,
           locale: locale.locale.toString(),
         ),
         const Divider(height: 1),
